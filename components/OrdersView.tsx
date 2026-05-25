@@ -107,15 +107,22 @@ export default function OrdersView({ orders, onOpenApproval, searchQuery }: Orde
                   <td className="px-5 py-3 text-sm text-ink">{o.rep}</td>
                   <td className="px-5 py-3 text-sm font-medium text-ink">{o.cust}</td>
                   <td className="px-5 py-3 text-xs font-semibold">
-                    {o.channel === 'booklet' ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                        <Icon name="file" size={8} /> BOOKLET
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-leaf-50 text-leaf-700 border border-leaf-200">
-                        <Icon name="check" size={8} /> ERP DIRECT
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {o.channel === 'booklet' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                          <Icon name="file" size={8} /> BOOKLET
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-leaf-50 text-leaf-700 border border-leaf-200">
+                          <Icon name="check" size={8} /> ERP DIRECT
+                        </span>
+                      )}
+                      {o.lpoAttached && (
+                        <span title={o.lpoFileName} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                          <Icon name="camera" size={8} /> LPO
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-5 py-3 text-right font-mono text-sm font-bold text-ink">{o.value}</td>
                   <td className="px-5 py-3 text-center">

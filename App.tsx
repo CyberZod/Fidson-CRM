@@ -55,6 +55,8 @@ import BMDashboard from './components/BMDashboard';
 import BMDDashboard from './components/BMDDashboard';
 import ADCDashboard from './components/ADCDashboard';
 import CDDashboard from './components/CDDashboard';
+import CampaignsView from './components/CampaignsView';
+import PMPromoView from './components/PMPromoView';
 
 import CustomerInventoryView from './components/CustomerInventoryView';
 
@@ -74,6 +76,9 @@ import type {
   DirectiveForm,
   AccompanimentRow,
   AccompanimentForm,
+  JointCall,
+  JointCallForm,
+  PromoRequest,
   CustomerInventoryItem,
   RepVisit,
   RepActiveVisit,
@@ -187,6 +192,17 @@ export default function App() {
     { id: 'acc-1', pm: 'Dr. Femi Akande', rep: 'Adaeze Okafor', date: 'May 12, 2026', territory: 'Lekki Cluster', visitsShadowed: 4, notes: 'Adaeze handled detailing very professionally. Hospital pharmacist raised questions on Coflin pediatric packaging. Accompaniment complete.', status: 'synced' },
   ]);
 
+  const [promoRequests, setPromoRequests] = useState<PromoRequest[]>([
+    { id: 'pr-1', rep: 'Adaeze Okafor', title: 'Coflin Bulk Trade Promo · Q3', product: 'Coflin Forte 600mg', channel: 'trade', scope: '12 Lagos distributors · 6 weeks', estimatedReach: 240, budget: 1_800_000, rationale: 'Augmentin counter-detail — Lagos trade distributors signaling demand swing if we run a 12% incentive band.', date: 'May 13, 2026', status: 'pending' },
+    { id: 'pr-2', rep: 'Tope Adeola', title: 'Tuxil-N Retail Sampling · SW', product: 'Tuxil-N Syrup 100ml', channel: 'mobile-frontline', scope: '8 community pharmacies', estimatedReach: 90, budget: 420_000, rationale: 'OTC pull-through ahead of cough season. Sampling + posters.', date: 'May 12, 2026', status: 'pm-approved' },
+    { id: 'pr-3', rep: 'Chinedu Eze', title: 'Astrazon Hospital Bundle', product: 'Astrazon 10mg', channel: 'institution', scope: '4 teaching hospitals', estimatedReach: 60, budget: 2_400_000, rationale: 'Co-prescription with Coflin for paediatric ENT clinics.', date: 'May 10, 2026', status: 'launched' },
+  ]);
+
+  const [jointCalls, setJointCalls] = useState<JointCall[]>([
+    { id: 'jc-1', rep: 'Adaeze Okafor', pm: 'Dr. Femi Akande', division: 'South', region: 'SW', territory: 'Lekki / V.I.', customer: 'Lakeshore Specialist Hospital', product: 'Coflin Forte 600mg', scheduledFor: 'May 22, 2026 · 10:00', rationale: 'Coflin uptake below target in Apapa zone — observe paediatric detailing.', status: 'scheduled' },
+    { id: 'jc-2', rep: 'Tope Adeola', pm: 'Dr. Femi Akande', division: 'South', region: 'SW', territory: 'Surulere', customer: 'HealthPlus Surulere', product: 'Tuxil-N Syrup 100ml', scheduledFor: 'May 27, 2026 · 14:30', rationale: 'Tuxil OTC conversion lagging at retail outlets.', status: 'scheduled' },
+  ]);
+
   const [customerInventory, setCustomerInventory] = useState<CustomerInventoryItem[]>([
     { id: 'inv-1', customer: 'Lakeshore Specialist Hospital', product: 'Coflin Forte 600mg', stockOnHand: 12, restockLevel: 50, lastAudited: 'May 12, 2026', status: 'Low Stock', recommendation: 'Push 40 cartons of Coflin Forte.' },
     { id: 'inv-2', customer: 'Lakeshore Specialist Hospital', product: 'Astrazon 10mg', stockOnHand: 5, restockLevel: 15, lastAudited: 'May 12, 2026', status: 'Low Stock', recommendation: 'Push 10 packs of Astrazon 10mg.' },
@@ -227,11 +243,73 @@ export default function App() {
   ]);
 
   const [clinicalMeetings, setClinicalMeetings] = useState<ClinicalMeetingRow[]>([
-    { id: 'cm-1', rep: 'Adaeze O.', t: 'Respiratory Care CM', hcp: 'Lakeshore Specialist', date: 'May 22, 2026', attendees: 25, budget: '₦450k', s: 'pm-review', hi: false },
-    { id: 'cm-2', rep: 'Chinedu E.', t: 'Antibiotic Stewardship Workshop', hcp: 'Reddington Hospital', date: 'May 28, 2026', attendees: 40, budget: '₦820k', s: 'hom-review', hi: true },
-    { id: 'cm-3', rep: 'Tope A.', t: 'Paediatric Dosing Webinar', hcp: 'Multi-hospital', date: 'Jun 5, 2026', attendees: 65, budget: '₦1.2M', s: 'hom-review', hi: true },
-    { id: 'cm-4', rep: 'Kola A.', t: 'New Product Launch Brief', hcp: 'MedPlus Apapa', date: 'May 18, 2026', attendees: 12, budget: '₦180k', s: 'approved', hi: false },
-    { id: 'cm-5', rep: 'Adaeze O.', t: 'Mucolytic Use Cases', hcp: 'St. Nicholas', date: 'May 14, 2026', attendees: 18, budget: '₦220k', s: 'approved', hi: false },
+    {
+      id: 'cm-1', rep: 'Adaeze O.', t: 'Respiratory Care CM', hcp: 'Lakeshore Specialist', date: 'May 22, 2026', attendees: 25, budget: '₦450k', s: 'pm-review', hi: false,
+      materials: [
+        { id: 'cm1-1', kind: 'venue', label: 'Conference room · 3 hours', amount: 120_000 },
+        { id: 'cm1-2', kind: 'refreshments', label: 'Lunch + coffee for 25', amount: 180_000 },
+        { id: 'cm1-3', kind: 'print', label: 'Coflin Paediatric Detail Aid · 25 sets', amount: 60_000 },
+        { id: 'cm1-4', kind: 'samples', label: 'Coflin 600mg blister samples', amount: 90_000 },
+      ],
+      content: [
+        { id: 'cm1-c1', kind: 'slides', name: 'Respiratory Care · Coflin Forte PPT', size: '4.2 MB · 28 slides' },
+        { id: 'cm1-c2', kind: 'detail-aid', name: 'Coflin Paediatric Dosing Guide v2.1', size: 'PDF · 4 pages' },
+        { id: 'cm1-c3', kind: 'agenda', name: 'Meeting Agenda · 3 sessions', size: 'PDF · 1 page' },
+      ],
+    },
+    {
+      id: 'cm-2', rep: 'Chinedu E.', t: 'Antibiotic Stewardship Workshop', hcp: 'Reddington Hospital', date: 'May 28, 2026', attendees: 40, budget: '₦820k', s: 'hom-review', hi: true,
+      materials: [
+        { id: 'cm2-1', kind: 'venue', label: 'Auditorium · half-day', amount: 220_000 },
+        { id: 'cm2-2', kind: 'refreshments', label: 'Catering for 40', amount: 280_000 },
+        { id: 'cm2-3', kind: 'speaker', label: 'Honorarium · Dr. Akin (key opinion leader)', amount: 200_000 },
+        { id: 'cm2-4', kind: 'print', label: 'Astrazon + Coflin co-detail packs', amount: 120_000 },
+      ],
+      content: [
+        { id: 'cm2-c1', kind: 'slides', name: 'Antibiotic Stewardship Master Deck', size: '8.6 MB · 52 slides' },
+        { id: 'cm2-c2', kind: 'video', name: 'Case-study walkthrough', size: '12 min · MP4' },
+        { id: 'cm2-c3', kind: 'pdf', name: 'WHO AMR briefing', size: 'PDF · 12 pages' },
+      ],
+    },
+    {
+      id: 'cm-3', rep: 'Tope A.', t: 'Paediatric Dosing Webinar', hcp: 'Multi-hospital', date: 'Jun 5, 2026', attendees: 65, budget: '₦1.2M', s: 'hom-review', hi: true,
+      materials: [
+        { id: 'cm3-1', kind: 'venue', label: 'Zoom Webinar pro · 2 hours', amount: 60_000 },
+        { id: 'cm3-2', kind: 'speaker', label: 'KOL panel × 3', amount: 700_000 },
+        { id: 'cm3-3', kind: 'print', label: 'Mail-out detail packs · 65 reps', amount: 240_000 },
+        { id: 'cm3-4', kind: 'other', label: 'Recording & post-prod', amount: 200_000 },
+      ],
+      content: [
+        { id: 'cm3-c1', kind: 'slides', name: 'Paediatric Dosing Masterclass', size: '10.4 MB · 64 slides' },
+        { id: 'cm3-c2', kind: 'agenda', name: 'Webinar run-of-show', size: 'PDF · 2 pages' },
+      ],
+    },
+    {
+      id: 'cm-4', rep: 'Kola A.', t: 'New Product Launch Brief', hcp: 'MedPlus Apapa', date: 'May 18, 2026', attendees: 12, budget: '₦180k', s: 'approved', hi: false,
+      materials: [
+        { id: 'cm4-1', kind: 'refreshments', label: 'Brunch for 12', amount: 80_000 },
+        { id: 'cm4-2', kind: 'print', label: 'Launch brochure', amount: 50_000 },
+        { id: 'cm4-3', kind: 'samples', label: 'New SKU samples', amount: 50_000 },
+      ],
+      content: [
+        { id: 'cm4-c1', kind: 'slides', name: 'Launch Brief · MedPlus edition', size: '2.1 MB · 18 slides' },
+      ],
+      outcomeNotes: '12 attended · Coflin uptake commitment from MedPlus pharmacy lead · 8 orders attributed in 30 days.',
+    },
+    {
+      id: 'cm-5', rep: 'Adaeze O.', t: 'Mucolytic Use Cases', hcp: 'St. Nicholas', date: 'May 14, 2026', attendees: 18, budget: '₦220k', s: 'approved', hi: false,
+      materials: [
+        { id: 'cm5-1', kind: 'venue', label: 'Hospital boardroom', amount: 60_000 },
+        { id: 'cm5-2', kind: 'refreshments', label: 'Tea + biscuits', amount: 30_000 },
+        { id: 'cm5-3', kind: 'print', label: 'Mucolytic clinical pack', amount: 70_000 },
+        { id: 'cm5-4', kind: 'samples', label: 'Coflin samples', amount: 60_000 },
+      ],
+      content: [
+        { id: 'cm5-c1', kind: 'slides', name: 'Mucolytic Clinical Cases', size: '3.4 MB · 24 slides' },
+        { id: 'cm5-c2', kind: 'detail-aid', name: 'Coflin Detail Aid v2.0', size: 'PDF · 6 pages' },
+      ],
+      outcomeNotes: '18 attended · 4 new prescribers · ₦680k attributed orders in 30 days.',
+    },
   ]);
 
   const [contentApprovals, setContentApprovals] = useState<ContentApprovalRow[]>([
@@ -310,6 +388,8 @@ export default function App() {
         : (orderData.requiresApproval ? 'pending' : 'approved'),
       flag: orderData.requiresApproval,
       channel: orderData.channel,
+      lpoAttached: !!orderData.lpoFileName,
+      lpoFileName: orderData.lpoFileName,
     };
     setOrders(prev => [newOrder, ...prev]);
 
@@ -737,6 +817,46 @@ export default function App() {
     addToast({ type: 'success', title: 'Directive Acknowledged', msg: 'Confirmation logged & shared with PM.' });
   };
 
+  const handleApprovePromo = (id: string) => {
+    const p = promoRequests.find(x => x.id === id);
+    if (!p) return;
+    setPromoRequests(prev => prev.map(x => x.id === id ? { ...x, status: 'pm-approved' } : x));
+    addToast({ type: 'success', title: 'Promo approved', msg: `${p.title} · ready to launch as a tracked Campaign` });
+  };
+
+  const handleRejectPromo = (id: string) => {
+    const p = promoRequests.find(x => x.id === id);
+    if (!p) return;
+    setPromoRequests(prev => prev.map(x => x.id === id ? { ...x, status: 'rejected', dismissing: true } : x));
+    setTimeout(() => setPromoRequests(prev => prev.filter(x => x.id !== id)), 400);
+    addToast({ type: 'error', title: 'Promo rejected', msg: `${p.rep} notified · ${p.title}` });
+  };
+
+  const handleLaunchPromo = (id: string) => {
+    const p = promoRequests.find(x => x.id === id);
+    if (!p) return;
+    setPromoRequests(prev => prev.map(x => x.id === id ? { ...x, status: 'launched' } : x));
+    addToast({ type: 'success', title: 'Campaign launched', msg: `${p.title} · materials dispatching · ROI clock started` });
+  };
+
+  const handleScheduleJointCall = (form: JointCallForm) => {
+    const newCall: JointCall = {
+      id: `jc-${Date.now()}`,
+      rep: form.rep,
+      pm: 'Dr. Femi Akande',
+      division: form.division,
+      region: form.region,
+      territory: form.territory,
+      customer: form.customer,
+      product: form.product,
+      scheduledFor: form.scheduledFor,
+      rationale: form.rationale,
+      status: 'scheduled',
+    };
+    setJointCalls(prev => [newCall, ...prev]);
+    addToast({ type: 'success', title: 'Joint call scheduled', msg: `Heads-up sent to ${form.rep} · ${form.customer} on ${form.scheduledFor}` });
+  };
+
   const handleSaveAccompaniment = (form: AccompanimentForm) => {
     const newAcc: AccompanimentRow = {
       id: `acc-${Date.now()}`,
@@ -807,6 +927,8 @@ export default function App() {
     'cd-directive': { t: 'Push National Directive', s: 'Broadcast to all reps' },
     'nsm_inst-dashboard': { t: 'NSM Institution', s: 'Institution channel · 4 regions' },
     'nsm_trade-dashboard': { t: 'NSM Trade', s: 'Trade channel · reports to ADC' },
+    campaigns: { t: 'Campaigns & ROI', s: 'Material dispatch · 60-day attribution · cross-product' },
+    'pm-promo': { t: 'Promo Requests', s: 'Field-submitted promo campaigns · approve & launch' },
   };
 
   // ===== NAV CONFIGS =====
@@ -830,6 +952,8 @@ export default function App() {
     { k: 'pm-portfolio', i: 'pill', l: 'My Portfolio' },
     { k: 'pm-materials', i: 'file', l: 'Detailing Materials' },
     { k: 'pm-clinical', i: 'flask', l: 'CM Approvals', badge: clinicalMeetings.filter(c => c.s === 'pm-review').length },
+    { k: 'pm-promo', i: 'sparkles', l: 'Promo Requests', badge: promoRequests.filter(p => p.status === 'pending').length },
+    { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
     { k: 'pm-inventory', i: 'package', l: 'Customer Inventory' },
     { k: 'pm-directives', i: 'send', l: 'Rep Directives' },
     { k: 'pm-field', i: 'location', l: 'Shadow Logs' },
@@ -840,6 +964,7 @@ export default function App() {
     { k: 'mm-marketing', i: 'dashboard', l: 'Marketing Dashboard' },
     { k: 'mm-content', i: 'file', l: 'Content Approvals', badge: contentApprovals.filter(c => c.status === 'pending').length },
     { k: 'mm-cme', i: 'flask', l: 'High-Impact CMs', badge: clinicalMeetings.filter(c => c.s === 'hom-review').length },
+    { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
     { k: 'insights', i: 'sparkles', l: 'Brand Insights' },
   ];
 
@@ -847,6 +972,7 @@ export default function App() {
     { k: 'dm-division', i: 'dashboard', l: 'Division Overview' },
     { k: 'dm-regions', i: 'map', l: 'Regional Performance' },
     { k: 'dm-escalated', i: 'alert', l: 'Escalated Approvals', badge: 2 },
+    { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
     { k: 'insights', i: 'sparkles', l: 'Cross-Regional Intel' },
     { k: 'dm-push', i: 'send', l: 'Push to NSM' },
   ];
@@ -854,6 +980,7 @@ export default function App() {
   const nsmNav: NavItem[] = [
     { k: 'nsm-national', i: 'dashboard', l: 'National Dashboard' },
     { k: 'nsm-divisions', i: 'layers', l: 'Divisions' },
+    { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
     { k: 'nsm-forecast', i: 'trending', l: 'AI Forecast' },
     { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
     { k: 'nsm-directive', i: 'send', l: 'Push Directive' },
@@ -863,6 +990,7 @@ export default function App() {
     { k: 'hom-dashboard', i: 'dashboard', l: 'Marketing Overview' },
     { k: 'mm-content', i: 'file', l: 'Content Approvals', badge: contentApprovals.filter(c => c.status === 'pending').length },
     { k: 'mm-cme', i: 'flask', l: 'High-Impact CMs', badge: clinicalMeetings.filter(c => c.s === 'hom-review').length },
+    { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
     { k: 'insights', i: 'sparkles', l: 'Brand Insights' },
     { k: 'hom-directive', i: 'send', l: 'Push Directive' },
   ];
@@ -875,6 +1003,7 @@ export default function App() {
 
   const bmdNav: NavItem[] = [
     { k: 'bmd-dashboard', i: 'dashboard', l: 'Brand Management' },
+    { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
     { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
     { k: 'bmd-directive', i: 'send', l: 'Push Directive' },
   ];
@@ -882,6 +1011,7 @@ export default function App() {
   const nsmInstNav: NavItem[] = [
     { k: 'nsm_inst-dashboard', i: 'dashboard', l: 'Institution Dashboard' },
     { k: 'nsm-divisions', i: 'layers', l: 'Regions' },
+    { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
     { k: 'nsm-forecast', i: 'trending', l: 'AI Forecast' },
     { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
     { k: 'nsm-directive', i: 'send', l: 'Push Directive' },
@@ -890,6 +1020,7 @@ export default function App() {
   const nsmTradeNav: NavItem[] = [
     { k: 'nsm_trade-dashboard', i: 'dashboard', l: 'Trade Dashboard' },
     { k: 'nsm-divisions', i: 'layers', l: 'Regions' },
+    { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
     { k: 'nsm-forecast', i: 'trending', l: 'AI Forecast' },
     { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
     { k: 'nsm-directive', i: 'send', l: 'Push Directive' },
@@ -897,12 +1028,14 @@ export default function App() {
 
   const adcNav: NavItem[] = [
     { k: 'adc-dashboard', i: 'dashboard', l: 'Channel Overview' },
+    { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
     { k: 'insights', i: 'sparkles', l: 'Channel Insights' },
     { k: 'adc-directive', i: 'send', l: 'Push Directive' },
   ];
 
   const cdNav: NavItem[] = [
     { k: 'cd-dashboard', i: 'dashboard', l: 'National Command' },
+    { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
     { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
     { k: 'cd-directive', i: 'send', l: 'Push Directive' },
   ];
@@ -910,6 +1043,10 @@ export default function App() {
   // ===== RENDER VIEW =====
   const renderView = () => {
     const dashboardStats = { pendingCount: approvals.length };
+
+    if (view === 'campaigns') {
+      return <CampaignsView scope="All campaigns · Cross-product · 60-day attribution" />;
+    }
 
     if (isRep) {
       switch (view) {
@@ -976,7 +1113,8 @@ export default function App() {
         case 'pm-clinical': return <PMClinicalView clinicalMeetings={clinicalMeetings} onApproveCM={handlePMApproveCM} onRejectCM={rejectCM} />;
         case 'pm-inventory': return <CustomerInventoryView customerInventory={customerInventory} onBack={() => setView('pm-portfolio')} isPM />;
         case 'pm-directives': return <PMDirectivesView directives={directives} onPushDirective={handlePushDirective} onBack={() => setView('pm-portfolio')} />;
-        case 'pm-field': return <PMFieldView accompaniments={accompaniments} onSaveAccompaniment={handleSaveAccompaniment} onBack={() => setView('pm-portfolio')} />;
+        case 'pm-field': return <PMFieldView accompaniments={accompaniments} onSaveAccompaniment={handleSaveAccompaniment} jointCalls={jointCalls} onScheduleJointCall={handleScheduleJointCall} onBack={() => setView('pm-portfolio')} />;
+        case 'pm-promo': return <PMPromoView promoRequests={promoRequests} onApprove={handleApprovePromo} onReject={handleRejectPromo} onLaunch={handleLaunchPromo} />;
         case 'insights': return <InsightsView />;
         default: return <PMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} customerInventory={customerInventory} accompaniments={accompaniments} approvals={approvals} />;
       }

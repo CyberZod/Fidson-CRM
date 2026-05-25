@@ -19,6 +19,7 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
   const [discount, setDiscount] = useState(18);
   const [step, setStep] = useState<Step>('cart');
   const [signed, setSigned] = useState(false);
+  const [lpoFileName, setLpoFileName] = useState<string>('');
 
   const subtotal = items.reduce((s, i) => s + i.q * i.p, 0);
   const discountAmt = subtotal * (discount / 100);
@@ -42,7 +43,13 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
       total,
       requiresApproval,
       channel: hasOutOfStock ? 'booklet' : 'erp',
+      lpoFileName: lpoFileName || undefined,
     });
+  };
+
+  const handleLpoAttach = () => {
+    const stamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
+    setLpoFileName(`LPO-${stamp}.jpg`);
   };
 
   if (step === 'success') {
@@ -214,6 +221,34 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
               />
             </div>
           )}
+
+          <div className="rounded-2xl bg-white border border-navy-100 p-5">
+            <div className="flex items-center justify-between mb-2">
+              <p className="stat-label text-navy-400">LPO Attachment</p>
+              {lpoFileName && <span className="px-1.5 py-0.5 rounded bg-leaf-100 text-leaf-700 text-[9px] font-bold">ATTACHED</span>}
+            </div>
+            <p className="text-[11px] text-navy-500 mb-3">Snap a photo of the customer's Local Purchase Order. It rides with the order to Sales Admin.</p>
+            {lpoFileName ? (
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-leaf-50 border border-leaf-200">
+                <div className="w-9 h-9 rounded-lg bg-leaf-600 flex items-center justify-center flex-shrink-0">
+                  <Icon name="camera" size={16} className="text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-mono text-xs font-bold text-leaf-800 truncate">{lpoFileName}</p>
+                  <p className="text-[10px] text-leaf-700">Photo attached · ready to submit</p>
+                </div>
+                <button onClick={() => setLpoFileName('')} className="text-leaf-700 hover:text-leaf-900 text-[10px] font-bold">Remove</button>
+              </div>
+            ) : (
+              <button
+                onClick={handleLpoAttach}
+                className="w-full h-16 rounded-xl border-2 border-dashed border-navy-200 bg-paper hover:border-leaf-400 hover:bg-leaf-50/30 flex items-center justify-center gap-2 btn-press"
+              >
+                <Icon name="camera" size={18} className="text-navy-500" />
+                <span className="text-sm font-bold text-navy-700">Scan / attach LPO photo</span>
+              </button>
+            )}
+          </div>
 
           <div className="rounded-2xl bg-white border border-navy-100 p-5">
             <p className="stat-label text-navy-400 mb-2">Customer Signature</p>

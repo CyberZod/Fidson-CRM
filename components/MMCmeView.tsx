@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import Icon from './Icon';
+import CMDetailDrawer from './CMDetailDrawer';
 import type { ClinicalMeetingRow } from '../types';
 
 interface MMCmeViewProps {
@@ -9,6 +11,7 @@ interface MMCmeViewProps {
 
 export default function MMCmeView({ clinicalMeetings, onApprove, onReject }: MMCmeViewProps) {
   const highImpactCMs = clinicalMeetings.filter(c => c.s === 'hom-review');
+  const [openCm, setOpenCm] = useState<ClinicalMeetingRow | null>(null);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-6">
@@ -44,6 +47,9 @@ export default function MMCmeView({ clinicalMeetings, onApprove, onReject }: MMC
                   <p className="font-mono text-sm font-bold text-fuchsia-700 mt-2">{cm.budget}</p>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <button onClick={() => setOpenCm(cm)} className="px-2.5 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-paper btn-press flex items-center gap-1">
+                    <Icon name="eye" size={11} /> Details
+                  </button>
                   <button onClick={() => onReject(cm.id)} className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
                   <button onClick={() => onApprove(cm.id)} className="px-3 py-1.5 rounded-lg bg-fuchsia-500 text-white text-xs font-bold hover:bg-fuchsia-600 btn-press">Approve</button>
                 </div>
@@ -52,6 +58,8 @@ export default function MMCmeView({ clinicalMeetings, onApprove, onReject }: MMC
           ))}
         </div>
       </div>
+
+      <CMDetailDrawer cm={openCm} onClose={() => setOpenCm(null)} accent="fuchsia" />
     </div>
   );
 }

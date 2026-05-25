@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Icon from './Icon';
+import CMDetailDrawer from './CMDetailDrawer';
 import type { ClinicalMeetingRow } from '../types';
 
 interface PMClinicalViewProps {
@@ -12,6 +13,7 @@ type FilterKey = 'pending' | 'approved' | 'all';
 
 export default function PMClinicalView({ clinicalMeetings, onApproveCM, onRejectCM }: PMClinicalViewProps) {
   const [filter, setFilter] = useState<FilterKey>('pending');
+  const [openCm, setOpenCm] = useState<ClinicalMeetingRow | null>(null);
 
   const allCMs = clinicalMeetings.filter(c =>
     c.t.toLowerCase().includes('respirat') || c.t.toLowerCase().includes('coflin') ||
@@ -103,17 +105,24 @@ export default function PMClinicalView({ clinicalMeetings, onApproveCM, onReject
                     </span>
                   </div>
                 </div>
-                {cm.s === 'pm-review' && (
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <button onClick={() => onRejectCM(cm.id)} className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
-                    <button onClick={() => onApproveCM(cm.id)} className="px-3 py-1.5 rounded-lg bg-violet-500 text-white text-xs font-bold hover:bg-violet-600 btn-press">Approve</button>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button onClick={() => setOpenCm(cm)} className="px-2.5 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-paper btn-press flex items-center gap-1">
+                    <Icon name="eye" size={11} /> Details
+                  </button>
+                  {cm.s === 'pm-review' && (
+                    <>
+                      <button onClick={() => onRejectCM(cm.id)} className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
+                      <button onClick={() => onApproveCM(cm.id)} className="px-3 py-1.5 rounded-lg bg-violet-500 text-white text-xs font-bold hover:bg-violet-600 btn-press">Approve</button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      <CMDetailDrawer cm={openCm} onClose={() => setOpenCm(null)} accent="violet" />
     </div>
   );
 }

@@ -124,6 +124,26 @@ export interface OrderRow {
   flag?: boolean;
   status: 'pending' | 'approved' | 'synced' | 'rejected' | 'sent-to-sales-admin';
   dismissing?: boolean;
+  lpoAttached?: boolean;
+  lpoFileName?: string;
+}
+
+// ===== Promo Requests (PM-reviewed larger campaigns) =====
+export type PromoStatus = 'pending' | 'pm-approved' | 'rejected' | 'launched';
+
+export interface PromoRequest {
+  id: string;
+  rep: string;
+  title: string;
+  product: string;
+  channel: 'institution' | 'trade' | 'mobile-frontline' | string;
+  scope: string;
+  estimatedReach: number;
+  budget: number;
+  rationale: string;
+  date: string;
+  status: PromoStatus;
+  dismissing?: boolean;
 }
 
 // ===== Itineraries (RSM) =====
@@ -278,6 +298,37 @@ export interface DashboardStats {
   pendingCount: number;
 }
 
+// ===== Campaigns + ROI =====
+// A campaign starts the moment marketing material is dispatched. Orders
+// from attended/targeted HCPs within an attribution window count toward
+// revenue; ROI is (revenue - spend) / spend.
+export type CampaignChannel = 'institution' | 'trade' | 'mobile-frontline' | 'all';
+export type CampaignStatus = 'active' | 'paused' | 'closed';
+
+export interface Campaign {
+  id: string;
+  name: string;
+  product: string;
+  channel: CampaignChannel;
+  owner: string;
+  status: CampaignStatus;
+  startedAt: string;
+  attributionWindowDays: number;
+  materialsCost: number;
+  budgetSpent: number;
+  linkedCMs: number;
+  attendeesReached: number;
+  attributedRevenue: number;
+  regions?: string[];
+}
+
+export interface CampaignROI {
+  spend: number;
+  revenue: number;
+  roiPct: number;
+  status: 'green' | 'amber' | 'red';
+}
+
 // ===== Approval modal item shape (extended) =====
 export interface ApprovalModalItem extends ApprovalItem {
   orderId?: string;
@@ -287,6 +338,25 @@ export interface ApprovalModalItem extends ApprovalItem {
 }
 
 // ===== Clinical row shape used by RSM/PM/MM clinical views =====
+export type CMCostKind = 'venue' | 'refreshments' | 'samples' | 'print' | 'speaker' | 'transport' | 'other';
+
+export interface CMCostLine {
+  id: string;
+  kind: CMCostKind;
+  label: string;
+  amount: number;
+}
+
+export type CMContentKind = 'slides' | 'pdf' | 'detail-aid' | 'video' | 'agenda';
+
+export interface CMContentItem {
+  id: string;
+  kind: CMContentKind;
+  name: string;
+  size?: string;
+  url?: string;
+}
+
 export interface ClinicalMeetingRow {
   id: string;
   t: string;
@@ -298,6 +368,9 @@ export interface ClinicalMeetingRow {
   s: 'pm-review' | 'hom-review' | 'approved' | string;
   hi?: boolean;
   dismissing?: boolean;
+  materials?: CMCostLine[];
+  content?: CMContentItem[];
+  outcomeNotes?: string;
 }
 
 // ===== Rep visit / itinerary stop =====
@@ -369,6 +442,7 @@ export interface RepOrderSubmission {
   total: number;
   requiresApproval: boolean;
   channel: 'booklet' | 'erp';
+  lpoFileName?: string;
 }
 
 // ===== Directives (PM/Manager push) - extended shape used in the prototype =====
@@ -466,6 +540,34 @@ export interface CustomerStockRow {
 }
 
 export type CustomerStockEntry = CustomerStockRow[];
+
+// ===== Joint Call (PM-scheduled, forward-looking shadow visit) =====
+export type JointCallStatus = 'scheduled' | 'completed' | 'cancelled';
+
+export interface JointCall {
+  id: string;
+  rep: string;
+  pm: string;
+  division: string;
+  region: string;
+  territory: string;
+  customer: string;
+  product: string;
+  scheduledFor: string;
+  rationale?: string;
+  status: JointCallStatus;
+}
+
+export interface JointCallForm {
+  division: string;
+  region: string;
+  territory: string;
+  rep: string;
+  customer: string;
+  product: string;
+  scheduledFor: string;
+  rationale: string;
+}
 
 // ===== Accompaniment (extended) =====
 export interface AccompanimentRow {
