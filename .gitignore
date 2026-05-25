@@ -7,5 +7,8 @@ dist-ssr
 .env
 .env.local
 .env.*.local
-.agent
+*.agent
 .claude
+.agents
+fidson-video
+skills-lock.json
