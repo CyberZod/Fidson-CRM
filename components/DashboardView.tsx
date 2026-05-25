@@ -1,4 +1,5 @@
 import Icon from './Icon';
+import ProductLens from './ProductLens';
 import type { ApprovalItem, DashboardStats } from '../types';
 
 interface DashboardViewProps {
@@ -53,6 +54,10 @@ export default function DashboardView({ approvals, onOpenApproval, onApprove, da
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="fade-up">
+        <ProductLens scope="Lagos Region · Q2 FY26" accent="leaf" />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -115,9 +120,9 @@ export default function DashboardView({ approvals, onOpenApproval, onApprove, da
           <div className="fade-up stagger-1 rounded-2xl bg-white border border-navy-100 overflow-hidden">
             <div className="px-5 py-4 border-b border-navy-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="font-display font-bold text-ink">Pending Approvals</h3>
+                <h3 className="font-display font-bold text-ink">Discount Activity in Region</h3>
                 {approvals.length > 0 ? (
-                  <span className="px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold">{approvals.length} WAITING</span>
+                  <span className="px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold">{approvals.length} ROUTED TO DM</span>
                 ) : (
                   <span className="px-2 py-0.5 rounded-full bg-leaf-50 border border-leaf-200 text-leaf-700 text-[10px] font-bold">ALL CLEAR</span>
                 )}
@@ -130,8 +135,8 @@ export default function DashboardView({ approvals, onOpenApproval, onApprove, da
                 <div className="w-14 h-14 rounded-full bg-leaf-50 mx-auto flex items-center justify-center">
                   <Icon name="check" size={24} className="text-leaf-600" strokeWidth={2.5} />
                 </div>
-                <p className="mt-3 font-display font-semibold text-ink">All caught up!</p>
-                <p className="text-xs text-navy-500 mt-1">No pending approvals right now.</p>
+                <p className="mt-3 font-display font-semibold text-ink">No pending discount activity</p>
+                <p className="text-xs text-navy-500 mt-1">Approval authority sits with DM Kemi Adeyemi.</p>
               </div>
             ) : (
               <div className="divide-y divide-navy-50">
@@ -152,8 +157,8 @@ export default function DashboardView({ approvals, onOpenApproval, onApprove, da
                       <p className="text-[10px] text-navy-400">{a.time}</p>
                     </div>
                     <div className="flex items-center gap-1.5">
+                      <span className="hidden md:inline-flex items-center px-2 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[9px] font-bold">Awaiting DM</span>
                       <button onClick={() => onOpenApproval(a)} className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">View</button>
-                      <button onClick={() => onApprove(a.id)} className="px-3 py-1.5 rounded-lg bg-leaf-500 text-white text-xs font-bold hover:bg-leaf-600 btn-press">Approve</button>
                     </div>
                   </div>
                 ))}

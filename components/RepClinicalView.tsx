@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Icon from './Icon';
 
 interface RepClinicalViewProps {
   onSubmitCM: (form: CMForm) => void;
+  prefillHcp?: string;
+  onConsumePrefill?: () => void;
 }
 
 interface CMForm {
@@ -16,9 +18,16 @@ interface CMForm {
 
 const EMPTY_FORM: CMForm = { topic: '', hcp: '', date: '', attendees: '', budget: '', highImpact: false };
 
-export default function RepClinicalView({ onSubmitCM }: RepClinicalViewProps) {
+export default function RepClinicalView({ onSubmitCM, prefillHcp, onConsumePrefill }: RepClinicalViewProps) {
   const [form, setForm] = useState<CMForm>(EMPTY_FORM);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (prefillHcp && !submitted) {
+      setForm(prev => ({ ...prev, hcp: prefillHcp }));
+      onConsumePrefill?.();
+    }
+  }, [prefillHcp, submitted, onConsumePrefill]);
 
   const handleSubmit = () => {
     onSubmitCM(form);

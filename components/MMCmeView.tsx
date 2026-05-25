@@ -16,7 +16,7 @@ export default function MMCmeView({ clinicalMeetings, onApprove, onReject }: MMC
         <Icon name="flask" size={20} className="text-amber-700 mt-0.5 flex-shrink-0" />
         <div>
           <p className="font-display font-bold text-ink">High-Impact CM Approvals</p>
-          <p className="text-xs text-navy-700 mt-1">Multi-regional clinical events and high-budget meetings escalated by PMs. As MM, your sign-off ensures these align with brand and budget strategy before the Head of Marketing reviews.</p>
+          <p className="text-xs text-navy-700 mt-1">Multi-regional clinical events and high-budget meetings escalated by PMs. Per the URS, formal sign-off sits with the <strong>Head of Marketing</strong>; MM previews here on HoM's behalf until the HoM persona is added.</p>
         </div>
       </div>
 

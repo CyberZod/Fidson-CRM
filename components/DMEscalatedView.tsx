@@ -1,23 +1,73 @@
 import { useState } from 'react';
 import Icon from './Icon';
-import type { EscalatedApproval } from '../types';
+import type { ApprovalItem, ApprovalModalItem, EscalatedApproval } from '../types';
 
 interface DMEscalatedViewProps {
+  approvals?: ApprovalItem[];
+  onOpenApproval?: (item: ApprovalItem) => void;
   onApprove?: (id: string) => void;
   onReject?: (id: string) => void;
 }
 
-export default function DMEscalatedView({ onApprove }: DMEscalatedViewProps) {
-  const [items, setItems] = useState<EscalatedApproval[]>([
-    { id: 'esc-1', rep: 'Tunde Bakare', src: 'RSM South-West', cust: 'Reddington Hospital', value: '₦1,420,000', disc: '22%', urgent: true, ai: 'recommend-approve' },
-    { id: 'esc-2', rep: 'Emeka Okoro', src: 'RSM South-South', cust: 'PHC Med Plaza', value: '₦820,000', disc: '19%', urgent: false, ai: 'recommend-review' },
+interface UnifiedRow {
+  id: string;
+  rep: string;
+  src: string;
+  cust: string;
+  value: string;
+  disc: string;
+  urgent?: boolean;
+  ai?: EscalatedApproval['ai'];
+  raw?: ApprovalItem;
+  dismissing?: boolean;
+}
+
+const customerFromDetail = (detail: string): string => {
+  const onIdx = detail.toLowerCase().lastIndexOf(' on ');
+  if (onIdx === -1) return detail;
+  return detail.slice(onIdx + 4).replace(/ order$/, '').trim();
+};
+
+export default function DMEscalatedView({ approvals = [], onOpenApproval, onApprove, onReject }: DMEscalatedViewProps) {
+  const [mockItems, setMockItems] = useState<EscalatedApproval[]>([
     { id: 'esc-3', rep: 'Marketing Dept', src: 'Marketing exception', cust: 'Q2 trade promo · 50 distributors', value: '₦3,200,000', disc: '25%', urgent: true, ai: 'recommend-approve' },
   ]);
 
-  const handleApprove = (id: string) => {
-    setItems(prev => prev.map(i => i.id === id ? { ...i, dismissing: true } : i));
-    setTimeout(() => setItems(prev => prev.filter(i => i.id !== id)), 400);
-    onApprove?.(id);
+  const discountRows: UnifiedRow[] = approvals
+    .filter(a => a.type === 'discount')
+    .map(a => {
+      const modal = a as ApprovalModalItem;
+      return {
+        id: a.id,
+        rep: a.rep,
+        src: 'Discount · routed from rep',
+        cust: a.customer || customerFromDetail(a.detail),
+        value: a.amount,
+        disc: modal.requestedDiscount || a.discountPct || '—',
+        urgent: a.urgent,
+        ai: a.urgent ? 'recommend-review' : 'recommend-approve',
+        raw: a,
+      };
+    });
+  const mockRows: UnifiedRow[] = mockItems.map(m => ({ ...m }));
+  const items: UnifiedRow[] = [...discountRows, ...mockRows];
+
+  const handleApprove = (row: UnifiedRow) => {
+    if (row.raw) {
+      onApprove?.(row.id);
+      return;
+    }
+    setMockItems(prev => prev.map(i => i.id === row.id ? { ...i, dismissing: true } : i));
+    setTimeout(() => setMockItems(prev => prev.filter(i => i.id !== row.id)), 400);
+  };
+
+  const handleReject = (row: UnifiedRow) => {
+    if (row.raw) {
+      onReject?.(row.id);
+      return;
+    }
+    setMockItems(prev => prev.map(i => i.id === row.id ? { ...i, dismissing: true } : i));
+    setTimeout(() => setMockItems(prev => prev.filter(i => i.id !== row.id)), 400);
   };
 
   return (
@@ -25,8 +75,8 @@ export default function DMEscalatedView({ onApprove }: DMEscalatedViewProps) {
       <div className="fade-up p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3">
         <Icon name="alert" size={20} className="text-rose-700 mt-0.5 flex-shrink-0" />
         <div>
-          <p className="font-display font-bold text-ink">Division-Level Escalations</p>
-          <p className="text-xs text-navy-700 mt-1">Items here exceed RSM/FSM approval thresholds. As Division Manager, you have the authority to approve or escalate further to NSM. These are typically large institutional discounts, marketing exceptions, or multi-regional initiatives.</p>
+          <p className="font-display font-bold text-ink">Discount Approvals · DM Tier</p>
+          <p className="text-xs text-navy-700 mt-1">All discount requests route here. As Division Manager you hold sign-off authority for the team; RSMs see the activity read-only, PMs have visibility for portfolio-pricing context. Marketing exceptions land here too.</p>
         </div>
       </div>
 
@@ -54,7 +104,7 @@ export default function DMEscalatedView({ onApprove }: DMEscalatedViewProps) {
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-display font-semibold text-sm text-ink">{item.cust}</p>
                     {item.urgent && <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-bold">URGENT</span>}
-                    <span className="px-1.5 py-0.5 rounded bg-paper text-navy-700 text-[9px] font-bold border border-navy-100">EXCEEDS RSM TIER</span>
+                    <span className="px-1.5 py-0.5 rounded bg-paper text-navy-700 text-[9px] font-bold border border-navy-100">{item.raw ? 'DM SIGN-OFF' : 'MARKETING EXCEPTION'}</span>
                   </div>
                   <p className="text-[11px] text-navy-500 mt-0.5">From {item.src} · Submitted by {item.rep}</p>
                   <div className="mt-2 flex items-center gap-4 flex-wrap">
@@ -73,8 +123,11 @@ export default function DMEscalatedView({ onApprove }: DMEscalatedViewProps) {
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <button onClick={() => handleApprove(item.id)} className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Escalate to NSM</button>
-                  <button onClick={() => handleApprove(item.id)} className="px-3 py-1.5 rounded-lg bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 btn-press">Approve</button>
+                  {item.raw && onOpenApproval && (
+                    <button onClick={() => onOpenApproval(item.raw!)} className="px-2.5 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-paper btn-press">View</button>
+                  )}
+                  <button onClick={() => handleReject(item)} className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
+                  <button onClick={() => handleApprove(item)} className="px-3 py-1.5 rounded-lg bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 btn-press">Approve</button>
                 </div>
               </div>
             </div>

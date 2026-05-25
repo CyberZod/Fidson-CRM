@@ -1,11 +1,13 @@
 import Icon from './Icon';
-import type { ClinicalMeetingRow, CustomerInventoryItem, AccompanimentRow } from '../types';
+import ProductLens from './ProductLens';
+import type { ApprovalItem, ClinicalMeetingRow, CustomerInventoryItem, AccompanimentRow, ApprovalModalItem } from '../types';
 
 interface PMDashboardProps {
   onNavigate: (view: string) => void;
   clinicalMeetings: ClinicalMeetingRow[];
   customerInventory?: CustomerInventoryItem[];
   accompaniments?: AccompanimentRow[];
+  approvals?: ApprovalItem[];
 }
 
 export default function PMDashboard({
@@ -13,7 +15,9 @@ export default function PMDashboard({
   clinicalMeetings,
   customerInventory = [],
   accompaniments = [],
+  approvals = [],
 }: PMDashboardProps) {
+  const recentDiscounts = approvals.filter(a => a.type === 'discount').slice(0, 3);
   const pendingCMs = clinicalMeetings ? clinicalMeetings.filter(c => c.s === 'pm-review').length : 0;
 
   return (
@@ -39,6 +43,10 @@ export default function PMDashboard({
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="fade-up">
+        <ProductLens scope="Respiratory Portfolio · Nationwide" accent="violet" />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -183,6 +191,35 @@ export default function PMDashboard({
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="fade-up stagger-5 rounded-2xl bg-white border border-navy-100 p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display font-bold text-ink text-sm">Recent Discount Activity</h3>
+              <span className="text-[9px] font-bold text-navy-400">READ-ONLY · DM APPROVES</span>
+            </div>
+            {recentDiscounts.length === 0 ? (
+              <p className="text-[11px] text-navy-500">No active discount requests right now.</p>
+            ) : (
+              <div className="space-y-2">
+                {recentDiscounts.map(a => {
+                  const m = a as ApprovalModalItem;
+                  return (
+                    <div key={a.id} className="p-3 rounded-xl bg-paper border border-navy-100 text-xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-bold text-ink truncate">{a.rep}</p>
+                        <span className="font-mono font-bold text-rose-700 text-[11px]">{m.requestedDiscount || a.discountPct || '—'}</span>
+                      </div>
+                      <p className="text-navy-500 mt-0.5 truncate">{a.detail}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="font-mono text-[10px] text-navy-400">{a.amount}</p>
+                        {a.urgent && <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-bold">URGENT</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="fade-up stagger-5 rounded-2xl bg-white border border-navy-100 p-5 space-y-3">

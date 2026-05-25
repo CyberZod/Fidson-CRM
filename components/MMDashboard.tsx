@@ -23,7 +23,7 @@ export default function MMDashboard({ onNavigate, contentApprovals, clinicalMeet
             <h2 className="mt-2 font-display text-2xl sm:text-3xl font-bold text-ink">
               Hello <span style={{ background: 'linear-gradient(135deg, #142A5A 0%, #D946EF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Tola</span> — brand health is strong
             </h2>
-            <p className="text-sm text-navy-500 mt-1">{pendingContentCount} content approvals pending · {pendingHighImpactCMs} high-impact CMs awaiting your sign-off · You report to HoM</p>
+            <p className="text-sm text-navy-500 mt-1">{pendingContentCount} content approvals pending · {pendingHighImpactCMs} high-impact CMs queued for HoM sign-off (you preview as MM) · You report to HoM</p>
           </div>
           <button onClick={() => onNavigate('mm-content')} className="px-3 py-2 rounded-lg bg-fuchsia-500 text-white text-xs font-semibold flex items-center gap-1.5 btn-press hover:bg-fuchsia-600">
             <Icon name="file" size={14} /> Review Content Queue

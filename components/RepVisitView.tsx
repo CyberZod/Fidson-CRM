@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Icon from './Icon';
+import { PRODUCT_CATALOG } from '../assets/products';
 import type { IconName, RepActiveVisit, CustomerStockEntry, CustomerStockRow } from '../types';
 
 interface RepVisitViewProps {
@@ -9,16 +10,10 @@ interface RepVisitViewProps {
   onPlaceOrder: (visit: RepActiveVisit) => void;
   onNavigate: (view: string) => void;
   onSyncAudit: (customer: string, stock: CustomerStockEntry) => void;
+  onRequestCM?: (hcp: string) => void;
 }
 
 type Tab = 'detail' | 'samples' | 'market';
-
-interface Product {
-  id: 'coflin' | 'astrazon' | 'tuxil';
-  n: string;
-  t: string;
-  focus?: boolean;
-}
 
 export default function RepVisitView({
   activeVisit,
@@ -27,10 +22,17 @@ export default function RepVisitView({
   onPlaceOrder,
   onNavigate,
   onSyncAudit,
+  onRequestCM,
 }: RepVisitViewProps) {
   const [tab, setTab] = useState<Tab>('detail');
   const [checkedIn, setCheckedIn] = useState(false);
   const [responses, setResponses] = useState<{ response: string | null; checks: string[] }>({ response: null, checks: [] });
+  const plannedProducts = useMemo(() => activeVisit?.plannedProducts ?? [], [activeVisit]);
+  const [detailedProducts, setDetailedProducts] = useState<string[]>(plannedProducts);
+  useEffect(() => { setDetailedProducts(plannedProducts); }, [plannedProducts]);
+  const toggleDetailedProduct = (name: string) => {
+    setDetailedProducts(prev => prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]);
+  };
   const defaultStockRows = (): CustomerStockEntry => [
     { product: 'Coflin Forte 600mg', units: '' },
     { product: 'Astrazon 10mg', units: '' },
@@ -158,12 +160,6 @@ export default function RepVisitView({
     );
   }
 
-  const productList: Product[] = [
-    { id: 'coflin', n: 'Coflin Forte 600mg', t: 'Mucolytic · RX', focus: true },
-    { id: 'astrazon', n: 'Astrazon 10mg', t: 'Antihistamine' },
-    { id: 'tuxil', n: 'Tuxil-N Syrup', t: 'Cough · OTC' },
-  ];
-
   const messages = [
     'Paediatric dosing data shared',
     'New clinical trial results discussed',
@@ -234,22 +230,41 @@ export default function RepVisitView({
               </div>
 
               <div className="rounded-2xl bg-white border border-navy-100 p-5">
-                <p className="stat-label text-navy-400 mb-3">Products Detailed Today</p>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="stat-label text-navy-400">Products Detailed Today</p>
+                  <span className="text-[10px] text-navy-500 font-mono">{detailedProducts.length} selected</span>
+                </div>
+                <p className="text-[11px] text-navy-500 mb-3">{plannedProducts.length > 0 ? 'Pre-filled from your visit plan. Tap to add or remove.' : 'No products were planned for this visit — tap to add what you actually detailed.'}</p>
                 <div className="space-y-2">
-                  {productList.map(p => (
-                    <div key={p.id} className={`p-3 rounded-xl border ${p.focus ? 'bg-navy-50 border-navy-300' : 'bg-paper border-navy-100'}`}>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${p.focus ? 'bg-leaf-500' : 'bg-navy-100'}`}>
-                          <Icon name="pill" size={16} className={p.focus ? 'text-white' : 'text-navy-700'} />
+                  {PRODUCT_CATALOG.map(p => {
+                    const selected = detailedProducts.includes(p.name);
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => toggleDetailedProduct(p.name)}
+                        className={`w-full p-3 rounded-xl border text-left btn-press transition-colors ${
+                          selected
+                            ? (p.focus ? 'bg-leaf-50 border-leaf-400' : 'bg-navy-50 border-navy-300')
+                            : 'bg-paper border-navy-100 hover:border-navy-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${selected ? (p.focus ? 'bg-leaf-500' : 'bg-navy-700') : 'border-2 border-navy-300'}`}>
+                            {selected && <Icon name="check" size={12} className="text-white" strokeWidth={3} />}
+                          </div>
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${p.focus && selected ? 'bg-leaf-500' : 'bg-navy-100'}`}>
+                            <Icon name="pill" size={16} className={p.focus && selected ? 'text-white' : 'text-navy-700'} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-display font-semibold text-sm text-ink">{p.name}</p>
+                            <p className="text-[11px] text-navy-500">{p.category}</p>
+                          </div>
+                          {p.focus && <span className="px-2 py-1 rounded-full bg-leaf-500 text-white text-[9px] font-bold">FOCUS</span>}
                         </div>
-                        <div className="flex-1">
-                          <p className="font-display font-semibold text-sm text-ink">{p.n}</p>
-                          <p className="text-[11px] text-navy-500">{p.t}</p>
-                        </div>
-                        {p.focus && <span className="px-2 py-1 rounded-full bg-leaf-500 text-white text-[9px] font-bold">FOCUS</span>}
-                      </div>
-                    </div>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -405,6 +420,24 @@ export default function RepVisitView({
                   defaultValue="Augmentin 625mg at ₦950/strip — 8% under our list price. Competitor pushing volume tier 2 incentives."
                   className="input-field w-full px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink resize-none"
                 />
+              </div>
+
+              <div className="rounded-2xl bg-leaf-50 border border-leaf-200 p-5">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-leaf-600 flex items-center justify-center flex-shrink-0">
+                    <Icon name="flask" size={16} className="text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display font-semibold text-sm text-ink">Clinical Meeting Required?</p>
+                    <p className="text-[11px] text-navy-700 mt-0.5 leading-relaxed">If this HCP would benefit from a CM (e.g. department-wide brief, paediatric dosing workshop), file the request here. Routes to your PM; HoM signs off if high-impact.</p>
+                    <button
+                      onClick={() => onRequestCM?.(activeVisit.name)}
+                      className="mt-3 px-3 py-1.5 rounded-lg bg-leaf-600 text-white text-xs font-bold btn-press hover:bg-leaf-700 flex items-center gap-1.5"
+                    >
+                      <Icon name="plus" size={12} /> Request CM for {activeVisit.name.split(' ')[0]}…
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

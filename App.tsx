@@ -105,6 +105,7 @@ export default function App() {
 
   // ===== REP-SPECIFIC STATE =====
   const [activeVisit, setActiveVisit] = useState<RepActiveVisit | null>(null);
+  const [cmPrefillHcp, setCmPrefillHcp] = useState<string>('');
 
   const [repVisits, setRepVisits] = useState<RepVisit[]>([
     // Monday May 12
@@ -135,14 +136,28 @@ export default function App() {
   const [weekItinerary, setWeekItinerary] = useState({
     weekId: 'W20-FY26',
     weekLabel: 'Week 20 · May 12 – 16, 2026',
-    status: 'submitted' as 'draft' | 'submitted' | 'approved' | 'rejected',
+    status: 'approved' as 'draft' | 'submitted' | 'approved' | 'rejected',
     submittedAt: 'Friday 9 May, 17:42',
     approvedBy: 'Tunde Bakare (RSM)',
     approvedAt: 'Sunday 11 May, 19:30',
     rsmNote: 'Solid plan. Push for Lakeshore institutional close. Lagoon Hospital re-engagement is a priority.',
     adjustmentsUsedToday: 1,
     adjustmentsLimit: 3,
-    escalationStatus: 'imminent' as 'escalated' | 'imminent' | null,
+    escalationStatus: null as 'escalated' | 'imminent' | null,
+  });
+
+  const [nextWeekVisits, setNextWeekVisits] = useState<RepVisit[]>([]);
+  const [nextWeekItinerary, setNextWeekItinerary] = useState({
+    weekId: 'W21-FY26',
+    weekLabel: 'Week 21 · May 19 – 23, 2026',
+    status: 'draft' as 'draft' | 'submitted' | 'approved' | 'rejected',
+    submittedAt: '',
+    approvedBy: 'Tunde Bakare (RSM)',
+    approvedAt: '',
+    rsmNote: '',
+    adjustmentsUsedToday: 0,
+    adjustmentsLimit: 3,
+    escalationStatus: null as 'escalated' | 'imminent' | null,
   });
 
   const [itinerariesPending, setItinerariesPending] = useState<ItineraryPending[]>([
@@ -175,14 +190,15 @@ export default function App() {
   ]);
 
   const repStats = useMemo(() => {
-    const completed = repVisits.filter(v => v.day === 'tue' && v.status === 'done').length;
-    const planned = 8;
-    const remaining = planned - completed;
+    const todayVisits = repVisits.filter(v => v.day === 'tue');
+    const completed = todayVisits.filter(v => v.status === 'done').length;
+    const planned = todayVisits.length;
+    const remaining = Math.max(0, planned - completed);
     return {
       completed,
       planned,
       remaining,
-      completionPct: Math.round((completed / planned) * 100),
+      completionPct: planned > 0 ? Math.round((completed / planned) * 100) : 0,
       ordersCount: 3,
       ordersValue: '438k',
     };
@@ -244,6 +260,7 @@ export default function App() {
       contact: visit.contact,
       address: visit.address,
       role: visit.role,
+      plannedProducts: visit.plannedProducts ?? [],
     });
     setRepVisits(prev => prev.map(v =>
       v.id === visit.id ? { ...v, status: 'next' } : (v.status === 'next' && v.id !== visit.id ? { ...v, status: 'pending' } : v)
@@ -266,6 +283,11 @@ export default function App() {
   const handlePlaceOrder = (visit: RepActiveVisit) => {
     setActiveVisit(visit);
     setView('rep-order');
+  };
+
+  const handleRequestCMFromVisit = (hcp: string) => {
+    setCmPrefillHcp(hcp);
+    setView('rep-clinical');
   };
 
   const handleSubmitOrder = (orderData: RepOrderSubmission) => {
@@ -338,6 +360,36 @@ export default function App() {
       title: 'CM request submitted',
       msg: form.highImpact ? 'Routed to PM and HoM' : 'Routed to Product Manager',
     });
+  };
+
+  const handleAddPlannedVisit = (visit: RepVisit) => {
+    setNextWeekVisits(prev => [...prev, visit]);
+  };
+
+  const handleRemovePlannedVisit = (id: number | string) => {
+    setNextWeekVisits(prev => prev.filter(v => v.id !== id));
+  };
+
+  const handleSubmitItinerary = () => {
+    if (nextWeekVisits.length === 0) {
+      addToast({ type: 'error', title: 'Nothing to submit', msg: 'Add at least one visit before sending to RSM' });
+      return;
+    }
+    const submittedAt = 'Just now';
+    setNextWeekItinerary(prev => ({ ...prev, status: 'submitted', submittedAt }));
+    const newPending: ItineraryPending = {
+      id: `it-${Date.now()}`,
+      rep: 'Adaeze Okafor',
+      area: 'V.I. / Lekki',
+      week: nextWeekItinerary.weekLabel,
+      visits: nextWeekVisits.length,
+      submittedAt,
+      focus: 'Mixed portfolio',
+      highlights: `${nextWeekVisits.length} stops planned across the week`,
+      escalationStatus: null,
+    };
+    setItinerariesPending(prev => [newPending, ...prev]);
+    addToast({ type: 'success', title: `${nextWeekItinerary.weekLabel} submitted`, msg: `Tunde Bakare (RSM) will review your ${nextWeekVisits.length}-visit plan` });
   };
 
   const handleRequestAdjustment = (req: AdjustmentRequest) => {
@@ -583,7 +635,7 @@ export default function App() {
     if (!cm) return;
     if (cm.hi) {
       setClinicalMeetings(prev => prev.map(c => c.id === id ? { ...c, s: 'hom-review' } : c));
-      addToast({ type: 'info', title: 'CM escalated to MM', msg: `High-impact · ${cm.t}` });
+      addToast({ type: 'info', title: 'CM escalated to HoM', msg: `High-impact · ${cm.t}` });
     } else {
       setClinicalMeetings(prev => prev.map(c => c.id === id ? { ...c, s: 'approved' } : c));
       setApprovals(prev => prev.filter(a => (a as ApprovalModalItem).orderId !== id));
@@ -630,6 +682,7 @@ export default function App() {
   };
 
   const handlePushDirective = (form: DirectiveForm) => {
+    const kind = form.kind ?? 'directive';
     const newDir: DirectiveRow = {
       id: `dir-${Date.now()}`,
       pm: 'Dr. Femi Akande',
@@ -640,9 +693,16 @@ export default function App() {
       date: 'Today, ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       status: 'active',
       acknowledged: false,
+      kind,
     };
     setDirectives(prev => [newDir, ...prev]);
-    addToast({ type: 'success', title: 'Directive Pushed', msg: 'Directive shared with 89 active field representatives.' });
+    addToast({
+      type: 'success',
+      title: kind === 'new-product' ? 'New product notification sent' : 'Directive pushed',
+      msg: kind === 'new-product'
+        ? `${form.targetProduct} broadcast to 89 active field reps as "Update from PM"`
+        : 'Directive shared with 89 active field representatives.',
+    });
   };
 
   const handleAcknowledgeDirective = (id: string) => {
@@ -767,13 +827,13 @@ export default function App() {
     if (isRep) {
       switch (view) {
         case 'rep-day': return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} directives={directives} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
-        case 'rep-plan': return <RepPlanView visits={repVisits} onStartVisit={handleStartVisit} weekItinerary={weekItinerary} onRequestAdjustment={handleRequestAdjustment} />;
-        case 'rep-visit': return <RepVisitView activeVisit={activeVisit} onCheckIn={handleCheckIn} onCompleteVisit={handleCompleteVisit} onPlaceOrder={handlePlaceOrder} onNavigate={setView} onSyncAudit={handleSyncAudit} />;
+        case 'rep-plan': return <RepPlanView visits={repVisits} onStartVisit={handleStartVisit} weekItinerary={weekItinerary} onRequestAdjustment={handleRequestAdjustment} nextWeekVisits={nextWeekVisits} nextWeekItinerary={nextWeekItinerary} onAddPlannedVisit={handleAddPlannedVisit} onRemovePlannedVisit={handleRemovePlannedVisit} onSubmitItinerary={handleSubmitItinerary} />;
+        case 'rep-visit': return <RepVisitView activeVisit={activeVisit} onCheckIn={handleCheckIn} onCompleteVisit={handleCompleteVisit} onPlaceOrder={handlePlaceOrder} onNavigate={setView} onSyncAudit={handleSyncAudit} onRequestCM={handleRequestCMFromVisit} />;
         case 'rep-order': return <RepOrderView activeVisit={activeVisit} onSubmitOrder={handleSubmitOrder} onBack={() => setView('rep-visit')} />;
         case 'rep-coach': return <RepCoachView customerInventory={customerInventory} onNavigate={setView} />;
         case 'rep-inventory': return <CustomerInventoryView customerInventory={customerInventory} onBack={() => setView('rep-day')} isPM={false} />;
         case 'rep-dcr': return <RepDCRView visitsCompleted={repStats.completed} ordersToday={orders.filter(o => o.rep === 'Adaeze O.').length} />;
-        case 'rep-clinical': return <RepClinicalView onSubmitCM={handleSubmitCM} />;
+        case 'rep-clinical': return <RepClinicalView onSubmitCM={handleSubmitCM} prefillHcp={cmPrefillHcp} onConsumePrefill={() => setCmPrefillHcp('')} />;
         case 'rep-orders': return <OrdersView orders={orders.filter(o => o.rep === 'Adaeze O.')} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
         default: return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} directives={directives} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
       }
@@ -824,14 +884,14 @@ export default function App() {
 
     if (isPM) {
       switch (view) {
-        case 'pm-portfolio': return <PMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} customerInventory={customerInventory} accompaniments={accompaniments} />;
+        case 'pm-portfolio': return <PMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} customerInventory={customerInventory} accompaniments={accompaniments} approvals={approvals} />;
         case 'pm-materials': return <PMMaterialsView onPushMaterial={handlePushMaterial} />;
         case 'pm-clinical': return <PMClinicalView clinicalMeetings={clinicalMeetings} onApproveCM={handlePMApproveCM} onRejectCM={rejectCM} />;
         case 'pm-inventory': return <CustomerInventoryView customerInventory={customerInventory} onBack={() => setView('pm-portfolio')} isPM />;
         case 'pm-directives': return <PMDirectivesView directives={directives} onPushDirective={handlePushDirective} onBack={() => setView('pm-portfolio')} />;
         case 'pm-field': return <PMFieldView accompaniments={accompaniments} onSaveAccompaniment={handleSaveAccompaniment} onBack={() => setView('pm-portfolio')} />;
         case 'insights': return <InsightsView />;
-        default: return <PMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} customerInventory={customerInventory} accompaniments={accompaniments} />;
+        default: return <PMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} customerInventory={customerInventory} accompaniments={accompaniments} approvals={approvals} />;
       }
     }
 
@@ -849,7 +909,7 @@ export default function App() {
       switch (view) {
         case 'dm-division': return <DMDashboard onNavigate={setView} approvals={approvals} />;
         case 'dm-regions': return <DMDashboard onNavigate={setView} approvals={approvals} />;
-        case 'dm-escalated': return <DMEscalatedView onApprove={() => addToast({ type: 'success', title: 'Escalation approved', msg: 'Pushed back to RSM · SOA syncing' })} onReject={() => {}} />;
+        case 'dm-escalated': return <DMEscalatedView approvals={approvals} onOpenApproval={setApprovalModalItem as (item: ApprovalItem) => void} onApprove={approveItem} onReject={rejectItem} />;
         case 'insights': return <InsightsView />;
         case 'dm-push': return (
           <div className="p-8 max-w-2xl mx-auto">

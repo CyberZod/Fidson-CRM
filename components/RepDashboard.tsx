@@ -166,32 +166,44 @@ export default function RepDashboard({
           {directives.length > 0 && (
             <div className="fade-up stagger-5 rounded-2xl bg-white border border-navy-100 p-5">
               <h3 className="font-display font-bold text-ink text-sm mb-3">From Your PM</h3>
-              {directives.slice(0, 1).map(dir => (
-                <div key={dir.id} className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-full bg-violet-600 flex items-center justify-center text-white font-display font-bold text-xs flex-shrink-0">
-                      {dir.pm.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-1">
-                        <p className="text-xs font-semibold text-ink">{dir.pm}</p>
-                        <span className="text-[10px] text-navy-400 font-mono">{dir.date}</span>
+              {directives.slice(0, 1).map(dir => {
+                const isNewProduct = dir.kind === 'new-product';
+                const avatarBg = isNewProduct ? 'bg-leaf-600' : 'bg-violet-600';
+                const titleText = isNewProduct ? 'text-leaf-700' : 'text-violet-700';
+                const quoteBg = isNewProduct ? 'bg-leaf-50/50 border-leaf-100' : 'bg-violet-50/50 border-violet-100';
+                const btnBg = isNewProduct ? 'bg-leaf-600 hover:bg-leaf-700' : 'bg-violet-600 hover:bg-violet-700';
+                return (
+                  <div key={dir.id} className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-9 h-9 rounded-full ${avatarBg} flex items-center justify-center text-white font-display font-bold text-xs flex-shrink-0`}>
+                        {dir.pm.split(' ').map(n => n[0]).join('')}
                       </div>
-                      <p className="text-[11px] font-bold text-violet-700 uppercase tracking-wider mt-0.5">{dir.title}</p>
-                      <p className="text-[11px] text-navy-500 mt-1 leading-relaxed bg-violet-50/50 p-2.5 rounded-lg border border-violet-100">"{dir.message}"</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1 flex-wrap">
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-xs font-semibold text-ink">{dir.pm}</p>
+                            {isNewProduct && (
+                              <span className="px-1.5 py-0.5 rounded bg-leaf-100 text-leaf-700 text-[9px] font-bold tracking-wider uppercase">Update from PM</span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-navy-400 font-mono">{dir.date}</span>
+                        </div>
+                        <p className={`text-[11px] font-bold uppercase tracking-wider mt-0.5 ${titleText}`}>{dir.title}</p>
+                        <p className={`text-[11px] text-navy-500 mt-1 leading-relaxed p-2.5 rounded-lg border ${quoteBg}`}>"{dir.message}"</p>
+                      </div>
                     </div>
+                    {!dir.acknowledged ? (
+                      <button onClick={() => onAcknowledgeDirective(dir.id)} className={`w-full py-2 ${btnBg} text-white rounded-lg text-xs font-bold btn-press flex items-center justify-center gap-1`}>
+                        <Icon name="check" size={12} strokeWidth={3} /> {isNewProduct ? 'Got it' : 'Acknowledge Directive'}
+                      </button>
+                    ) : (
+                      <div className="w-full py-1.5 bg-leaf-50 text-leaf-700 border border-leaf-200 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1">
+                        <Icon name="check" size={12} strokeWidth={3} /> {isNewProduct ? 'Update acknowledged' : 'Directive Acknowledged'}
+                      </div>
+                    )}
                   </div>
-                  {!dir.acknowledged ? (
-                    <button onClick={() => onAcknowledgeDirective(dir.id)} className="w-full py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-bold btn-press flex items-center justify-center gap-1">
-                      <Icon name="check" size={12} strokeWidth={3} /> Acknowledge Directive
-                    </button>
-                  ) : (
-                    <div className="w-full py-1.5 bg-leaf-50 text-leaf-700 border border-leaf-200 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1">
-                      <Icon name="check" size={12} strokeWidth={3} /> Directive Acknowledged
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

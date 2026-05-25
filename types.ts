@@ -297,6 +297,7 @@ export interface ClinicalMeetingRow {
 
 // ===== Rep visit / itinerary stop =====
 export interface RepVisit {
+  plannedProducts?: string[];
   id: number | string;
   name: string;
   contact: string;
@@ -341,6 +342,7 @@ export interface RepActiveVisit {
   address?: string;
   role?: string;
   checkedIn?: boolean;
+  plannedProducts?: string[];
 }
 
 // ===== Rep order submission =====
@@ -365,6 +367,8 @@ export interface RepOrderSubmission {
 }
 
 // ===== Directives (PM/Manager push) - extended shape used in the prototype =====
+export type DirectiveKind = 'directive' | 'new-product';
+
 export interface DirectiveRow {
   id: string;
   pm: string;
@@ -379,6 +383,7 @@ export interface DirectiveRow {
   expiresOn?: string;
   targetProduct?: string;
   status?: string;
+  kind?: DirectiveKind;
 }
 
 // ===== Directive form (PM submits) =====
@@ -387,6 +392,7 @@ export interface DirectiveForm {
   message: string;
   targetProduct: string;
   priority: 'high' | 'normal' | string;
+  kind?: DirectiveKind;
 }
 
 // ===== Accompaniment form (PM submits) =====
