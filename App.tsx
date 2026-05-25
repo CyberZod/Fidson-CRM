@@ -14,7 +14,7 @@ import DashboardView from './components/DashboardView';
 import FieldActivityView from './components/FieldActivityView';
 import OrdersView from './components/OrdersView';
 import HCPsView from './components/HCPsView';
-import InsightsView from './components/InsightsView';
+import AIInsightsChat from './components/AIInsightsChat';
 import ClinicalView from './components/ClinicalView';
 import ReportsView from './components/ReportsView';
 import RSMItinerariesView from './components/RSMItinerariesView';
@@ -1101,7 +1101,7 @@ export default function App() {
         case 'fsm-distributors': return <FSMDistributorsView />;
         case 'activity': return <FieldActivityView searchQuery={searchQuery} />;
         case 'orders': return <OrdersView orders={orders} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
-        case 'insights': return <InsightsView />;
+        case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <FSMDashboard onNavigate={setView} />;
       }
     }
@@ -1115,7 +1115,7 @@ export default function App() {
         case 'pm-directives': return <PMDirectivesView directives={directives} onPushDirective={handlePushDirective} onBack={() => setView('pm-portfolio')} />;
         case 'pm-field': return <PMFieldView accompaniments={accompaniments} onSaveAccompaniment={handleSaveAccompaniment} jointCalls={jointCalls} onScheduleJointCall={handleScheduleJointCall} onBack={() => setView('pm-portfolio')} />;
         case 'pm-promo': return <PMPromoView promoRequests={promoRequests} onApprove={handleApprovePromo} onReject={handleRejectPromo} onLaunch={handleLaunchPromo} />;
-        case 'insights': return <InsightsView />;
+        case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <PMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} customerInventory={customerInventory} accompaniments={accompaniments} approvals={approvals} />;
       }
     }
@@ -1125,7 +1125,7 @@ export default function App() {
         case 'mm-marketing': return <MMDashboard onNavigate={setView} contentApprovals={contentApprovals} clinicalMeetings={clinicalMeetings} />;
         case 'mm-content': return <MMContentApprovalsView contentApprovals={contentApprovals} onApproveContent={handleApproveContent} onRejectContent={handleRejectContent} />;
         case 'mm-cme': return <MMCmeView clinicalMeetings={clinicalMeetings} onApprove={handleMMApproveCM} onReject={rejectCM} />;
-        case 'insights': return <InsightsView />;
+        case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <MMDashboard onNavigate={setView} contentApprovals={contentApprovals} clinicalMeetings={clinicalMeetings} />;
       }
     }
@@ -1135,7 +1135,7 @@ export default function App() {
         case 'dm-division': return <DMDashboard onNavigate={setView} approvals={approvals} />;
         case 'dm-regions': return <DMDashboard onNavigate={setView} approvals={approvals} />;
         case 'dm-escalated': return <DMEscalatedView approvals={approvals} onOpenApproval={setApprovalModalItem as (item: ApprovalItem) => void} onApprove={approveItem} onReject={rejectItem} />;
-        case 'insights': return <InsightsView />;
+        case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         case 'dm-push': return (
           <div className="p-8 max-w-2xl mx-auto">
             <div className="rounded-2xl bg-white border border-navy-100 p-6 fade-up">
@@ -1166,9 +1166,9 @@ export default function App() {
       switch (view) {
         case 'nsm-national': return <NSMDashboard onNavigate={setView} />;
         case 'nsm-divisions': return <NSMDashboard onNavigate={setView} />;
-        case 'nsm-forecast': return <InsightsView />;
+        case 'nsm-forecast': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         case 'nsm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
-        case 'insights': return <InsightsView />;
+        case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <NSMDashboard onNavigate={setView} />;
       }
     }
@@ -1177,9 +1177,9 @@ export default function App() {
       switch (view) {
         case 'nsm_inst-dashboard': return <NSMDashboard onNavigate={setView} />;
         case 'nsm-divisions': return <NSMDashboard onNavigate={setView} />;
-        case 'nsm-forecast': return <InsightsView />;
+        case 'nsm-forecast': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         case 'nsm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
-        case 'insights': return <InsightsView />;
+        case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <NSMDashboard onNavigate={setView} />;
       }
     }
@@ -1188,9 +1188,9 @@ export default function App() {
       switch (view) {
         case 'nsm_trade-dashboard': return <NSMDashboard onNavigate={setView} />;
         case 'nsm-divisions': return <NSMDashboard onNavigate={setView} />;
-        case 'nsm-forecast': return <InsightsView />;
+        case 'nsm-forecast': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         case 'nsm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
-        case 'insights': return <InsightsView />;
+        case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <NSMDashboard onNavigate={setView} />;
       }
     }
@@ -1201,7 +1201,7 @@ export default function App() {
         case 'hom-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
         case 'mm-content': return <MMContentApprovalsView contentApprovals={contentApprovals} onApproveContent={handleApproveContent} onRejectContent={handleRejectContent} />;
         case 'mm-cme': return <MMCmeView clinicalMeetings={clinicalMeetings} onApprove={handleMMApproveCM} onReject={rejectCM} />;
-        case 'insights': return <InsightsView />;
+        case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <HoMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} contentApprovals={contentApprovals} />;
       }
     }
@@ -1210,7 +1210,7 @@ export default function App() {
       switch (view) {
         case 'bm-portfolio': return <BMDashboard onNavigate={setView} />;
         case 'bm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
-        case 'insights': return <InsightsView />;
+        case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <BMDashboard onNavigate={setView} />;
       }
     }
@@ -1219,7 +1219,7 @@ export default function App() {
       switch (view) {
         case 'bmd-dashboard': return <BMDDashboard onNavigate={setView} />;
         case 'bmd-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
-        case 'insights': return <InsightsView />;
+        case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <BMDDashboard onNavigate={setView} />;
       }
     }
@@ -1228,7 +1228,7 @@ export default function App() {
       switch (view) {
         case 'adc-dashboard': return <ADCDashboard onNavigate={setView} />;
         case 'adc-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
-        case 'insights': return <InsightsView />;
+        case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <ADCDashboard onNavigate={setView} />;
       }
     }
@@ -1237,7 +1237,7 @@ export default function App() {
       switch (view) {
         case 'cd-dashboard': return <CDDashboard onNavigate={setView} />;
         case 'cd-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
-        case 'insights': return <InsightsView />;
+        case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <CDDashboard onNavigate={setView} />;
       }
     }
@@ -1248,7 +1248,7 @@ export default function App() {
       case 'activity': return <FieldActivityView searchQuery={searchQuery} />;
       case 'orders': return <OrdersView orders={orders} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
       case 'hcps': return <HCPsView searchQuery={searchQuery} />;
-      case 'insights': return <InsightsView />;
+      case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
       case 'clinical': return <ClinicalView clinicalMeetings={clinicalMeetings} onApproveCM={approveCM} onRejectCM={rejectCM} />;
       case 'reports': return <ReportsView />;
       case 'itineraries': return (
