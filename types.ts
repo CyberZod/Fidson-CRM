@@ -21,9 +21,14 @@ export interface Toast {
 }
 
 // ===== Personas / Roles =====
-export type PersonaKey = 'manager' | 'rep' | 'asm' | 'fsm' | 'pm' | 'mm' | 'dm' | 'nsm';
+export type PersonaKey =
+  | 'manager' | 'rep' | 'asm' | 'fsm' | 'pm' | 'mm' | 'dm' | 'nsm'
+  | 'nsm_inst' | 'nsm_trade'
+  | 'hom' | 'bm' | 'bmd' | 'adc' | 'cd';
 
-export type ColorKey = 'leaf' | 'sky' | 'navy' | 'amber' | 'violet' | 'rose' | 'indigo' | 'fuchsia';
+export type ColorKey =
+  | 'leaf' | 'sky' | 'navy' | 'amber' | 'violet' | 'rose' | 'indigo' | 'fuchsia'
+  | 'emerald' | 'teal';
 
 export interface Persona {
   email: string;

@@ -4,7 +4,7 @@ import { PRODUCT_CATALOG, type FidsonProduct } from '../assets/products';
 
 interface ProductLensProps {
   scope?: string;
-  accent?: 'leaf' | 'violet' | 'navy';
+  accent?: 'leaf' | 'violet' | 'navy' | 'emerald' | 'teal';
 }
 
 export interface ProductFacets {
@@ -28,6 +28,8 @@ export default function ProductLens({ scope = 'Lagos Region · Q2 FY26', accent 
     leaf: { active: 'bg-leaf-600 text-white border-leaf-600', focusPill: 'bg-leaf-100 text-leaf-700', headerIcon: 'text-leaf-700', headerBg: 'bg-leaf-50' },
     violet: { active: 'bg-violet-600 text-white border-violet-600', focusPill: 'bg-violet-100 text-violet-700', headerIcon: 'text-violet-700', headerBg: 'bg-violet-50' },
     navy: { active: 'bg-navy-700 text-white border-navy-700', focusPill: 'bg-navy-100 text-navy-700', headerIcon: 'text-navy-700', headerBg: 'bg-navy-50' },
+    emerald: { active: 'bg-emerald-600 text-white border-emerald-600', focusPill: 'bg-emerald-100 text-emerald-700', headerIcon: 'text-emerald-700', headerBg: 'bg-emerald-50' },
+    teal: { active: 'bg-teal-600 text-white border-teal-600', focusPill: 'bg-teal-100 text-teal-700', headerIcon: 'text-teal-700', headerBg: 'bg-teal-50' },
   }[accent];
 
   const facets = selected ? FACETS[selected.id] : null;

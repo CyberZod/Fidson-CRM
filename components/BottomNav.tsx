@@ -17,6 +17,8 @@ const TEXT_MAP: Record<ColorKey, string> = {
   rose: 'text-rose-700',
   indigo: 'text-indigo-700',
   fuchsia: 'text-fuchsia-700',
+  emerald: 'text-emerald-700',
+  teal: 'text-teal-700',
 };
 
 const BG_MAP: Record<ColorKey, string> = {
@@ -28,6 +30,8 @@ const BG_MAP: Record<ColorKey, string> = {
   rose: 'bg-rose-50',
   indigo: 'bg-indigo-50',
   fuchsia: 'bg-fuchsia-50',
+  emerald: 'bg-emerald-50',
+  teal: 'bg-teal-50',
 };
 
 const BADGE_MAP: Record<ColorKey, string> = {
@@ -39,6 +43,8 @@ const BADGE_MAP: Record<ColorKey, string> = {
   rose: 'bg-rose-500',
   indigo: 'bg-indigo-500',
   fuchsia: 'bg-fuchsia-500',
+  emerald: 'bg-emerald-500',
+  teal: 'bg-teal-500',
 };
 
 export default function BottomNav({ items, active, onNavigate, accentColor = 'leaf' }: BottomNavProps) {

@@ -50,6 +50,12 @@ import DMEscalatedView from './components/DMEscalatedView';
 import NSMDashboard from './components/NSMDashboard';
 import NSMDirectiveView from './components/NSMDirectiveView';
 
+import HoMDashboard from './components/HoMDashboard';
+import BMDashboard from './components/BMDashboard';
+import BMDDashboard from './components/BMDDashboard';
+import ADCDashboard from './components/ADCDashboard';
+import CDDashboard from './components/CDDashboard';
+
 import CustomerInventoryView from './components/CustomerInventoryView';
 
 import type {
@@ -557,6 +563,13 @@ export default function App() {
       mm: 'mm-marketing',
       dm: 'dm-division',
       nsm: 'nsm-national',
+      nsm_inst: 'nsm_inst-dashboard',
+      nsm_trade: 'nsm_trade-dashboard',
+      hom: 'hom-dashboard',
+      bm: 'bm-portfolio',
+      bmd: 'bmd-dashboard',
+      adc: 'adc-dashboard',
+      cd: 'cd-dashboard',
       manager: 'dashboard',
     };
     setView(landingView[newRoleKey]);
@@ -571,6 +584,13 @@ export default function App() {
       mm: 'Marketing Manager · Cross-product · National',
       dm: 'Division Manager · South Division',
       nsm: 'National Sales Manager · Fidson Healthcare',
+      nsm_inst: 'NSM Institution · 4 regions',
+      nsm_trade: 'NSM Trade · 6 FSMs · 38 reps',
+      hom: 'Head of Marketing · Institution + Trade',
+      bm: 'Brand Manager · Cestra portfolio',
+      bmd: 'Brand Management Director · All marketing',
+      adc: 'ADC · Trade + Mobile & Frontline',
+      cd: 'Commercial Director · National',
       manager: 'Regional Sales Manager · South-West',
     };
 
@@ -592,6 +612,13 @@ export default function App() {
   const isMM = user?.roleType === 'mm';
   const isDM = user?.roleType === 'dm';
   const isNSM = user?.roleType === 'nsm';
+  const isNSMInst = user?.roleType === 'nsm_inst';
+  const isNSMTrade = user?.roleType === 'nsm_trade';
+  const isHoM = user?.roleType === 'hom';
+  const isBM = user?.roleType === 'bm';
+  const isBMD = user?.roleType === 'bmd';
+  const isADC = user?.roleType === 'adc';
+  const isCD = user?.roleType === 'cd';
 
   // ===== PM / MM / NSM handlers =====
   const handlePushMaterial = (material: MaterialItem) => {
@@ -768,6 +795,18 @@ export default function App() {
     'nsm-divisions': { t: 'Divisions', s: 'South vs North · Cross-divisional view' },
     'nsm-forecast': { t: 'AI Forecast', s: '12-month national outlook' },
     'nsm-directive': { t: 'Push National Directive', s: 'Broadcast across the organization' },
+    'hom-dashboard': { t: 'Head of Marketing', s: 'Institution + Trade · Marketing oversight' },
+    'hom-directive': { t: 'Push National Directive', s: 'Broadcast to field' },
+    'bm-portfolio': { t: 'Brand Portfolio', s: 'Cestra / Provision / Cardio' },
+    'bm-directive': { t: 'Push Brand Directive', s: 'Broadcast to portfolio reps' },
+    'bmd-dashboard': { t: 'Brand Management', s: 'All brands · Marketing P&L' },
+    'bmd-directive': { t: 'Push National Directive', s: 'Broadcast to all marketing' },
+    'adc-dashboard': { t: 'Associate Commercial Director', s: 'Trade + Mobile & Frontline' },
+    'adc-directive': { t: 'Push Channel Directive', s: 'Broadcast to Trade + Mobile/Frontline' },
+    'cd-dashboard': { t: 'Commercial Director', s: 'National · All channels' },
+    'cd-directive': { t: 'Push National Directive', s: 'Broadcast to all reps' },
+    'nsm_inst-dashboard': { t: 'NSM Institution', s: 'Institution channel · 4 regions' },
+    'nsm_trade-dashboard': { t: 'NSM Trade', s: 'Trade channel · reports to ADC' },
   };
 
   // ===== NAV CONFIGS =====
@@ -818,6 +857,54 @@ export default function App() {
     { k: 'nsm-forecast', i: 'trending', l: 'AI Forecast' },
     { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
     { k: 'nsm-directive', i: 'send', l: 'Push Directive' },
+  ];
+
+  const homNav: NavItem[] = [
+    { k: 'hom-dashboard', i: 'dashboard', l: 'Marketing Overview' },
+    { k: 'mm-content', i: 'file', l: 'Content Approvals', badge: contentApprovals.filter(c => c.status === 'pending').length },
+    { k: 'mm-cme', i: 'flask', l: 'High-Impact CMs', badge: clinicalMeetings.filter(c => c.s === 'hom-review').length },
+    { k: 'insights', i: 'sparkles', l: 'Brand Insights' },
+    { k: 'hom-directive', i: 'send', l: 'Push Directive' },
+  ];
+
+  const bmNav: NavItem[] = [
+    { k: 'bm-portfolio', i: 'pill', l: 'Brand Portfolio' },
+    { k: 'insights', i: 'sparkles', l: 'Brand Insights' },
+    { k: 'bm-directive', i: 'send', l: 'Push Directive' },
+  ];
+
+  const bmdNav: NavItem[] = [
+    { k: 'bmd-dashboard', i: 'dashboard', l: 'Brand Management' },
+    { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
+    { k: 'bmd-directive', i: 'send', l: 'Push Directive' },
+  ];
+
+  const nsmInstNav: NavItem[] = [
+    { k: 'nsm_inst-dashboard', i: 'dashboard', l: 'Institution Dashboard' },
+    { k: 'nsm-divisions', i: 'layers', l: 'Regions' },
+    { k: 'nsm-forecast', i: 'trending', l: 'AI Forecast' },
+    { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
+    { k: 'nsm-directive', i: 'send', l: 'Push Directive' },
+  ];
+
+  const nsmTradeNav: NavItem[] = [
+    { k: 'nsm_trade-dashboard', i: 'dashboard', l: 'Trade Dashboard' },
+    { k: 'nsm-divisions', i: 'layers', l: 'Regions' },
+    { k: 'nsm-forecast', i: 'trending', l: 'AI Forecast' },
+    { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
+    { k: 'nsm-directive', i: 'send', l: 'Push Directive' },
+  ];
+
+  const adcNav: NavItem[] = [
+    { k: 'adc-dashboard', i: 'dashboard', l: 'Channel Overview' },
+    { k: 'insights', i: 'sparkles', l: 'Channel Insights' },
+    { k: 'adc-directive', i: 'send', l: 'Push Directive' },
+  ];
+
+  const cdNav: NavItem[] = [
+    { k: 'cd-dashboard', i: 'dashboard', l: 'National Command' },
+    { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
+    { k: 'cd-directive', i: 'send', l: 'Push Directive' },
   ];
 
   // ===== RENDER VIEW =====
@@ -948,6 +1035,75 @@ export default function App() {
       }
     }
 
+    if (isNSMInst) {
+      switch (view) {
+        case 'nsm_inst-dashboard': return <NSMDashboard onNavigate={setView} />;
+        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} />;
+        case 'nsm-forecast': return <InsightsView />;
+        case 'nsm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'insights': return <InsightsView />;
+        default: return <NSMDashboard onNavigate={setView} />;
+      }
+    }
+
+    if (isNSMTrade) {
+      switch (view) {
+        case 'nsm_trade-dashboard': return <NSMDashboard onNavigate={setView} />;
+        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} />;
+        case 'nsm-forecast': return <InsightsView />;
+        case 'nsm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'insights': return <InsightsView />;
+        default: return <NSMDashboard onNavigate={setView} />;
+      }
+    }
+
+    if (isHoM) {
+      switch (view) {
+        case 'hom-dashboard': return <HoMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} contentApprovals={contentApprovals} />;
+        case 'hom-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'mm-content': return <MMContentApprovalsView contentApprovals={contentApprovals} onApproveContent={handleApproveContent} onRejectContent={handleRejectContent} />;
+        case 'mm-cme': return <MMCmeView clinicalMeetings={clinicalMeetings} onApprove={handleMMApproveCM} onReject={rejectCM} />;
+        case 'insights': return <InsightsView />;
+        default: return <HoMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} contentApprovals={contentApprovals} />;
+      }
+    }
+
+    if (isBM) {
+      switch (view) {
+        case 'bm-portfolio': return <BMDashboard onNavigate={setView} />;
+        case 'bm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'insights': return <InsightsView />;
+        default: return <BMDashboard onNavigate={setView} />;
+      }
+    }
+
+    if (isBMD) {
+      switch (view) {
+        case 'bmd-dashboard': return <BMDDashboard onNavigate={setView} />;
+        case 'bmd-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'insights': return <InsightsView />;
+        default: return <BMDDashboard onNavigate={setView} />;
+      }
+    }
+
+    if (isADC) {
+      switch (view) {
+        case 'adc-dashboard': return <ADCDashboard onNavigate={setView} />;
+        case 'adc-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'insights': return <InsightsView />;
+        default: return <ADCDashboard onNavigate={setView} />;
+      }
+    }
+
+    if (isCD) {
+      switch (view) {
+        case 'cd-dashboard': return <CDDashboard onNavigate={setView} />;
+        case 'cd-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'insights': return <InsightsView />;
+        default: return <CDDashboard onNavigate={setView} />;
+      }
+    }
+
     // MANAGER (RSM) ROUTES
     switch (view) {
       case 'dashboard': return <DashboardView approvals={approvals} onOpenApproval={setApprovalModalItem as (item: ApprovalItem) => void} onApprove={approveItem} onReject={rejectItem} dashboardStats={dashboardStats} />;
@@ -1036,6 +1192,47 @@ export default function App() {
       { k: 'insights', i: 'sparkles', l: 'AI' },
       { k: 'nsm-directive', i: 'send', l: 'Push' },
     ], color: 'indigo' },
+    nsm_inst: { items: [
+      { k: 'nsm_inst-dashboard', i: 'dashboard', l: 'Institution' },
+      { k: 'nsm-divisions', i: 'layers', l: 'Regions' },
+      { k: 'nsm-forecast', i: 'trending', l: 'Forecast' },
+      { k: 'insights', i: 'sparkles', l: 'AI' },
+      { k: 'nsm-directive', i: 'send', l: 'Push' },
+    ], color: 'indigo' },
+    nsm_trade: { items: [
+      { k: 'nsm_trade-dashboard', i: 'dashboard', l: 'Trade' },
+      { k: 'nsm-divisions', i: 'layers', l: 'Regions' },
+      { k: 'nsm-forecast', i: 'trending', l: 'Forecast' },
+      { k: 'insights', i: 'sparkles', l: 'AI' },
+      { k: 'nsm-directive', i: 'send', l: 'Push' },
+    ], color: 'amber' },
+    hom: { items: [
+      { k: 'hom-dashboard', i: 'dashboard', l: 'Marketing' },
+      { k: 'mm-content', i: 'file', l: 'Content', badge: contentApprovals.filter(c => c.status === 'pending').length },
+      { k: 'mm-cme', i: 'flask', l: 'CMs', badge: clinicalMeetings.filter(c => c.s === 'hom-review').length },
+      { k: 'insights', i: 'sparkles', l: 'AI' },
+      { k: 'hom-directive', i: 'send', l: 'Push' },
+    ], color: 'fuchsia' },
+    bm: { items: [
+      { k: 'bm-portfolio', i: 'pill', l: 'Brand' },
+      { k: 'insights', i: 'sparkles', l: 'AI' },
+      { k: 'bm-directive', i: 'send', l: 'Push' },
+    ], color: 'emerald' },
+    bmd: { items: [
+      { k: 'bmd-dashboard', i: 'dashboard', l: 'Brands' },
+      { k: 'insights', i: 'sparkles', l: 'AI' },
+      { k: 'bmd-directive', i: 'send', l: 'Push' },
+    ], color: 'teal' },
+    adc: { items: [
+      { k: 'adc-dashboard', i: 'dashboard', l: 'Channels' },
+      { k: 'insights', i: 'sparkles', l: 'AI' },
+      { k: 'adc-directive', i: 'send', l: 'Push' },
+    ], color: 'rose' },
+    cd: { items: [
+      { k: 'cd-dashboard', i: 'dashboard', l: 'National' },
+      { k: 'insights', i: 'sparkles', l: 'AI' },
+      { k: 'cd-directive', i: 'send', l: 'Push' },
+    ], color: 'indigo' },
   };
 
   const currentBottomNav = bottomNavMap[user?.roleType || 'manager'] || bottomNavMap.manager;
@@ -1060,6 +1257,13 @@ export default function App() {
     if (isMM) return <RoleSidebar {...common} roleType="mm" navItems={mmNav} statusPill={{ label: 'Marketing · National', detail: 'Institution · 4 portfolios' }} />;
     if (isDM) return <RoleSidebar {...common} roleType="dm" navItems={dmNav} statusPill={{ label: 'Division Active', detail: 'South · 3 regions · 67 reps' }} />;
     if (isNSM) return <RoleSidebar {...common} roleType="nsm" navItems={nsmNav} statusPill={{ label: 'National', detail: 'Nigeria · 2 div · 6 regions' }} />;
+    if (isNSMInst) return <RoleSidebar {...common} roleType="nsm_inst" navItems={nsmInstNav} statusPill={{ label: 'Institution · National', detail: '4 regions · 62 reps' }} />;
+    if (isNSMTrade) return <RoleSidebar {...common} roleType="nsm_trade" navItems={nsmTradeNav} statusPill={{ label: 'Trade · National', detail: '6 FSMs · 38 reps' }} />;
+    if (isHoM) return <RoleSidebar {...common} roleType="hom" navItems={homNav} statusPill={{ label: 'Marketing Lead', detail: 'Institution + Trade' }} />;
+    if (isBM) return <RoleSidebar {...common} roleType="bm" navItems={bmNav} statusPill={{ label: 'Cestra Brand', detail: '3 SKUs · Nationwide' }} />;
+    if (isBMD) return <RoleSidebar {...common} roleType="bmd" navItems={bmdNav} statusPill={{ label: 'Brand Management', detail: '8 brands · 5 direct reports' }} />;
+    if (isADC) return <RoleSidebar {...common} roleType="adc" navItems={adcNav} statusPill={{ label: 'Trade + M&F', detail: '80 reps · 2 NSMs' }} />;
+    if (isCD) return <RoleSidebar {...common} roleType="cd" navItems={cdNav} statusPill={{ label: 'Commercial', detail: '142 reps · ₦250BN FY26' }} />;
     return <Sidebar {...common} approvalsCount={approvals.length} itinerariesBadge={itinerariesPending.length + adjustmentsPending.length} />;
   };
 
