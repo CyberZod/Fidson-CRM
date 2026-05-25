@@ -1,0 +1,86 @@
+import { useState } from 'react';
+import Icon from './Icon';
+import type { EscalatedApproval } from '../types';
+
+interface DMEscalatedViewProps {
+  onApprove?: (id: string) => void;
+  onReject?: (id: string) => void;
+}
+
+export default function DMEscalatedView({ onApprove }: DMEscalatedViewProps) {
+  const [items, setItems] = useState<EscalatedApproval[]>([
+    { id: 'esc-1', rep: 'Tunde Bakare', src: 'RSM South-West', cust: 'Reddington Hospital', value: '₦1,420,000', disc: '22%', urgent: true, ai: 'recommend-approve' },
+    { id: 'esc-2', rep: 'Emeka Okoro', src: 'RSM South-South', cust: 'PHC Med Plaza', value: '₦820,000', disc: '19%', urgent: false, ai: 'recommend-review' },
+    { id: 'esc-3', rep: 'Marketing Dept', src: 'Marketing exception', cust: 'Q2 trade promo · 50 distributors', value: '₦3,200,000', disc: '25%', urgent: true, ai: 'recommend-approve' },
+  ]);
+
+  const handleApprove = (id: string) => {
+    setItems(prev => prev.map(i => i.id === id ? { ...i, dismissing: true } : i));
+    setTimeout(() => setItems(prev => prev.filter(i => i.id !== id)), 400);
+    onApprove?.(id);
+  };
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-6">
+      <div className="fade-up p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3">
+        <Icon name="alert" size={20} className="text-rose-700 mt-0.5 flex-shrink-0" />
+        <div>
+          <p className="font-display font-bold text-ink">Division-Level Escalations</p>
+          <p className="text-xs text-navy-700 mt-1">Items here exceed RSM/FSM approval thresholds. As Division Manager, you have the authority to approve or escalate further to NSM. These are typically large institutional discounts, marketing exceptions, or multi-regional initiatives.</p>
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-white border border-navy-100 overflow-hidden fade-up stagger-1">
+        <div className="px-5 py-4 border-b border-navy-100 flex items-center justify-between">
+          <h3 className="font-display font-bold text-ink">Pending Your Decision · {items.length}</h3>
+          <span className="px-2 py-1 rounded-full bg-rose-100 text-rose-700 text-[10px] font-bold">DM TIER</span>
+        </div>
+        <div className="divide-y divide-navy-50">
+          {items.length === 0 ? (
+            <div className="py-12 text-center">
+              <div className="w-14 h-14 rounded-full bg-leaf-50 mx-auto flex items-center justify-center mb-3">
+                <Icon name="check" size={24} className="text-leaf-600" strokeWidth={2.5} />
+              </div>
+              <p className="font-display font-semibold text-ink">All caught up</p>
+              <p className="text-xs text-navy-500 mt-1">No escalations pending your decision</p>
+            </div>
+          ) : items.map(item => (
+            <div key={item.id} className={`${item.dismissing ? 'slide-out-up' : ''} px-5 py-4`}>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-rose-50 flex items-center justify-center flex-shrink-0">
+                  <Icon name="cart" size={18} className="text-rose-700" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-display font-semibold text-sm text-ink">{item.cust}</p>
+                    {item.urgent && <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-bold">URGENT</span>}
+                    <span className="px-1.5 py-0.5 rounded bg-paper text-navy-700 text-[9px] font-bold border border-navy-100">EXCEEDS RSM TIER</span>
+                  </div>
+                  <p className="text-[11px] text-navy-500 mt-0.5">From {item.src} · Submitted by {item.rep}</p>
+                  <div className="mt-2 flex items-center gap-4 flex-wrap">
+                    <div>
+                      <p className="stat-label text-navy-400">Order Value</p>
+                      <p className="font-mono font-bold text-ink text-sm">{item.value}</p>
+                    </div>
+                    <div>
+                      <p className="stat-label text-navy-400">Discount</p>
+                      <p className="font-mono font-bold text-rose-700 text-sm">{item.disc}</p>
+                    </div>
+                    <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-paper border border-navy-100">
+                      <Icon name="sparkles" size={11} className="text-leaf-700" />
+                      <p className="text-[10px] font-bold text-leaf-700">AI: {item.ai === 'recommend-approve' ? 'Approve' : 'Review'}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <button onClick={() => handleApprove(item.id)} className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Escalate to NSM</button>
+                  <button onClick={() => handleApprove(item.id)} className="px-3 py-1.5 rounded-lg bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 btn-press">Approve</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
