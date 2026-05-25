@@ -46,7 +46,7 @@ export default function PMDashboard({
           { l: 'Coflin Volume', v: '₦8.2M', d: '+37% MoM', c: 'violet' },
           { l: 'Tuxil-N Volume', v: '₦3.4M', d: '−4% MoM', c: 'amber' },
           { l: 'Detailing Adoption', v: '89/142', d: '63% of reps', c: 'violet' },
-          { l: 'CME Approvals', v: pendingCMs.toString(), d: 'awaiting your review', c: 'amber' },
+          { l: 'CM Approvals', v: pendingCMs.toString(), d: 'awaiting your review', c: 'amber' },
         ].map((k, i) => (
           <div key={i} className={`fade-up stagger-${i + 1} p-4 sm:p-5 rounded-2xl bg-white border border-navy-100`}>
             <p className="stat-label text-navy-400">{k.l}</p>
@@ -151,7 +151,7 @@ export default function PMDashboard({
             <div className="fade-up stagger-3 rounded-2xl bg-amber-50 border border-amber-200 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Icon name="clock" size={14} className="text-amber-700" />
-                <p className="text-[10px] font-bold text-amber-700 tracking-wider uppercase">{pendingCMs} CME Pending</p>
+                <p className="text-[10px] font-bold text-amber-700 tracking-wider uppercase">{pendingCMs} CM Pending</p>
               </div>
               <p className="text-xs text-navy-700 leading-relaxed">Reps are waiting for your approval on clinical meeting requests for your portfolio.</p>
               <button onClick={() => onNavigate('pm-clinical')} className="mt-2 text-xs font-bold text-amber-700 flex items-center gap-1">

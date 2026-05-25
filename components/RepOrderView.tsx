@@ -24,6 +24,7 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
   const discountAmt = subtotal * (discount / 100);
   const total = subtotal - discountAmt;
   const requiresApproval = discount > 15;
+  const isZeroDiscount = discount === 0;
 
   const hasOutOfStock = items.some(i => i.q > 0 && i.stockStatus === 'out-of-stock');
   const hasInStock = items.some(i => i.q > 0 && i.stockStatus === 'in-stock');
@@ -76,6 +77,16 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
                 <p className="text-[10px] font-bold text-leaf-700 tracking-wider uppercase font-display">ERP Direct Flow</p>
               </div>
               <p className="text-xs text-leaf-800">All products in stock. Order submitted directly to ERP. Auto-approved and synced to SOA.</p>
+            </div>
+          )}
+
+          {isZeroDiscount && !requiresApproval && (
+            <div className="mt-3 p-4 rounded-xl bg-sky-50 border border-sky-200 text-left">
+              <div className="flex items-center gap-2 mb-1">
+                <Icon name="send" size={14} className="text-sky-700" />
+                <p className="text-[10px] font-bold text-sky-700 tracking-wider uppercase font-display">Sent to Sales Admin</p>
+              </div>
+              <p className="text-xs text-sky-800">No discount requested. Routed straight to Sales Admin queue for SOA processing — no manager approval needed.</p>
             </div>
           )}
 
@@ -260,12 +271,16 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
                   'bg-amber-600 text-white hover:bg-amber-700 shadow-amber-600/30' :
                   (requiresApproval ?
                     'bg-amber-500 text-white hover:bg-amber-600 shadow-amber-500/30' :
-                    'bg-leaf-500 text-white hover:bg-leaf-600 shadow-leaf-500/30')
+                    (isZeroDiscount ?
+                      'bg-sky-600 text-white hover:bg-sky-700 shadow-sky-600/30' :
+                      'bg-leaf-500 text-white hover:bg-leaf-600 shadow-leaf-500/30'))
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {hasOutOfStock ?
                 (requiresApproval ? 'Submit for RSM Approval (Booklet)' : 'Submit Order Booklet to Admin') :
-                (requiresApproval ? 'Submit for RSM Approval (ERP)' : 'Submit Order to ERP')}
+                (requiresApproval ?
+                  'Submit for RSM Approval (ERP)' :
+                  (isZeroDiscount ? 'Send to Sales Admin' : 'Submit Order to ERP'))}
             </button>
             {!signed && <p className="text-[10px] text-navy-300 text-center mt-2">Customer signature required</p>}
           </div>

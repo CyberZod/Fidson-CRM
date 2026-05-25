@@ -9,7 +9,7 @@ interface OrdersViewProps {
   searchQuery: string;
 }
 
-type StatusFilterKey = 'all' | 'pending' | 'approved' | 'synced';
+type StatusFilterKey = 'all' | 'pending' | 'approved' | 'synced' | 'sent-to-sales-admin';
 
 export default function OrdersView({ orders, onOpenApproval, searchQuery }: OrdersViewProps) {
   const [statusFilter, setStatusFilter] = useState<StatusFilterKey>('all');
@@ -29,10 +29,12 @@ export default function OrdersView({ orders, onOpenApproval, searchQuery }: Orde
     pending: orders.filter(o => o.status === 'pending').length,
     approved: orders.filter(o => o.status === 'approved').length,
     synced: orders.filter(o => o.status === 'synced').length,
+    'sent-to-sales-admin': orders.filter(o => o.status === 'sent-to-sales-admin').length,
   }), [orders]);
 
   const statusButtons: { k: StatusFilterKey; l: string }[] = [
     { k: 'all', l: 'All' }, { k: 'pending', l: 'Pending' },
+    { k: 'sent-to-sales-admin', l: 'Sales Admin' },
     { k: 'approved', l: 'Approved' }, { k: 'synced', l: 'Synced' },
   ];
 
@@ -124,13 +126,17 @@ export default function OrdersView({ orders, onOpenApproval, searchQuery }: Orde
                   <td className="px-5 py-3 text-center">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${
                       o.status === 'pending' ? 'bg-amber-50 text-amber-700' :
-                      o.status === 'approved' ? 'bg-leaf-50 text-leaf-700' : 'bg-navy-50 text-navy-700'
+                      o.status === 'approved' ? 'bg-leaf-50 text-leaf-700' :
+                      o.status === 'sent-to-sales-admin' ? 'bg-sky-50 text-sky-700' :
+                      'bg-navy-50 text-navy-700'
                     }`}>
                       <div className={`w-1.5 h-1.5 rounded-full ${
                         o.status === 'pending' ? 'bg-amber-500' :
-                        o.status === 'approved' ? 'bg-leaf-500' : 'bg-navy-500'
+                        o.status === 'approved' ? 'bg-leaf-500' :
+                        o.status === 'sent-to-sales-admin' ? 'bg-sky-500' :
+                        'bg-navy-500'
                       }`} />
-                      {o.status.toUpperCase()}
+                      {o.status === 'sent-to-sales-admin' ? 'SALES ADMIN' : o.status.toUpperCase()}
                     </span>
                   </td>
                   <td className="px-5 py-3 text-right">
@@ -156,8 +162,10 @@ export default function OrdersView({ orders, onOpenApproval, searchQuery }: Orde
                       <span className="font-mono text-[11px] font-bold text-navy-500">{o.id}</span>
                       <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold ${
                         o.status === 'pending' ? 'bg-amber-50 text-amber-700' :
-                        o.status === 'approved' ? 'bg-leaf-50 text-leaf-700' : 'bg-navy-50 text-navy-700'
-                      }`}>{o.status.toUpperCase()}</span>
+                        o.status === 'approved' ? 'bg-leaf-50 text-leaf-700' :
+                        o.status === 'sent-to-sales-admin' ? 'bg-sky-50 text-sky-700' :
+                        'bg-navy-50 text-navy-700'
+                      }`}>{o.status === 'sent-to-sales-admin' ? 'SALES ADMIN' : o.status.toUpperCase()}</span>
                       {o.channel === 'booklet' ? (
                         <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 text-[9px] font-bold border border-amber-200">BOOKLET</span>
                       ) : (

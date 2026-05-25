@@ -117,7 +117,7 @@ export interface OrderRow {
   value: string;
   disc: string;
   flag?: boolean;
-  status: 'pending' | 'approved' | 'synced' | 'rejected';
+  status: 'pending' | 'approved' | 'synced' | 'rejected' | 'sent-to-sales-admin';
   dismissing?: boolean;
 }
 
@@ -447,12 +447,14 @@ export interface AdjustmentRequest {
   reason: string;
 }
 
-// ===== Audit sync payload =====
-export interface AuditStock {
-  coflin: string;
-  astrazon: string;
-  tuxil: string;
+// ===== Customer Stock check (was Shelf Audit) =====
+// One row per product at the customer. Reps can add rows for SKUs beyond the defaults.
+export interface CustomerStockRow {
+  product: string;
+  units: string;
 }
+
+export type CustomerStockEntry = CustomerStockRow[];
 
 // ===== Accompaniment (extended) =====
 export interface AccompanimentRow {

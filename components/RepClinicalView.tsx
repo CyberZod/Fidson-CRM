@@ -39,7 +39,7 @@ export default function RepClinicalView({ onSubmitCM }: RepClinicalViewProps) {
           <div className="w-20 h-20 rounded-full bg-leaf-100 mx-auto flex items-center justify-center mb-4">
             <Icon name="check" size={40} className="text-leaf-600" strokeWidth={3} />
           </div>
-          <h2 className="font-display text-2xl font-bold text-ink">CME Request submitted</h2>
+          <h2 className="font-display text-2xl font-bold text-ink">CM Request submitted</h2>
           <p className="text-sm text-navy-500 mt-1">Routed to your Product Manager</p>
 
           <div className="mt-5 p-4 rounded-xl bg-paper text-left">
@@ -74,7 +74,7 @@ export default function RepClinicalView({ onSubmitCM }: RepClinicalViewProps) {
       <div className="rounded-2xl bg-white border border-navy-100 overflow-hidden fade-up">
         <div className="px-5 sm:px-6 py-5 border-b border-navy-100">
           <h2 className="font-display text-xl font-bold text-ink">Request Clinical Meeting</h2>
-          <p className="text-sm text-navy-500 mt-1">Submit a CME, workshop, or product brief for PM approval</p>
+          <p className="text-sm text-navy-500 mt-1">Submit a CM, workshop, or product brief for PM approval</p>
         </div>
 
         <div className="p-5 sm:p-6 space-y-4">
@@ -84,7 +84,7 @@ export default function RepClinicalView({ onSubmitCM }: RepClinicalViewProps) {
               type="text"
               value={form.topic}
               onChange={e => setForm({ ...form, topic: e.target.value })}
-              placeholder="e.g. Respiratory Care CME"
+              placeholder="e.g. Respiratory Care CM"
               className="input-field w-full mt-1.5 px-3 py-2.5 rounded-xl bg-paper border border-navy-200 text-sm text-ink"
             />
           </div>

@@ -15,19 +15,19 @@ export default function MMCmeView({ clinicalMeetings, onApprove, onReject }: MMC
       <div className="fade-up p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-3">
         <Icon name="flask" size={20} className="text-amber-700 mt-0.5 flex-shrink-0" />
         <div>
-          <p className="font-display font-bold text-ink">High-Impact CME Approvals</p>
+          <p className="font-display font-bold text-ink">High-Impact CM Approvals</p>
           <p className="text-xs text-navy-700 mt-1">Multi-regional clinical events and high-budget meetings escalated by PMs. As MM, your sign-off ensures these align with brand and budget strategy before the Head of Marketing reviews.</p>
         </div>
       </div>
 
       <div className="rounded-2xl bg-white border border-navy-100 overflow-hidden fade-up stagger-1">
         <div className="px-5 py-4 border-b border-navy-100 flex items-center justify-between">
-          <h3 className="font-display font-bold text-ink">Escalated CMEs · {highImpactCMs.length}</h3>
+          <h3 className="font-display font-bold text-ink">Escalated CMs · {highImpactCMs.length}</h3>
           <span className="px-2 py-1 rounded-full bg-fuchsia-100 text-fuchsia-700 text-[10px] font-bold">MM TIER</span>
         </div>
         <div className="divide-y divide-navy-50">
           {highImpactCMs.length === 0 ? (
-            <div className="py-12 text-center text-sm text-navy-500">No high-impact CMEs awaiting MM approval</div>
+            <div className="py-12 text-center text-sm text-navy-500">No high-impact CMs awaiting MM approval</div>
           ) : highImpactCMs.map(cm => (
             <div key={cm.id} className={`${cm.dismissing ? 'slide-out-up' : ''} px-5 py-4`}>
               <div className="flex items-start gap-3">

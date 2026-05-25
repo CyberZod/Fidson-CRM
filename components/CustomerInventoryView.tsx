@@ -107,7 +107,7 @@ export default function CustomerInventoryView({ customerInventory = [], onBack }
             <div className="relative">
               <div className="flex items-center gap-2 mb-3">
                 <Icon name="sparkles" size={16} className="text-leaf-300" />
-                <p className="text-[10px] font-bold text-leaf-300 tracking-wider uppercase font-display">AI Shelf Restock Signals</p>
+                <p className="text-[10px] font-bold text-leaf-300 tracking-wider uppercase font-display">AI Customer Stock Signals</p>
               </div>
               <div className="space-y-3">
                 {filtered.filter(i => i.status === 'Low Stock').map(i => (

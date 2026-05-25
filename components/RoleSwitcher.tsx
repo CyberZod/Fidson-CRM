@@ -108,7 +108,7 @@ export default function RoleSwitcher({ currentRole, onSwitchRole }: RoleSwitcher
 
           <div className="px-4 py-2.5 border-t border-navy-100 bg-paper">
             <p className="text-[10px] text-navy-500 leading-relaxed">
-              <span className="font-bold">💡 Pro tip:</span> Order submitted as Rep → Approve as RSM. Submit CME as Rep → Approve as PM. All data flows live between roles.
+              <span className="font-bold">💡 Pro tip:</span> Order submitted as Rep → Approve as RSM. Submit CM as Rep → Approve as PM. All data flows live between roles.
             </p>
           </div>
         </div>

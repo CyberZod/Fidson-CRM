@@ -126,7 +126,7 @@ export default function RepDashboard({
 
           <div className="fade-up stagger-3 rounded-2xl bg-white border border-navy-100 p-5">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-display font-bold text-ink text-sm">My Focus Products</h3>
+              <h3 className="font-display font-bold text-ink text-sm">My Products of Focus</h3>
               <span className="px-2 py-0.5 rounded-full bg-leaf-50 text-leaf-700 text-[9px] font-bold">Q2</span>
             </div>
             <div className="space-y-2">

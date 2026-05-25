@@ -24,9 +24,9 @@ export default function NSMDashboard({ onNavigate }: NSMDashboardProps) {
   ];
 
   const insights: InsightRow[] = [
-    { i: 'trending', c: 'leaf', t: 'South Division pulling ahead', s: 'Outperforming North by 15 pts on Q2 attainment' },
-    { i: 'alert', c: 'amber', t: 'NE region stalling', s: 'No regional growth in 60 days · Recommend leadership review' },
-    { i: 'target', c: 'indigo', t: 'Abuja FCT opportunity', s: '₦24M untapped institutional pipeline detected' },
+    { i: 'trending', c: 'indigo', t: 'National AI Forecast', s: 'FY26 trajectory at 92% of ₦250BN target · confidence 84%' },
+    { i: 'barChart', c: 'leaf', t: 'Division Benchmarking', s: 'South Division outperforming North by 15 pts on Q2 attainment' },
+    { i: 'pill', c: 'indigo', t: 'Product Trend Analytics', s: 'Coflin nationwide +37% MoM · Astrazon −4% MoM · Tuxil-N flat' },
   ];
 
   return (

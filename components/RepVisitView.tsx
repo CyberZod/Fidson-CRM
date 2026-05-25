@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Icon from './Icon';
-import type { IconName, RepActiveVisit, AuditStock } from '../types';
+import type { IconName, RepActiveVisit, CustomerStockEntry, CustomerStockRow } from '../types';
 
 interface RepVisitViewProps {
   activeVisit: RepActiveVisit | null;
@@ -8,7 +8,7 @@ interface RepVisitViewProps {
   onCompleteVisit: (id: string | number) => void;
   onPlaceOrder: (visit: RepActiveVisit) => void;
   onNavigate: (view: string) => void;
-  onSyncAudit: (customer: string, stock: AuditStock) => void;
+  onSyncAudit: (customer: string, stock: CustomerStockEntry) => void;
 }
 
 type Tab = 'detail' | 'samples' | 'market';
@@ -31,7 +31,18 @@ export default function RepVisitView({
   const [tab, setTab] = useState<Tab>('detail');
   const [checkedIn, setCheckedIn] = useState(false);
   const [responses, setResponses] = useState<{ response: string | null; checks: string[] }>({ response: null, checks: [] });
-  const [auditStock, setAuditStock] = useState<AuditStock>({ coflin: '', astrazon: '', tuxil: '' });
+  const defaultStockRows = (): CustomerStockEntry => [
+    { product: 'Coflin Forte 600mg', units: '' },
+    { product: 'Astrazon 10mg', units: '' },
+    { product: 'Tuxil-N Syrup 100ml', units: '' },
+  ];
+  const [customerStock, setCustomerStock] = useState<CustomerStockEntry>(defaultStockRows);
+  const updateStockRow = (idx: number, patch: Partial<CustomerStockRow>) => {
+    setCustomerStock(prev => prev.map((r, i) => i === idx ? { ...r, ...patch } : r));
+  };
+  const addStockRow = () => setCustomerStock(prev => [...prev, { product: '', units: '' }]);
+  const removeStockRow = (idx: number) => setCustomerStock(prev => prev.filter((_, i) => i !== idx));
+  const resetCustomerStock = () => setCustomerStock(defaultStockRows());
 
   useEffect(() => {
     if (activeVisit?.checkedIn) setCheckedIn(true);
@@ -113,7 +124,7 @@ export default function RepVisitView({
             <div className="rounded-2xl bg-white border border-navy-100 p-5">
               <h3 className="font-display font-bold text-ink text-sm mb-3">Visit Goals</h3>
               <div className="space-y-2">
-                {['Detail Coflin Forte updates', 'Discuss Q2 institutional pricing', 'Request shelf placement audit'].map((g, i) => (
+                {['Detail Coflin Forte updates', 'Discuss Q2 institutional pricing', 'Capture customer stock'].map((g, i) => (
                   <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-paper">
                     <div className="w-4 h-4 rounded border-2 border-navy-300 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-navy-700">{g}</p>
@@ -169,7 +180,7 @@ export default function RepVisitView({
 
   const tabs: { k: Tab; l: string; i: IconName }[] = [
     { k: 'detail', l: 'Detail Products', i: 'pill' },
-    { k: 'samples', l: 'Samples & Audit', i: 'package' },
+    { k: 'samples', l: 'Samples & Stock', i: 'package' },
     { k: 'market', l: 'Market Intel', i: 'flag' },
   ];
 
@@ -320,50 +331,49 @@ export default function RepVisitView({
 
               <div className="mt-4 p-4 rounded-xl bg-navy-50 border border-navy-100 space-y-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Q2 Customer Inventory Audit</p>
+                  <p className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Q2 Customer Stock</p>
                   <span className="text-[9px] bg-leaf-100 text-leaf-700 font-bold px-2 py-0.5 rounded-full">ACTIVE SNAPSHOT</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="text-[9px] font-bold text-navy-500 block mb-1">Coflin</label>
-                    <input
-                      type="number"
-                      placeholder="Qty"
-                      value={auditStock.coflin}
-                      onChange={e => setAuditStock({ ...auditStock, coflin: e.target.value })}
-                      className="input-field w-full px-2 py-1.5 rounded-lg bg-white border border-navy-200 text-xs text-ink"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[9px] font-bold text-navy-500 block mb-1">Astrazon</label>
-                    <input
-                      type="number"
-                      placeholder="Qty"
-                      value={auditStock.astrazon}
-                      onChange={e => setAuditStock({ ...auditStock, astrazon: e.target.value })}
-                      className="input-field w-full px-2 py-1.5 rounded-lg bg-white border border-navy-200 text-xs text-ink"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[9px] font-bold text-navy-500 block mb-1">Tuxil</label>
-                    <input
-                      type="number"
-                      placeholder="Qty"
-                      value={auditStock.tuxil}
-                      onChange={e => setAuditStock({ ...auditStock, tuxil: e.target.value })}
-                      className="input-field w-full px-2 py-1.5 rounded-lg bg-white border border-navy-200 text-xs text-ink"
-                    />
-                  </div>
+                <p className="text-[10px] text-navy-500">Capture units on hand per product. Add more SKUs as needed.</p>
+                <div className="space-y-2">
+                  {customerStock.map((row, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Product"
+                        value={row.product}
+                        onChange={e => updateStockRow(idx, { product: e.target.value })}
+                        className="input-field flex-1 min-w-0 px-2 py-1.5 rounded-lg bg-white border border-navy-200 text-xs text-ink"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Units"
+                        value={row.units}
+                        onChange={e => updateStockRow(idx, { units: e.target.value })}
+                        className="input-field w-20 px-2 py-1.5 rounded-lg bg-white border border-navy-200 text-xs text-ink"
+                      />
+                      <button
+                        onClick={() => removeStockRow(idx)}
+                        title="Remove row"
+                        className="w-7 h-7 rounded-lg text-navy-400 hover:text-rose-600 hover:bg-white flex items-center justify-center flex-shrink-0"
+                      >
+                        <Icon name="x" size={12} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
                 <div className="flex gap-2">
-                  <button className="flex-1 py-2 rounded-lg bg-white border border-navy-200 text-xs font-semibold text-navy-700 hover:bg-paper btn-press flex items-center justify-center gap-1.5">
-                    <Icon name="eye" size={12} /> Photo
+                  <button
+                    onClick={addStockRow}
+                    className="flex-1 py-2 rounded-lg bg-white border border-navy-200 text-xs font-semibold text-navy-700 hover:bg-paper btn-press flex items-center justify-center gap-1.5"
+                  >
+                    <Icon name="plus" size={12} /> Add product
                   </button>
                   <button
-                    onClick={() => { onSyncAudit(activeVisit.name, auditStock); setAuditStock({ coflin: '', astrazon: '', tuxil: '' }); }}
+                    onClick={() => { onSyncAudit(activeVisit.name, customerStock); resetCustomerStock(); }}
                     className="flex-1 py-2 rounded-lg bg-leaf-600 hover:bg-leaf-700 text-white text-xs font-semibold btn-press flex items-center justify-center gap-1.5"
                   >
-                    <Icon name="check" size={12} /> Sync Audit
+                    <Icon name="check" size={12} /> Sync Customer Stock
                   </button>
                 </div>
               </div>

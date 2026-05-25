@@ -333,7 +333,7 @@ export default function RepPlanView({ visits, onStartVisit, weekItinerary, onReq
                 { l: 'Total Distance', v: `${totalDistance} km`, i: 'map' as const },
                 { l: 'Fuel Estimate', v: '₦24,800', i: 'target' as const },
                 { l: 'Expected Revenue', v: '₦8.4M', i: 'trending' as const },
-                { l: 'Focus Product', v: 'Coflin Forte', i: 'pill' as const },
+                { l: 'Product of Focus', v: 'Coflin Forte', i: 'pill' as const },
               ].map(s => (
                 <div key={s.l} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

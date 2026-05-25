@@ -7,3 +7,5 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+.agent
+.claude

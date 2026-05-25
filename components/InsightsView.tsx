@@ -12,11 +12,11 @@ interface InsightCard {
 
 export default function InsightsView() {
   const insights: InsightCard[] = [
-    { cat: 'Coverage', icon: 'target', color: 'leaf', title: 'Apapa zone gap — 21 days', body: '3 institutional accounts haven\'t been visited. ₦480k pipeline at risk of churn.', action: 'Re-assign to backup rep' },
-    { cat: 'Distributor', icon: 'alert', color: 'amber', title: 'Tuxil-N low stock · PHC', body: 'Distributor expected to stock out in 6 days. Recommend Q4 reorder push.', action: 'Push reorder' },
-    { cat: 'Conversion', icon: 'trending', color: 'leaf', title: 'Coflin uptake +37% MoM', body: 'Strong response from teaching hospitals. Recommend dedicated detailing campaign.', action: 'Launch campaign' },
-    { cat: 'Competitor', icon: 'flag', color: 'amber', title: 'GSK promo detected · 5 sites', body: '15% trade discount on Augmentin. May affect Astrazon conversion rates.', action: 'Brief team' },
-    { cat: 'Rep Performance', icon: 'users', color: 'navy', title: 'Anomaly: Fatima B.', body: 'Visit completion 45% vs team avg 78%. Suggests engagement check.', action: 'Schedule 1:1' },
+    { cat: 'Regional Target Gap', icon: 'target', color: 'amber', title: 'Lagos −₦3.2M to Q2 target', body: 'Current run-rate projects 87% attainment. Apapa zone underperforming most. 3 institutional accounts unvisited 21d.', action: 'Re-assign to backup rep' },
+    { cat: 'Distributor Stock', icon: 'alert', color: 'amber', title: 'Tuxil-N low stock · PHC', body: 'Distributor expected to stock out in 6 days. Quarterly stock check overdue at 2 more distributors.', action: 'Push reorder' },
+    { cat: 'Pipeline Health', icon: 'trending', color: 'leaf', title: 'Pipeline score 78/100', body: 'Coflin uptake +37% MoM in teaching hospitals lifting score. Astrazon conversion is the drag.', action: 'Launch detailing campaign' },
+    { cat: 'Competitor Signal', icon: 'flag', color: 'amber', title: 'GSK promo detected · 5 sites', body: '15% trade discount on Augmentin. May affect Astrazon conversion rates.', action: 'Brief team' },
+    { cat: 'Rep Anomaly', icon: 'users', color: 'navy', title: 'Visit completion gap: Fatima B.', body: 'Visit completion 45% vs team avg 78%. Suggests engagement check.', action: 'Schedule 1:1' },
     { cat: 'Opportunity', icon: 'sparkles', color: 'leaf', title: 'New tier-A prospect', body: 'Lagoon Hospital VI showing 3x order velocity. Recommend KAM elevation.', action: 'Convert account' },
   ];
 

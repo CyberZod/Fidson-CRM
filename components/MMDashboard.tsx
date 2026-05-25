@@ -23,7 +23,7 @@ export default function MMDashboard({ onNavigate, contentApprovals, clinicalMeet
             <h2 className="mt-2 font-display text-2xl sm:text-3xl font-bold text-ink">
               Hello <span style={{ background: 'linear-gradient(135deg, #142A5A 0%, #D946EF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Tola</span> — brand health is strong
             </h2>
-            <p className="text-sm text-navy-500 mt-1">{pendingContentCount} content approvals pending · {pendingHighImpactCMs} high-impact CMEs awaiting your sign-off · You report to HoM</p>
+            <p className="text-sm text-navy-500 mt-1">{pendingContentCount} content approvals pending · {pendingHighImpactCMs} high-impact CMs awaiting your sign-off · You report to HoM</p>
           </div>
           <button onClick={() => onNavigate('mm-content')} className="px-3 py-2 rounded-lg bg-fuchsia-500 text-white text-xs font-semibold flex items-center gap-1.5 btn-press hover:bg-fuchsia-600">
             <Icon name="file" size={14} /> Review Content Queue
@@ -105,7 +105,7 @@ export default function MMDashboard({ onNavigate, contentApprovals, clinicalMeet
               {[
                 { n: 'Q2 Coflin Focus', t: 'Institutional · Respiratory', start: 'Apr 1', spend: '₦8.2M', engage: 92 },
                 { n: 'Diabetes Awareness Month', t: 'Multi-channel · Q2', start: 'May 1', spend: '₦4.6M', engage: 71 },
-                { n: 'Antibiotic Stewardship', t: 'CME-led · 4 regions', start: 'May 8', spend: '₦3.4M', engage: 84 },
+                { n: 'Antibiotic Stewardship', t: 'CM-led · 4 regions', start: 'May 8', spend: '₦3.4M', engage: 84 },
                 { n: 'Cardio Year-Round', t: 'Continuous · National', start: 'Jan 1', spend: '₦12M', engage: 68 },
               ].map((c, i) => (
                 <div key={i} className="px-5 py-3 hover:bg-paper transition-colors">
@@ -167,7 +167,7 @@ export default function MMDashboard({ onNavigate, contentApprovals, clinicalMeet
             <div className="fade-up stagger-3 rounded-2xl bg-amber-50 border border-amber-200 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Icon name="alert" size={14} className="text-amber-700" />
-                <p className="text-[10px] font-bold text-amber-700 tracking-wider uppercase">{pendingHighImpactCMs} High-Impact CMEs</p>
+                <p className="text-[10px] font-bold text-amber-700 tracking-wider uppercase">{pendingHighImpactCMs} High-Impact CMs</p>
               </div>
               <p className="text-xs text-navy-700 leading-relaxed">PMs have escalated multi-regional clinical events for your strategic sign-off.</p>
               <button onClick={() => onNavigate('mm-cme')} className="mt-2 text-xs font-bold text-amber-700 flex items-center gap-1">

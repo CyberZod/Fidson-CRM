@@ -26,7 +26,7 @@ export default function PMClinicalView({ clinicalMeetings, onApproveCM, onReject
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1400px] mx-auto">
       <div className="fade-up rounded-2xl bg-white border border-navy-100 p-5 sm:p-6">
         <div className="flex items-center gap-2 mb-1">
-          <h3 className="font-display font-bold text-ink">Phase 6 · CME Approval Flow</h3>
+          <h3 className="font-display font-bold text-ink">Phase 6 · CM Approval Flow</h3>
           <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[9px] font-bold">YOU ARE PM</span>
         </div>
         <p className="text-xs text-navy-500 mb-5">Rep submits → PM reviews → HoM (if high-impact) → Logged in CRM</p>

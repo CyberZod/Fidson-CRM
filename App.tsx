@@ -72,7 +72,7 @@ import type {
   RepVisit,
   RepActiveVisit,
   AdjustmentRequest,
-  AuditStock,
+  CustomerStockEntry,
   RepOrderSubmission,
   CMForm,
   SignedInUser,
@@ -190,7 +190,7 @@ export default function App() {
 
   const [approvals, setApprovals] = useState<ApprovalItem[]>([
     { id: 'apr-1', type: 'discount', rep: 'Adaeze Okafor', detail: '18% on Lakeshore Specialist order', amount: '₦438,000', time: '2 min ago', urgent: true },
-    { id: 'apr-2', type: 'visit-summary', rep: 'Chinedu Eze', detail: 'Respiratory CME · 25 attendees · Reddington', amount: '₦650,000', time: '12 min ago' },
+    { id: 'apr-2', type: 'visit-summary', rep: 'Chinedu Eze', detail: 'Respiratory CM · 25 attendees · Reddington', amount: '₦650,000', time: '12 min ago' },
     { id: 'apr-3', type: 'discount', rep: 'Tope Adeola', detail: '16% on HealthPlus Surulere', amount: '₦210,000', time: '45 min ago' },
   ]);
 
@@ -205,7 +205,7 @@ export default function App() {
   ]);
 
   const [clinicalMeetings, setClinicalMeetings] = useState<ClinicalMeetingRow[]>([
-    { id: 'cm-1', rep: 'Adaeze O.', t: 'Respiratory Care CME', hcp: 'Lakeshore Specialist', date: 'May 22, 2026', attendees: 25, budget: '₦450k', s: 'pm-review', hi: false },
+    { id: 'cm-1', rep: 'Adaeze O.', t: 'Respiratory Care CM', hcp: 'Lakeshore Specialist', date: 'May 22, 2026', attendees: 25, budget: '₦450k', s: 'pm-review', hi: false },
     { id: 'cm-2', rep: 'Chinedu E.', t: 'Antibiotic Stewardship Workshop', hcp: 'Reddington Hospital', date: 'May 28, 2026', attendees: 40, budget: '₦820k', s: 'hom-review', hi: true },
     { id: 'cm-3', rep: 'Tope A.', t: 'Paediatric Dosing Webinar', hcp: 'Multi-hospital', date: 'Jun 5, 2026', attendees: 65, budget: '₦1.2M', s: 'hom-review', hi: true },
     { id: 'cm-4', rep: 'Kola A.', t: 'New Product Launch Brief', hcp: 'MedPlus Apapa', date: 'May 18, 2026', attendees: 12, budget: '₦180k', s: 'approved', hi: false },
@@ -270,13 +270,16 @@ export default function App() {
 
   const handleSubmitOrder = (orderData: RepOrderSubmission) => {
     const orderId = `FDS-${Math.floor(Math.random() * 9000) + 1000}`;
+    const isZeroDiscount = orderData.discount === 0;
     const newOrder: OrderRow = {
       id: orderId,
       rep: 'Adaeze O.',
       cust: orderData.visit?.name || 'Unknown',
       value: `₦${orderData.total.toLocaleString()}`,
       disc: `${orderData.discount}%`,
-      status: orderData.requiresApproval ? 'pending' : 'approved',
+      status: isZeroDiscount
+        ? 'sent-to-sales-admin'
+        : (orderData.requiresApproval ? 'pending' : 'approved'),
       flag: orderData.requiresApproval,
       channel: orderData.channel,
     };
@@ -297,6 +300,8 @@ export default function App() {
       };
       setApprovals(prev => [newApproval, ...prev]);
       addToast({ type: 'info', title: 'Order submitted for approval', msg: `Tunde Bakare (RSM) will review · ${orderData.discount}% discount` });
+    } else if (isZeroDiscount) {
+      addToast({ type: 'success', title: 'Sent to Sales Admin', msg: `No discount · ₦${orderData.total.toLocaleString()} queued for SOA processing` });
     } else {
       addToast({ type: 'success', title: 'Order placed', msg: `Auto-approved · ₦${orderData.total.toLocaleString()} synced to SOA` });
     }
@@ -330,7 +335,7 @@ export default function App() {
 
     addToast({
       type: 'info',
-      title: 'CME request submitted',
+      title: 'CM request submitted',
       msg: form.highImpact ? 'Routed to PM and HoM' : 'Routed to Product Manager',
     });
   };
@@ -570,7 +575,7 @@ export default function App() {
     if (!cm) return;
     setClinicalMeetings(prev => prev.map(c => c.id === id ? { ...c, s: 'approved' } : c));
     setApprovals(prev => prev.filter(a => (a as ApprovalModalItem).orderId !== id));
-    addToast({ type: 'success', title: 'High-impact CME approved', msg: `${cm.t} · ${cm.rep} notified · Distribution pending` });
+    addToast({ type: 'success', title: 'High-impact CM approved', msg: `${cm.t} · ${cm.rep} notified · Distribution pending` });
   };
 
   const handlePMApproveCM = (id: string) => {
@@ -582,53 +587,46 @@ export default function App() {
     } else {
       setClinicalMeetings(prev => prev.map(c => c.id === id ? { ...c, s: 'approved' } : c));
       setApprovals(prev => prev.filter(a => (a as ApprovalModalItem).orderId !== id));
-      addToast({ type: 'success', title: 'CME approved by PM', msg: `${cm.t} · ${cm.rep} notified` });
+      addToast({ type: 'success', title: 'CM approved by PM', msg: `${cm.t} · ${cm.rep} notified` });
     }
   };
 
-  const handleSyncAudit = (customerName: string, audit: AuditStock) => {
-    const updatedCoflin = parseInt(audit.coflin, 10) || 0;
-    const updatedAstrazon = parseInt(audit.astrazon, 10) || 0;
-    const updatedTuxil = parseInt(audit.tuxil, 10) || 0;
-
+  const handleSyncAudit = (customerName: string, stock: CustomerStockEntry) => {
     setCustomerInventory(prev => {
       const updated = [...prev];
-      const products = [
-        { name: 'Coflin Forte 600mg', qty: updatedCoflin, target: 50, rec: 'Push 40 cartons of Coflin Forte.' },
-        { name: 'Astrazon 10mg', qty: updatedAstrazon, target: 15, rec: 'Push 10 packs of Astrazon 10mg.' },
-        { name: 'Tuxil-N Syrup 100ml', qty: updatedTuxil, target: 30, rec: 'Push 25 bottles of Tuxil-N Syrup.' },
-      ];
-
-      products.forEach(p => {
-        const existingIdx = updated.findIndex(i => i.customer === customerName && i.product === p.name);
-        const isLow = p.qty <= p.target;
-        const status = isLow ? 'Low Stock' : 'Optimal';
-        const recommendation = isLow ? p.rec : 'None';
-
+      stock.forEach(row => {
+        const productName = row.product.trim();
+        if (!productName || row.units.trim() === '') return;
+        const qty = parseInt(row.units, 10) || 0;
+        const existingIdx = updated.findIndex(i => i.customer === customerName && i.product === productName);
         if (existingIdx > -1) {
+          const ex = updated[existingIdx];
+          const isLow = qty <= ex.restockLevel;
           updated[existingIdx] = {
-            ...updated[existingIdx],
-            stockOnHand: p.qty,
-            status,
-            recommendation,
+            ...ex,
+            stockOnHand: qty,
+            status: isLow ? 'Low Stock' : 'Optimal',
             lastAudited: 'Today',
+            recommendation: isLow ? `Push restock of ${productName}.` : 'None',
           };
         } else {
+          const defaultTarget = 30;
+          const isLow = qty <= defaultTarget;
           updated.push({
-            id: `inv-${Date.now()}-${p.name.replace(/\s+/g, '')}`,
+            id: `inv-${Date.now()}-${productName.replace(/\s+/g, '')}`,
             customer: customerName,
-            product: p.name,
-            stockOnHand: p.qty,
-            restockLevel: p.target,
+            product: productName,
+            stockOnHand: qty,
+            restockLevel: defaultTarget,
             lastAudited: 'Today',
-            status,
-            recommendation,
+            status: isLow ? 'Low Stock' : 'Optimal',
+            recommendation: isLow ? `Push restock of ${productName}.` : 'None',
           });
         }
       });
       return updated;
     });
-    addToast({ type: 'success', title: 'Audit Synchronized', msg: `${customerName} stock counts updated & AI recommendation refreshed.` });
+    addToast({ type: 'success', title: 'Customer stock synced', msg: `${customerName} stock updated · AI recommendation refreshed.` });
   };
 
   const handlePushDirective = (form: DirectiveForm) => {
@@ -684,7 +682,7 @@ export default function App() {
     'rep-coach': { t: 'AI Coach', s: 'Personalized insights & recommendations' },
     'rep-dcr': { t: 'My DCR', s: 'Daily Call Report · Auto-generated' },
     'rep-inventory': { t: 'Customer Inventory', s: 'HCP Stock-on-Hand & Restock Actions' },
-    'rep-clinical': { t: 'Request CME', s: 'Submit clinical meeting request' },
+    'rep-clinical': { t: 'Request CM', s: 'Submit clinical meeting request' },
     'rep-orders': { t: 'My Orders', s: 'Your order history · SOA synced' },
     'asm-area': { t: 'Area Overview', s: 'Lekki/V.I. Cluster · 4 reps' },
     'asm-team': { t: 'Team Coaching', s: '1:1 notes · Performance tracking' },
@@ -694,13 +692,13 @@ export default function App() {
     'fsm-distributors': { t: 'Distributor Management', s: '12 distributors · Q2 audit' },
     'pm-portfolio': { t: 'Product Portfolio', s: 'Respiratory Care · Coflin & Tuxil-N' },
     'pm-materials': { t: 'Detailing Materials', s: 'Push approved content to reps' },
-    'pm-clinical': { t: 'CME Approvals', s: 'Phase 6 · Your portfolio requests' },
+    'pm-clinical': { t: 'CM Approvals', s: 'Phase 6 · Your portfolio requests' },
     'pm-inventory': { t: 'Customer Inventory Insights', s: 'Verify HCP Stock Levels' },
     'pm-directives': { t: 'Field Strategy & Directives', s: 'Issue directives to reps' },
     'pm-field': { t: 'Field Shadow Visits', s: 'Coaching & field accompaniment logs' },
     'mm-marketing': { t: 'Marketing Dashboard', s: 'Cross-product · Nationwide · Institution' },
     'mm-content': { t: 'Content Approvals', s: 'Sign-off on detailing materials' },
-    'mm-cme': { t: 'High-Impact CME Approvals', s: 'Escalated multi-regional clinical events' },
+    'mm-cme': { t: 'High-Impact CM Approvals', s: 'Escalated multi-regional clinical events' },
     'mm-campaigns': { t: 'Campaign Performance', s: 'Nationwide marketing campaigns' },
     'dm-division': { t: 'Division Overview', s: 'South Division · 3 regions · 67 reps' },
     'dm-regions': { t: 'Regional Performance', s: 'SW, SE, SS · Cross-regional intelligence' },
@@ -732,7 +730,7 @@ export default function App() {
   const pmNav: NavItem[] = [
     { k: 'pm-portfolio', i: 'pill', l: 'My Portfolio' },
     { k: 'pm-materials', i: 'file', l: 'Detailing Materials' },
-    { k: 'pm-clinical', i: 'flask', l: 'CME Approvals', badge: clinicalMeetings.filter(c => c.s === 'pm-review').length },
+    { k: 'pm-clinical', i: 'flask', l: 'CM Approvals', badge: clinicalMeetings.filter(c => c.s === 'pm-review').length },
     { k: 'pm-inventory', i: 'package', l: 'Customer Inventory' },
     { k: 'pm-directives', i: 'send', l: 'Rep Directives' },
     { k: 'pm-field', i: 'location', l: 'Shadow Logs' },
@@ -742,7 +740,7 @@ export default function App() {
   const mmNav: NavItem[] = [
     { k: 'mm-marketing', i: 'dashboard', l: 'Marketing Dashboard' },
     { k: 'mm-content', i: 'file', l: 'Content Approvals', badge: contentApprovals.filter(c => c.status === 'pending').length },
-    { k: 'mm-cme', i: 'flask', l: 'High-Impact CMEs', badge: clinicalMeetings.filter(c => c.s === 'hom-review').length },
+    { k: 'mm-cme', i: 'flask', l: 'High-Impact CMs', badge: clinicalMeetings.filter(c => c.s === 'hom-review').length },
     { k: 'insights', i: 'sparkles', l: 'Brand Insights' },
   ];
 
@@ -954,14 +952,14 @@ export default function App() {
     pm: { items: [
       { k: 'pm-portfolio', i: 'pill', l: 'Brand' },
       { k: 'pm-materials', i: 'file', l: 'Materials' },
-      { k: 'pm-clinical', i: 'flask', l: 'CMEs', badge: clinicalMeetings.filter(c => c.s === 'pm-review').length },
+      { k: 'pm-clinical', i: 'flask', l: 'CMs', badge: clinicalMeetings.filter(c => c.s === 'pm-review').length },
       { k: 'pm-directives', i: 'send', l: 'Directives' },
       { k: 'pm-inventory', i: 'package', l: 'Inventory' },
     ], color: 'violet' },
     mm: { items: [
       { k: 'mm-marketing', i: 'dashboard', l: 'Brand' },
       { k: 'mm-content', i: 'file', l: 'Content', badge: contentApprovals.filter(c => c.status === 'pending').length },
-      { k: 'mm-cme', i: 'flask', l: 'CMEs', badge: clinicalMeetings.filter(c => c.s === 'hom-review').length },
+      { k: 'mm-cme', i: 'flask', l: 'CMs', badge: clinicalMeetings.filter(c => c.s === 'hom-review').length },
       { k: 'insights', i: 'sparkles', l: 'AI' },
     ], color: 'fuchsia' },
     dm: { items: [

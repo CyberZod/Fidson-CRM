@@ -107,14 +107,14 @@ export default function RepSidebar({
           {!collapsed && <p className="px-4 text-[10px] font-bold text-white/40 tracking-wider uppercase mb-2">Quick Submit</p>}
           <button
             onClick={() => { onNavigate('rep-clinical'); if (isMobile && onClose) onClose(); }}
-            title={collapsed ? 'Request CME' : undefined}
+            title={collapsed ? 'Request CM' : undefined}
             className={`w-full flex items-center ${collapsed ? 'justify-center px-2' : 'gap-3 px-4'} py-2.5 rounded-r-lg text-left transition-colors btn-press ${
               active === 'rep-clinical' ? 'nav-item-active text-white' : 'text-white/60 hover:text-white hover:bg-white/5'
             }`}
             style={{ borderLeftWidth: active === 'rep-clinical' ? 0 : '3px', borderLeftColor: 'transparent', borderLeftStyle: 'solid' }}
           >
             <Icon name="flask" size={18} />
-            {!collapsed && <span className="text-sm font-medium flex-1">Request CME</span>}
+            {!collapsed && <span className="text-sm font-medium flex-1">Request CM</span>}
           </button>
         </div>
       </nav>
