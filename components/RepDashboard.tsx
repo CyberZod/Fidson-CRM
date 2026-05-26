@@ -91,7 +91,7 @@ export default function RepDashboard({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-display font-semibold text-sm text-ink truncate">{v.name}</p>
-                    <p className="text-[11px] text-navy-500 truncate">{v.contact} · {v.time} · {v.dist} km</p>
+                    <p className="text-[11px] text-navy-500 truncate">{v.contact ? `${v.contact} · ` : ''}{v.time} · {v.dist} km</p>
                   </div>
                   {v.priority === 'high' && <span className="px-1.5 py-0.5 rounded bg-leaf-50 text-leaf-700 text-[9px] font-bold">HIGH</span>}
                   {v.status !== 'done' && <Icon name="chevronRight" size={16} className="text-navy-300" />}

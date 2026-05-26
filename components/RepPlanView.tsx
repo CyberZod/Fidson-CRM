@@ -33,8 +33,6 @@ interface AdjustForm {
 interface DraftVisitForm {
   day: string;
   name: string;
-  contact: string;
-  role: string;
   time: string;
   dist: string;
   priority: 'high' | 'med' | 'low';
@@ -45,8 +43,6 @@ interface DraftVisitForm {
 const emptyDraftForm = (day: string): DraftVisitForm => ({
   day,
   name: '',
-  contact: '',
-  role: '',
   time: '',
   dist: '',
   priority: 'med',
@@ -137,8 +133,6 @@ export default function RepPlanView({
       id: Date.now(),
       day: draftForm.day,
       name: draftForm.name.trim(),
-      contact: draftForm.contact.trim(),
-      role: draftForm.role.trim() || '—',
       time: draftForm.time.trim(),
       dist: draftForm.dist.trim() || '0',
       priority: draftForm.priority,
@@ -401,7 +395,7 @@ export default function RepPlanView({
                         {v.status === 'next' && <span className="px-1.5 py-0.5 rounded bg-leaf-500 text-white text-[9px] font-bold">NEXT</span>}
                         {v.priority === 'high' && v.status !== 'done' && <span className="px-1.5 py-0.5 rounded bg-leaf-50 text-leaf-700 text-[9px] font-bold">HIGH</span>}
                       </div>
-                      <p className="text-[11px] text-navy-500 mt-0.5">{v.contact}</p>
+                      <p className="text-[11px] text-navy-500 mt-0.5 truncate">{v.contact || v.address || 'Visit location'}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="text-xs font-mono font-bold text-navy-700">{v.time}</p>
@@ -457,37 +451,18 @@ export default function RepPlanView({
                     ))}
                   </div>
                 </div>
+                <div>
+                  <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Location</label>
+                  <p className="text-[10px] text-navy-500 mt-0.5">You'll record who you met when filling the visit log.</p>
+                  <input
+                    type="text"
+                    value={draftForm.name}
+                    onChange={e => updateDraftForm({ name: e.target.value })}
+                    placeholder="Lakeshore Specialist Hospital"
+                    className="input-field w-full mt-1.5 px-3 py-2 rounded-lg bg-paper border border-navy-200 text-sm text-ink"
+                  />
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Customer</label>
-                    <input
-                      type="text"
-                      value={draftForm.name}
-                      onChange={e => updateDraftForm({ name: e.target.value })}
-                      placeholder="Lakeshore Specialist Hospital"
-                      className="input-field w-full mt-1.5 px-3 py-2 rounded-lg bg-paper border border-navy-200 text-sm text-ink"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Contact</label>
-                    <input
-                      type="text"
-                      value={draftForm.contact}
-                      onChange={e => updateDraftForm({ contact: e.target.value })}
-                      placeholder="Dr. T. Adebayo"
-                      className="input-field w-full mt-1.5 px-3 py-2 rounded-lg bg-paper border border-navy-200 text-sm text-ink"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Role / Specialty</label>
-                    <input
-                      type="text"
-                      value={draftForm.role}
-                      onChange={e => updateDraftForm({ role: e.target.value })}
-                      placeholder="Internal Medicine"
-                      className="input-field w-full mt-1.5 px-3 py-2 rounded-lg bg-paper border border-navy-200 text-sm text-ink"
-                    />
-                  </div>
                   <div>
                     <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Time</label>
                     <input
@@ -590,7 +565,7 @@ export default function RepPlanView({
                   <div className="p-3 rounded-lg bg-paper">
                     <p className="text-[10px] font-bold text-navy-400 tracking-wider uppercase">Currently Planned</p>
                     <p className="text-sm font-display font-semibold text-ink mt-1">{adjustForm.visit.name}</p>
-                    <p className="text-[11px] text-navy-500">{adjustForm.visit.contact} · {adjustForm.visit.time} · {selectedDayLabel?.label}</p>
+                    <p className="text-[11px] text-navy-500">{adjustForm.visit.contact ? `${adjustForm.visit.contact} · ` : ''}{adjustForm.visit.time} · {selectedDayLabel?.label}</p>
                   </div>
                 )}
                 <div>

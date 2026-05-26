@@ -378,7 +378,7 @@ export interface RepVisit {
   plannedProducts?: string[];
   id: number | string;
   name: string;
-  contact: string;
+  contact?: string;
   time: string;
   dist: string | number;
   day?: string;
@@ -416,7 +416,7 @@ export interface WeekItinerary {
 export interface RepActiveVisit {
   id: number | string;
   name: string;
-  contact: string;
+  contact?: string;
   address?: string;
   role?: string;
   checkedIn?: boolean;
@@ -530,6 +530,43 @@ export interface AdjustmentRequest {
   type: 'add' | 'swap' | 'reroute' | string;
   visit: RepVisit | null;
   reason: string;
+}
+
+// ===== Visit Log (rep-visit form submission) =====
+export type HcpType = 'Doctor' | 'Pharmacist' | 'Nurse' | 'Other';
+
+export interface VisitLogAttendees {
+  doctors: number;
+  pharmacists: number;
+  nurses: number;
+  others: number;
+}
+
+export interface VisitLogLocation {
+  latitude: number;
+  longitude: number;
+  isManual: boolean;
+  address?: string;
+}
+
+export interface VisitLog {
+  id: string;
+  repId: string;
+  repName: string;
+  timestamp: string;
+  activeVisitId?: number | string;
+  hcpType: HcpType;
+  hcpName: string;
+  institution: string;
+  specialty: string;
+  email?: string;
+  phone?: string;
+  location: VisitLogLocation;
+  productsDiscussed: string[];
+  attendees: VisitLogAttendees;
+  summary: string;
+  nextSteps: string;
+  reminderDate?: string;
 }
 
 // ===== Customer Stock check (was Shelf Audit) =====

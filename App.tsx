@@ -21,7 +21,7 @@ import RSMItinerariesView from './components/RSMItinerariesView';
 
 import RepDashboard from './components/RepDashboard';
 import RepPlanView from './components/RepPlanView';
-import RepVisitView from './components/RepVisitView';
+import RepVisitLogView from './components/RepVisitLogView';
 import RepOrderView from './components/RepOrderView';
 import RepCoachView from './components/RepCoachView';
 import RepDCRView from './components/RepDCRView';
@@ -86,6 +86,7 @@ import type {
   CustomerStockEntry,
   RepOrderSubmission,
   CMForm,
+  VisitLog,
   SignedInUser,
   MaterialItem,
   NavItem,
@@ -117,6 +118,7 @@ export default function App() {
   // ===== REP-SPECIFIC STATE =====
   const [activeVisit, setActiveVisit] = useState<RepActiveVisit | null>(null);
   const [cmPrefillHcp, setCmPrefillHcp] = useState<string>('');
+  const [visitLogs, setVisitLogs] = useState<VisitLog[]>([]);
 
   const [repVisits, setRepVisits] = useState<RepVisit[]>([
     // Monday May 12
@@ -362,6 +364,15 @@ export default function App() {
     setActiveVisit(null);
     setView('rep-plan');
     addToast({ type: 'success', title: 'Visit complete', msg: 'DCR auto-generated · Synced to CRM' });
+  };
+
+  const handleLogVisit = (log: VisitLog) => {
+    setVisitLogs(prev => [log, ...prev]);
+    addToast({
+      type: 'success',
+      title: 'Visit logged',
+      msg: `${log.hcpName} · ${log.institution} · ${log.productsDiscussed.length} product(s) detailed`,
+    });
   };
 
   const handlePlaceOrder = (visit: RepActiveVisit) => {
@@ -884,7 +895,7 @@ export default function App() {
     itineraries: { t: 'Itinerary Governance', s: `${itinerariesPending.length} weekly · ${adjustmentsPending.length} daily adjustments pending` },
     'rep-day': { t: 'My Day', s: `${repStats.completed}/${repStats.planned} visits · Lagos region` },
     'rep-plan': { t: "Today's Plan", s: '8 stops · AI-optimized · GPS active' },
-    'rep-visit': { t: activeVisit ? `Visit: ${activeVisit.name}` : 'Active Visit', s: activeVisit ? `Visit ${activeVisit.id} of 8 · ${activeVisit.contact}` : 'No active visit' },
+    'rep-visit': { t: activeVisit ? `Visit: ${activeVisit.name}` : 'Active Visit', s: activeVisit ? `Visit ${activeVisit.id} of 8${activeVisit.contact ? ` · ${activeVisit.contact}` : ''}` : 'No active visit' },
     'rep-order': { t: 'Place Order', s: 'SOA-integrated · Real-time pricing' },
     'rep-coach': { t: 'AI Coach', s: 'Personalized insights & recommendations' },
     'rep-dcr': { t: 'My DCR', s: 'Daily Call Report · Auto-generated' },
@@ -1052,7 +1063,7 @@ export default function App() {
       switch (view) {
         case 'rep-day': return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} directives={directives} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
         case 'rep-plan': return <RepPlanView visits={repVisits} onStartVisit={handleStartVisit} weekItinerary={weekItinerary} onRequestAdjustment={handleRequestAdjustment} nextWeekVisits={nextWeekVisits} nextWeekItinerary={nextWeekItinerary} onAddPlannedVisit={handleAddPlannedVisit} onRemovePlannedVisit={handleRemovePlannedVisit} onSubmitItinerary={handleSubmitItinerary} />;
-        case 'rep-visit': return <RepVisitView activeVisit={activeVisit} onCheckIn={handleCheckIn} onCompleteVisit={handleCompleteVisit} onPlaceOrder={handlePlaceOrder} onNavigate={setView} onSyncAudit={handleSyncAudit} onRequestCM={handleRequestCMFromVisit} />;
+        case 'rep-visit': return <RepVisitLogView activeVisit={activeVisit} visitLogs={visitLogs} currentUserId={user?.email || 'rep'} currentUserName={user?.name || 'Rep'} onLogVisit={handleLogVisit} onCompleteVisit={handleCompleteVisit} onPlaceOrder={handlePlaceOrder} onNavigate={setView} />;
         case 'rep-order': return <RepOrderView activeVisit={activeVisit} onSubmitOrder={handleSubmitOrder} onBack={() => setView('rep-visit')} />;
         case 'rep-coach': return <RepCoachView customerInventory={customerInventory} onNavigate={setView} />;
         case 'rep-inventory': return <CustomerInventoryView customerInventory={customerInventory} onBack={() => setView('rep-day')} isPM={false} />;
