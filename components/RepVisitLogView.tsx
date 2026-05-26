@@ -557,6 +557,32 @@ export default function RepVisitLogView({
             )}
           </div>
 
+          {/* Conversation */}
+          <div className="rounded-2xl bg-white border border-navy-100 p-5 space-y-4">
+            <div>
+              <p className="stat-label text-navy-400 mb-2">Conversation Summary</p>
+              <textarea
+                required
+                rows={5}
+                value={summary}
+                onChange={e => setSummary(e.target.value)}
+                placeholder="Key topics, objections, feedback…"
+                className="input-field w-full p-3 rounded-xl bg-paper border border-navy-100 text-sm text-ink resize-none"
+              />
+            </div>
+            <div>
+              <p className="stat-label text-navy-400 mb-2">Next Course of Action</p>
+              <input
+                type="text"
+                required
+                value={nextSteps}
+                onChange={e => setNextSteps(e.target.value)}
+                placeholder="e.g. Drop samples next week, send paediatric pack"
+                className="input-field w-full px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink"
+              />
+            </div>
+          </div>
+
           {/* Engagement breakdown */}
           <div className="rounded-2xl bg-white border border-navy-100 p-5">
             <div className="flex items-center justify-between mb-3">
@@ -603,32 +629,6 @@ export default function RepVisitLogView({
                   </div>
                 );
               })}
-            </div>
-          </div>
-
-          {/* Conversation */}
-          <div className="rounded-2xl bg-white border border-navy-100 p-5 space-y-4">
-            <div>
-              <p className="stat-label text-navy-400 mb-2">Conversation Summary</p>
-              <textarea
-                required
-                rows={5}
-                value={summary}
-                onChange={e => setSummary(e.target.value)}
-                placeholder="Key topics, objections, feedback…"
-                className="input-field w-full p-3 rounded-xl bg-paper border border-navy-100 text-sm text-ink resize-none"
-              />
-            </div>
-            <div>
-              <p className="stat-label text-navy-400 mb-2">Next Course of Action</p>
-              <input
-                type="text"
-                required
-                value={nextSteps}
-                onChange={e => setNextSteps(e.target.value)}
-                placeholder="e.g. Drop samples next week, send paediatric pack"
-                className="input-field w-full px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink"
-              />
             </div>
           </div>
         </div>
