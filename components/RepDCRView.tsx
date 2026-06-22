@@ -1,11 +1,23 @@
+import { useState } from 'react';
 import Icon from './Icon';
+import { todayLong } from '../utils/dates';
+import type { VisitLog } from '../types';
 
 interface RepDCRViewProps {
   visitsCompleted: number;
   ordersToday: number;
+  visitLogs?: VisitLog[];
+  onSubmit?: () => void;
 }
 
-export default function RepDCRView({ visitsCompleted, ordersToday }: RepDCRViewProps) {
+const fmtTime = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+export default function RepDCRView({ visitsCompleted, ordersToday, visitLogs = [], onSubmit }: RepDCRViewProps) {
+  const [submitted, setSubmitted] = useState(false);
+
+  const today = new Date().toDateString();
+  const todaysLogs = visitLogs.filter(l => new Date(l.timestamp).toDateString() === today);
+
   const stats = [
     { l: 'Visits Done', v: visitsCompleted.toString() },
     { l: 'Orders Placed', v: ordersToday.toString() },
@@ -13,12 +25,24 @@ export default function RepDCRView({ visitsCompleted, ordersToday }: RepDCRViewP
     { l: 'Distance Driven', v: '18 km' },
   ];
 
-  const timeline = [
-    { t: '08:42', n: 'Day Started', loc: 'Yaba · GPS verified · Itinerary approved' },
-    { t: '10:04', n: 'Lakeshore Specialist Hospital', loc: 'Dr. T. Adebayo · Coflin Forte detailed · ₦438k order placed' },
-    { t: '11:32', n: 'MedPlus — Yaba', loc: 'Mrs. F. Eze · 50 packs Tuxil-N ordered' },
-    { t: '13:18', n: 'St. Nicholas Hospital', loc: 'Dr. C. Okonkwo · Astrazon detailed · Sample left' },
-  ];
+  // Real logged visits if any, else the seeded example timeline.
+  const timeline = todaysLogs.length > 0
+    ? todaysLogs.map(l => ({
+        t: fmtTime(l.timestamp),
+        n: `${l.hcpName} · ${l.institution}`,
+        loc: `${l.specialty || l.hcpType} · ${l.productsDiscussed.join(', ') || 'No products'}`,
+      })).reverse()
+    : [
+        { t: '08:42', n: 'Day Started', loc: 'Yaba · GPS verified · Itinerary approved' },
+        { t: '10:04', n: 'Lakeshore Specialist Hospital', loc: 'Dr. T. Adebayo · Coflin Forte detailed · ₦438k order placed' },
+        { t: '11:32', n: 'MedPlus — Yaba', loc: 'Mrs. F. Eze · 50 packs Tuxil-N ordered' },
+        { t: '13:18', n: 'St. Nicholas Hospital', loc: 'Dr. C. Okonkwo · Astrazon detailed · Sample left' },
+      ];
+
+  const handleSubmit = () => {
+    onSubmit?.();
+    setSubmitted(true);
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto">
@@ -26,15 +50,19 @@ export default function RepDCRView({ visitsCompleted, ordersToday }: RepDCRViewP
         <div className="px-5 sm:px-6 py-5 border-b border-navy-100 flex items-center justify-between flex-wrap gap-3">
           <div>
             <p className="text-[10px] font-bold text-navy-400 tracking-wider uppercase">Daily Call Report</p>
-            <h2 className="font-display text-xl sm:text-2xl font-bold text-ink mt-1">Wednesday · 13 May 2026</h2>
+            <h2 className="font-display text-xl sm:text-2xl font-bold text-ink mt-1">{todayLong()}</h2>
             <p className="text-xs text-navy-500 mt-1">Adaeze Okafor · Auto-generated from visits & orders</p>
           </div>
           <div className="flex items-center gap-2">
             <button className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-paper btn-press flex items-center gap-1.5">
               <Icon name="download" size={12} /> Export PDF
             </button>
-            <button className="px-3 py-1.5 rounded-lg bg-navy-700 text-white text-xs font-bold btn-press flex items-center gap-1.5">
-              <Icon name="send" size={12} /> Submit to RSM
+            <button
+              onClick={handleSubmit}
+              disabled={submitted}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold btn-press flex items-center gap-1.5 ${submitted ? 'bg-leaf-100 text-leaf-700' : 'bg-navy-700 text-white'}`}
+            >
+              <Icon name={submitted ? 'check' : 'send'} size={12} /> {submitted ? 'Submitted to RSM' : 'Submit to RSM'}
             </button>
           </div>
         </div>

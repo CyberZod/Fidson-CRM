@@ -86,10 +86,6 @@ export default function CMDetailDrawer({ cm, onClose, accent = 'violet' }: CMDet
               <p className="font-mono font-bold text-ink mt-1">{cm.budget}</p>
             </div>
             <div className="p-3 rounded-xl bg-paper border border-navy-100">
-              <p className="stat-label text-navy-400">Itemised Cost</p>
-              <p className="font-mono font-bold text-ink mt-1">{materials.length > 0 ? formatNaira(totalCost) : '—'}</p>
-            </div>
-            <div className="p-3 rounded-xl bg-paper border border-navy-100">
               <p className="stat-label text-navy-400">Attendees</p>
               <p className="font-mono font-bold text-ink mt-1">{cm.attendees}</p>
             </div>

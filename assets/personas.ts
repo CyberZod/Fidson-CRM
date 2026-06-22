@@ -15,7 +15,7 @@ export const PERSONAS: Record<PersonaKey, Persona> = {
   nsm_inst: { email: 'segun.adebanjo@fidson.com', name: 'Segun Adebanjo', role: 'NSM · Institution', roleType: 'nsm_inst', initials: 'SA', tag: 'NSM-I', tagColor: 'indigo', desc: 'NSM Institution · dotted line to CD · 4 regions', category: 'Leadership' },
   nsm_trade: { email: 'musa.lawal@fidson.com', name: 'Musa Lawal', role: 'NSM · Trade', roleType: 'nsm_trade', initials: 'ML', tag: 'NSM-T', tagColor: 'amber', desc: 'NSM Trade · reports to ADC · 6 FSMs · 38 reps', category: 'Leadership' },
   adc: { email: 'remi.adeoye@fidson.com', name: 'Remi Adeoye', role: 'ADC · Associate Commercial Director', roleType: 'adc', initials: 'RA', tag: 'ADC', tagColor: 'rose', desc: 'ADC · oversees NSM Trade + NSM Mobile & Frontline', category: 'Leadership' },
-  cd: { email: 'tunji.balogun@fidson.com', name: 'Tunji Balogun', role: 'CD · Commercial Director', roleType: 'cd', initials: 'TB2', tag: 'CD', tagColor: 'indigo', desc: 'Commercial Director · all channels · 142 reps · ₦250BN FY26', category: 'Leadership' },
+  cd: { email: 'tunji.balogun@fidson.com', name: 'Tunji Balogun', role: 'CD · Commercial Director', roleType: 'cd', initials: 'TB2', tag: 'CD', tagColor: 'indigo', desc: 'Commercial Director · all channels · 142 reps · ₦2.4TN FY26', category: 'Leadership' },
 };
 
 export const PERSONA_COLOR_MAP: Record<ColorKey, ColorPalette> = {

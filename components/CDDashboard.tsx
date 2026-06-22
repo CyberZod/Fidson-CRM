@@ -1,11 +1,17 @@
 import Icon from './Icon';
 import ProductLens from './ProductLens';
+import type { ApprovalModalItem, SubmittedDCR, ClinicalMeetingRow } from '../types';
 
 interface CDDashboardProps {
   onNavigate: (view: string) => void;
+  approvals?: ApprovalModalItem[];
+  dcrs?: SubmittedDCR[];
+  clinicalMeetings?: ClinicalMeetingRow[];
 }
 
-export default function CDDashboard({ onNavigate }: CDDashboardProps) {
+export default function CDDashboard({ onNavigate, approvals = [], dcrs = [], clinicalMeetings = [] }: CDDashboardProps) {
+  const nsmEscalations = approvals.filter(a => a.escalatedToNSM);
+  const cmRequests = clinicalMeetings.filter(c => c.s === 'pm-review' || c.s === 'hom-review').length;
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto">
       <div className="fade-up">
@@ -13,18 +19,42 @@ export default function CDDashboard({ onNavigate }: CDDashboardProps) {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold tracking-wider uppercase">Commercial Director</span>
-              <span className="text-xs text-navy-500">National · ₦250BN FY26 target</span>
+              <span className="text-xs text-navy-500">National · ₦2.4TN FY26 target</span>
             </div>
             <h2 className="mt-2 font-display text-2xl sm:text-3xl font-bold text-ink">
               National command, <span style={{ background: 'linear-gradient(135deg, #142A5A 0%, #6366F1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Tunji</span>
             </h2>
-            <p className="text-sm text-navy-500 mt-1">All channels · 142 reps national · ₦250BN FY26 target</p>
+            <p className="text-sm text-navy-500 mt-1">All channels · 142 reps national · ₦2.4TN FY26 target</p>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => onNavigate('cd-directive')} className="px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-semibold flex items-center gap-1.5 btn-press hover:bg-indigo-700">
               <Icon name="send" size={14} /> Push National Directive
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="fade-up rounded-2xl bg-white border border-navy-100 overflow-hidden">
+        <div className="px-5 py-4 border-b border-navy-100 flex items-center gap-2 flex-wrap">
+          <div className="w-1.5 h-1.5 rounded-full bg-leaf-500 pulse-dot" />
+          <h3 className="font-display font-bold text-ink">Live from the field · All channels</h3>
+          <span className="text-[11px] text-navy-500">Every region rolling up to your desk</span>
+          {nsmEscalations.length > 0 && (
+            <span className="ml-auto px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-bold">{nsmEscalations.length} escalated nationally</span>
+          )}
+        </div>
+        <div className="grid grid-cols-3 divide-x divide-navy-100">
+          {[
+            { l: 'Field Approvals', v: approvals.length, sub: 'pending across regions' },
+            { l: 'DCRs Submitted', v: dcrs.length, sub: 'today' },
+            { l: 'Clinical Meetings', v: cmRequests, sub: 'awaiting review' },
+          ].map(s => (
+            <div key={s.l} className="px-5 py-4">
+              <p className="stat-label text-navy-400">{s.l}</p>
+              <p className="font-display text-2xl font-bold text-ink mt-0.5">{s.v}</p>
+              <p className="text-[10px] text-navy-500">{s.sub}</p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -35,7 +65,7 @@ export default function CDDashboard({ onNavigate }: CDDashboardProps) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
           { l: 'National Pipeline', v: '₦128M', d: '+22% YoY', c: 'indigo' },
-          { l: 'FY26 Progress', v: '38%', d: 'of ₦250BN target', c: 'indigo' },
+          { l: 'FY26 Progress', v: '38%', d: 'of ₦2.4TN target', c: 'indigo' },
           { l: 'National Attainment', v: '88%', d: 'on plan for FY26', c: 'leaf' },
           { l: 'Reps Live Now', v: '84/142', d: 'GPS-verified', c: 'indigo' },
         ].map((k, i) => (
@@ -62,7 +92,7 @@ export default function CDDashboard({ onNavigate }: CDDashboardProps) {
             <span className="ml-auto px-3 py-1 rounded-full bg-white/10 text-white text-[10px] font-bold border border-white/20">EXECUTIVE TIER</span>
           </div>
           <h2 className="font-display text-2xl sm:text-3xl font-bold leading-tight">
-            On pace for <span className="text-indigo-300">92%</span> of ₦250BN FY26 target
+            On pace for <span className="text-indigo-300">92%</span> of ₦2.4TN FY26 target
           </h2>
           <p className="text-sm text-indigo-100 mt-2 max-w-2xl">
             All three channels tracking on plan. Institution leads with +24% YoY. Recommend reallocating 6 reps from NW to NC to close the gap.
@@ -159,17 +189,17 @@ export default function CDDashboard({ onNavigate }: CDDashboardProps) {
                 <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center backdrop-blur-sm">
                   <Icon name="target" size={16} className="text-white" />
                 </div>
-                <p className="text-[10px] font-bold text-indigo-200 tracking-[0.2em] uppercase">₦250BN Tracker</p>
+                <p className="text-[10px] font-bold text-indigo-200 tracking-[0.2em] uppercase">₦2.4TN Tracker</p>
               </div>
               <h3 className="font-display text-xl font-bold leading-tight">38% delivered</h3>
-              <p className="text-sm text-indigo-100 mt-1">₦95BN of ₦250BN FY26 commitment</p>
+              <p className="text-sm text-indigo-100 mt-1">₦910BN of ₦2.4TN FY26 commitment</p>
               <div className="mt-3 h-2.5 rounded-full bg-white/10 overflow-hidden">
                 <div className="h-full rounded-full bg-indigo-300" style={{ width: '38%' }} />
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <div className="p-2 rounded-lg bg-white/10 border border-white/10">
                   <p className="text-[9px] text-indigo-200 font-bold tracking-wider uppercase">Q3 Target</p>
-                  <p className="font-display text-sm font-bold text-white">₦68BN</p>
+                  <p className="font-display text-sm font-bold text-white">₦650BN</p>
                 </div>
                 <div className="p-2 rounded-lg bg-white/10 border border-white/10">
                   <p className="text-[9px] text-indigo-200 font-bold tracking-wider uppercase">Run-rate</p>
@@ -234,7 +264,7 @@ export default function CDDashboard({ onNavigate }: CDDashboardProps) {
             <div className="space-y-2">
               {[
                 { l: 'National Daily Performance', t: 'Auto-pushed 8am' },
-                { l: '₦250BN Tracker · Weekly', t: 'Every Monday' },
+                { l: '₦2.4TN Tracker · Weekly', t: 'Every Monday' },
                 { l: 'Board Commercial Pack', t: 'Quarterly · Q2 ready' },
               ].map(r => (
                 <div key={r.l} className="flex items-center gap-2 p-2 rounded-lg hover:bg-paper">

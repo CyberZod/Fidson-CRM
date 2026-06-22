@@ -1,4 +1,5 @@
 import Icon from './Icon';
+import { todayLong } from '../utils/dates';
 import type { RepVisit, RepDashboardStats, DirectiveRow, CustomerInventoryItem } from '../types';
 
 interface RepDashboardProps {
@@ -6,6 +7,7 @@ interface RepDashboardProps {
   onNavigate: (view: string) => void;
   onStartVisit: (visit: RepVisit) => void;
   repStats: RepDashboardStats;
+  hcpsMet?: number;
   directives?: DirectiveRow[];
   onAcknowledgeDirective: (id: string) => void;
   customerInventory?: CustomerInventoryItem[];
@@ -16,16 +18,23 @@ export default function RepDashboard({
   onNavigate,
   onStartVisit,
   repStats,
+  hcpsMet = 0,
   directives = [],
   onAcknowledgeDirective,
   customerInventory = [],
 }: RepDashboardProps) {
   const nextVisit = visits.find(v => v.status === 'pending' || v.status === 'next') || visits[0];
+  // Ground the coach's product guidance in PM-pushed material, not thin air:
+  // prefer a directive for a product this visit is detailing, else the latest one.
+  const coachSource = directives.find(d => {
+    const p = d.product || d.targetProduct;
+    return p && nextVisit?.plannedProducts?.some(pp => pp.includes(p) || p.includes(pp));
+  }) || directives[0];
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto">
       <div className="fade-up">
-        <p className="text-xs font-bold text-navy-400 tracking-wider uppercase">Wednesday · May 13, 2026</p>
+        <p className="text-xs font-bold text-navy-400 tracking-wider uppercase">{todayLong()}</p>
         <h2 className="mt-1 font-display text-2xl sm:text-3xl font-bold text-ink">
           Good morning, <span className="gradient-text">Adaeze</span>
         </h2>
@@ -57,18 +66,27 @@ export default function RepDashboard({
                 <div className="w-8 h-8 rounded-lg bg-leaf-500 flex items-center justify-center">
                   <Icon name="sparkles" size={16} className="text-white" />
                 </div>
-                <p className="text-[10px] font-bold text-leaf-300 tracking-[0.2em] uppercase">AI Coach · Next Best Action</p>
+                <p className="text-[10px] font-bold text-leaf-300 tracking-[0.2em] uppercase">AI Coach · Next Stop on Your Route</p>
               </div>
               <h3 className="font-display text-white text-xl sm:text-2xl font-bold leading-tight">
-                Start with <span className="text-leaf-300">Lakeshore Specialist Hospital</span>
+                Next up: <span className="text-leaf-300">{nextVisit?.name}</span>
               </h3>
               <p className="text-sm text-white/80 mt-2">
-                Dr. Adebayo is on shift until 11am. Coflin RX uptake from last visit jumped 37%. High likelihood of restock order today.
+                Lead with Coflin Forte 600mg for productive cough — the higher dose means faster mucus clearance and fewer doses a day than standard mucolytics. If cost comes up, point to the shorter treatment course. Aim to secure a restock before month-end.
               </p>
+              {coachSource && (
+                <div className="mt-3 flex items-start gap-2 p-2.5 rounded-lg bg-white/5 border border-white/10">
+                  <Icon name="file" size={13} className="text-leaf-300 mt-0.5 flex-shrink-0" />
+                  <p className="text-[11px] text-white/70 leading-relaxed">
+                    Talking points from <span className="text-white font-semibold">{coachSource.pm}</span>'s material · <span className="text-leaf-300">{coachSource.title}</span>
+                  </p>
+                </div>
+              )}
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="px-2.5 py-1 rounded-full bg-white/10 text-leaf-300 text-[10px] font-bold border border-leaf-500/30">+₦340k expected</span>
-                <span className="px-2.5 py-1 rounded-full bg-white/10 text-white text-[10px] font-bold">1.2 km away</span>
-                <span className="px-2.5 py-1 rounded-full bg-white/10 text-white text-[10px] font-bold">High priority</span>
+                {nextVisit?.dist != null && <span className="px-2.5 py-1 rounded-full bg-white/10 text-white text-[10px] font-bold">{nextVisit.dist} km away</span>}
+                <span className="px-2.5 py-1 rounded-full bg-white/10 text-white text-[10px] font-bold">{nextVisit?.time}</span>
+                {nextVisit?.priority === 'high' && <span className="px-2.5 py-1 rounded-full bg-white/10 text-white text-[10px] font-bold">High priority</span>}
               </div>
               <button onClick={() => onStartVisit(nextVisit)} className="mt-5 px-4 py-2.5 rounded-lg bg-leaf-500 text-white text-sm font-display font-semibold btn-press hover:bg-leaf-600 flex items-center gap-2">
                 Start visit <Icon name="arrowRight" size={14} />
@@ -82,7 +100,7 @@ export default function RepDashboard({
               <button onClick={() => onNavigate('rep-plan')} className="text-xs font-semibold text-leaf-700 hover:text-leaf-800">See all →</button>
             </div>
             <div className="divide-y divide-navy-50">
-              {visits.slice(0, 4).map(v => (
+              {visits.filter(v => v.status !== 'done').slice(0, 4).map(v => (
                 <button key={v.id} onClick={() => onStartVisit(v)} className="w-full px-5 py-3 hover:bg-paper transition-colors flex items-center gap-3 text-left btn-press">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center font-display font-bold text-xs flex-shrink-0 ${
                     v.status === 'done' ? 'bg-leaf-500 text-white' : v.status === 'next' ? 'bg-navy-700 text-white' : 'bg-navy-100 text-navy-700'
@@ -106,10 +124,8 @@ export default function RepDashboard({
             <h3 className="font-display font-bold text-ink text-sm mb-3">Today's Progress</h3>
             <div className="space-y-3">
               {[
-                { l: 'Visits', val: repStats.completed, max: repStats.planned, c: 'leaf' },
-                { l: 'Samples Given', val: 14, max: 30, c: 'navy' },
-                { l: 'Detailing Calls', val: 6, max: 10, c: 'leaf' },
-                { l: 'Orders Closed', val: repStats.ordersCount, max: 6, c: 'leaf' },
+                { l: 'Visits (locations)', val: repStats.completed, max: repStats.planned, c: 'leaf' },
+                { l: 'HCPs Met', val: Math.min(hcpsMet, 10), max: 10, c: 'navy' }, // fixed 10/day target; fed by today's visit logs
               ].map(s => (
                 <div key={s.l}>
                   <div className="flex items-baseline justify-between mb-1">

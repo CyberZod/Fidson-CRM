@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import Icon from './Icon';
+import type { VisitLog } from '../types';
 
 interface FieldActivityViewProps {
   searchQuery: string;
+  visitLogs?: VisitLog[];
 }
 
 type FilterKey = 'all' | 'live' | 'idle' | 'offline';
@@ -18,8 +20,26 @@ interface Rep {
   percent: number;
 }
 
-export default function FieldActivityView({ searchQuery }: FieldActivityViewProps) {
+export default function FieldActivityView({ searchQuery, visitLogs = [] }: FieldActivityViewProps) {
   const [filter, setFilter] = useState<FilterKey>('all');
+
+  // Today's real logs, newest first (visitLogs is already prepended newest-first).
+  const todaysLogs = useMemo(() => {
+    const today = new Date().toDateString();
+    return visitLogs.filter(l => new Date(l.timestamp).toDateString() === today);
+  }, [visitLogs]);
+
+  // repName -> { count today, latest log } so a logged visit reflects on the RSM's roster.
+  const liveByRep = useMemo(() => {
+    const map: Record<string, { count: number; latest: VisitLog }> = {};
+    for (const l of todaysLogs) {
+      if (!map[l.repName]) map[l.repName] = { count: 0, latest: l };
+      map[l.repName].count += 1;
+    }
+    return map;
+  }, [todaysLogs]);
+
+  const fmtTime = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
   const allReps: Rep[] = [
     { n: 'Adaeze Okafor', z: 'V.I./Lekki', s: 'live', visits: '3/8', loc: 'Lakeshore Hospital', last: '10:04 AM', value: '₦340k', percent: 87 },
@@ -32,14 +52,26 @@ export default function FieldActivityView({ searchQuery }: FieldActivityViewProp
   ];
 
   const filteredReps = useMemo(() => {
-    let result = allReps;
+    // Overlay real logged visits onto the roster so a rep's log shows up live for the RSM.
+    let result = allReps.map(r => {
+      const live = liveByRep[r.n];
+      if (!live) return r;
+      const planned = r.visits.split('/')[1] ?? '8';
+      return {
+        ...r,
+        s: 'live' as const,
+        visits: `${live.count}/${planned}`,
+        loc: live.latest.institution,
+        last: fmtTime(live.latest.timestamp),
+      };
+    });
     if (filter !== 'all') result = result.filter(r => r.s === filter);
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(r => r.n.toLowerCase().includes(q) || r.z.toLowerCase().includes(q) || r.loc.toLowerCase().includes(q));
     }
     return result;
-  }, [filter, searchQuery]);
+  }, [filter, searchQuery, liveByRep]);
 
   const counts: Record<FilterKey, number> = useMemo(() => ({
     all: allReps.length,
@@ -141,6 +173,26 @@ export default function FieldActivityView({ searchQuery }: FieldActivityViewProp
         </div>
 
         <div className="fade-up stagger-2 rounded-2xl bg-white border border-navy-100 h-fit">
+          {todaysLogs.length > 0 && (
+            <div className="px-5 py-4 border-b border-navy-100">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-leaf-500 pulse-dot" />
+                <h3 className="font-display font-bold text-ink">Live Visit Logs</h3>
+                <span className="px-1.5 rounded bg-leaf-100 text-leaf-700 text-[10px] font-bold">{todaysLogs.length} today</span>
+              </div>
+              <div className="space-y-1.5 max-h-[220px] overflow-y-auto">
+                {todaysLogs.slice(0, 6).map(l => (
+                  <div key={l.id} className="flex items-start gap-2.5 p-2 rounded-lg bg-paper">
+                    <div className="font-mono text-[10px] text-navy-500 font-bold w-12 flex-shrink-0 pt-0.5">{fmtTime(l.timestamp)}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-display font-semibold text-xs text-ink truncate">{l.hcpName} · {l.institution}</p>
+                      <p className="text-[10px] text-navy-500 truncate">{l.repName} · {l.productsDiscussed.join(', ') || 'No products'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="px-5 py-4 border-b border-navy-100">
             <h3 className="font-display font-bold text-ink">Team Roster</h3>
             <p className="text-xs text-navy-500 mt-0.5">{filteredReps.length} of {allReps.length} reps {filter !== 'all' ? `· ${filter}` : ''}</p>

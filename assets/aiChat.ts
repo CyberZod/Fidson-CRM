@@ -107,7 +107,7 @@ const NSM_PROFILE: ChatProfile = {
   greeting: 'Hi Bayo',
   scope: 'National · 2 divisions · 6 regions · 142 reps',
   wins: [
-    { title: 'National forecast 92% of FY26 target', detail: '₦230BN projected vs ₦250BN — confidence 84%.' },
+    { title: 'National forecast 92% of FY26 target', detail: '₦2.2TN projected vs ₦2.4TN — confidence 84%.' },
     { title: 'South Division +15 pts vs North', detail: 'SW region pulling hardest on Coflin uptake.' },
     { title: 'Coflin nationwide +37% MoM', detail: 'Strongest single-product trend across portfolio.' },
   ],
@@ -117,13 +117,13 @@ const NSM_PROFILE: ChatProfile = {
     { title: 'Abuja FCT under-tapped', detail: '₦24M institutional pipeline detected — no FSM coverage.' },
   ],
   suggestions: [
-    'How are we tracking against the ₦250BN FY26 target?',
+    'How are we tracking against the ₦2.4TN FY26 target?',
     'Where are the biggest opportunities right now?',
     'Which division is at risk?',
     'Show me ROI across active campaigns',
   ],
   cannedResponses: [
-    { keywords: ['250', 'target', 'fy26', 'national'], reply: 'FY26 trajectory is at 92% of the ₦250BN target with 38% of the year complete. South division is the engine (SW + SE + SS combined at 96% of plan). North is the drag at 78% — NE region the worst.' },
+    { keywords: ['250', 'target', 'fy26', 'national'], reply: 'FY26 trajectory is at 92% of the ₦2.4TN target with 38% of the year complete. South division is the engine (SW + SE + SS combined at 96% of plan). North is the drag at 78% — NE region the worst.' },
     { keywords: ['opportunity', 'untapped', 'growth'], reply: 'Three opportunities ranked: (1) Abuja FCT institutional pipeline — ₦24M detected, no FSM coverage. (2) Apabuja zone gap in SW — 21 days unvisited. (3) Lagoon Hospital VI showing 3x order velocity, ready for KAM elevation.' },
     { keywords: ['risk', 'division', 'failing', 'stalling'], reply: 'NE region is the priority risk: zero growth for 60 days. Recommend dispatching DM Kemi for an on-the-ground assessment. North division as a whole is 14 pts below South — structural issue worth a quarterly review.' },
     { keywords: ['roi', 'campaign'], reply: 'Active campaigns this quarter: Q3 Coflin Paediatric (+260% ROI), Antibiotic Stewardship (+124%), Tuxil-N Trade SW (+14%), Cardio Q3 paused (-44%). Aggregate ROI is +198%. Tell HoM to consider re-scoping the Cardio campaign.' },
@@ -294,7 +294,7 @@ const BM_PROFILE: ChatProfile = {
 
 const CD_PROFILE: ChatProfile = {
   greeting: 'Hi Tunji',
-  scope: 'Commercial Director · National · ₦250BN FY26 target',
+  scope: 'Commercial Director · National · ₦2.4TN FY26 target',
   wins: [
     { title: '38% of FY26 target hit', detail: 'On pace at the macro level; mix shift toward institution.' },
     { title: 'Institution channel ROI +212% on Q3 campaigns', detail: 'Healthier than trade by a wide margin.' },
@@ -306,13 +306,13 @@ const CD_PROFILE: ChatProfile = {
     { title: 'Augmentin competitor pressure intensifying', detail: 'GSK pushing trade discount in 5 SW sites this week.' },
   ],
   suggestions: [
-    'How are we tracking against ₦250BN?',
+    'How are we tracking against ₦2.4TN?',
     'Which channel is at biggest risk?',
     'Show me ROI across all campaigns',
     'Where should I push leadership attention?',
   ],
   cannedResponses: [
-    { keywords: ['250', 'target', 'fy26'], reply: 'At 38% of the ₦250BN target with 31% of the fiscal year complete — slightly ahead. Confidence to land at 92-96% by year-end. Mix is shifting: Institution +212% ROI, Trade +14% ROI.' },
+    { keywords: ['250', 'target', 'fy26'], reply: 'At 38% of the ₦2.4TN target with 31% of the fiscal year complete — slightly ahead. Confidence to land at 92-96% by year-end. Mix is shifting: Institution +212% ROI, Trade +14% ROI.' },
     { keywords: ['channel', 'risk', 'at risk'], reply: 'Trade channel is the risk — 76% Q2 attainment vs Institution at 92%. ADC should focus weekly reviews there. Mobile & Frontline is thin in NE — consider a BM Mobile redistribution.' },
     { keywords: ['roi', 'campaign'], reply: 'Aggregate ROI +198%. Institution-led campaigns at +212% (Coflin Paediatric + Antibiotic Stewardship). Trade at +14% (Tuxil-N push under-performing). Cardio Q3 paused at -44% — Ngozi Eze\'s call still pending HoM.' },
     { keywords: ['leadership', 'attention', 'push'], reply: 'Three places: (1) Trade channel attainment gap — pull ADC into a weekly. (2) NE region stalled for 60 days — broadcast a NSM/DM directive. (3) GSK Augmentin pressure — make sure HoM signs off on the counter-brief today.' },

@@ -1,9 +1,13 @@
 import Icon from './Icon';
 import NigeriaMap from './NigeriaMap';
-import type { IconName, RegionData } from '../types';
+import type { IconName, RegionData, ApprovalModalItem, SubmittedDCR, ClinicalMeetingRow } from '../types';
 
 interface NSMDashboardProps {
   onNavigate: (view: string) => void;
+  approvals?: ApprovalModalItem[];
+  dcrs?: SubmittedDCR[];
+  clinicalMeetings?: ClinicalMeetingRow[];
+  scope?: string;
 }
 
 interface InsightRow {
@@ -13,7 +17,10 @@ interface InsightRow {
   s: string;
 }
 
-export default function NSMDashboard({ onNavigate }: NSMDashboardProps) {
+export default function NSMDashboard({ onNavigate, approvals = [], dcrs = [], clinicalMeetings = [], scope = 'National' }: NSMDashboardProps) {
+  const nsmEscalations = approvals.filter(a => a.escalatedToNSM);
+  const pendingApprovals = approvals.length;
+  const cmRequests = clinicalMeetings.filter(c => c.s === 'pm-review' || c.s === 'hom-review').length;
   const allRegions: RegionData[] = [
     { code: 'NW', intensity: 0.62, label: '62%' },
     { code: 'NE', intensity: 0.48, label: '48%' },
@@ -24,7 +31,7 @@ export default function NSMDashboard({ onNavigate }: NSMDashboardProps) {
   ];
 
   const insights: InsightRow[] = [
-    { i: 'trending', c: 'indigo', t: 'National AI Forecast', s: 'FY26 trajectory at 92% of ₦250BN target · confidence 84%' },
+    { i: 'trending', c: 'indigo', t: 'National AI Forecast', s: 'FY26 trajectory at 92% of ₦2.4TN target · confidence 84%' },
     { i: 'barChart', c: 'leaf', t: 'Division Benchmarking', s: 'South Division outperforming North by 15 pts on Q2 attainment' },
     { i: 'pill', c: 'indigo', t: 'Product Trend Analytics', s: 'Coflin nationwide +37% MoM · Astrazon −4% MoM · Tuxil-N flat' },
   ];
@@ -52,6 +59,47 @@ export default function NSMDashboard({ onNavigate }: NSMDashboardProps) {
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="fade-up rounded-2xl bg-white border border-navy-100 overflow-hidden">
+        <div className="px-5 py-4 border-b border-navy-100 flex items-center gap-2 flex-wrap">
+          <div className="w-1.5 h-1.5 rounded-full bg-leaf-500 pulse-dot" />
+          <h3 className="font-display font-bold text-ink">Live from the field · {scope}</h3>
+          <span className="text-[11px] text-navy-500">Rolling up nationally in real time</span>
+          {nsmEscalations.length > 0 && (
+            <span className="ml-auto px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-bold">{nsmEscalations.length} escalated to you</span>
+          )}
+        </div>
+        <div className="grid grid-cols-3 divide-x divide-navy-100">
+          {[
+            { l: 'Field Approvals', v: pendingApprovals, sub: 'pending across regions' },
+            { l: 'DCRs Submitted', v: dcrs.length, sub: 'today' },
+            { l: 'Clinical Meetings', v: cmRequests, sub: 'awaiting review' },
+          ].map(s => (
+            <div key={s.l} className="px-5 py-4">
+              <p className="stat-label text-navy-400">{s.l}</p>
+              <p className="font-display text-2xl font-bold text-ink mt-0.5">{s.v}</p>
+              <p className="text-[10px] text-navy-500">{s.sub}</p>
+            </div>
+          ))}
+        </div>
+        {nsmEscalations.length > 0 && (
+          <div className="border-t border-navy-100 divide-y divide-navy-50">
+            <p className="px-5 pt-3 pb-1 stat-label text-rose-600">Escalated to National Tier</p>
+            {nsmEscalations.map(a => (
+              <div key={a.id} className="px-5 py-3 flex items-center gap-3 hover:bg-paper">
+                <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center flex-shrink-0">
+                  <Icon name="alert" size={14} className="text-rose-700" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-display font-semibold text-xs text-ink truncate">{a.rep} · {a.detail}</p>
+                  <p className="text-[10px] text-navy-500">Routed via DM · awaiting national decision</p>
+                </div>
+                <span className="font-mono text-xs font-bold text-ink flex-shrink-0">{a.amount}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -84,7 +132,7 @@ export default function NSMDashboard({ onNavigate }: NSMDashboardProps) {
             <span className="ml-auto px-3 py-1 rounded-full bg-white/10 text-white text-[10px] font-bold border border-white/20">EXECUTIVE TIER</span>
           </div>
           <h2 className="font-display text-2xl sm:text-3xl font-bold leading-tight">
-            Nigeria on pace for <span className="text-indigo-300">₦1.18B</span> FY26 revenue
+            Nigeria on pace for <span className="text-indigo-300">₦2.2TN</span> FY26 revenue
           </h2>
           <p className="text-sm text-indigo-100 mt-2 max-w-2xl">
             +18% YoY growth driven by Coflin Forte uptake in South and emerging North-Central institutional accounts. Recommend doubling Abuja rep allocation.
@@ -92,9 +140,9 @@ export default function NSMDashboard({ onNavigate }: NSMDashboardProps) {
 
           <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { l: 'FY26 Forecast', v: '₦1.18B', sub: '+18% YoY' },
-              { l: 'South Division', v: '₦780M', sub: '66% of total' },
-              { l: 'North Division', v: '₦400M', sub: '34% · growing fast' },
+              { l: 'FY26 Forecast', v: '₦2.2TN', sub: '+18% YoY' },
+              { l: 'South Division', v: '₦1.45TN', sub: '66% of total' },
+              { l: 'North Division', v: '₦750BN', sub: '34% · growing fast' },
               { l: 'Confidence', v: '91%', sub: 'High' },
             ].map(s => (
               <div key={s.l} className="p-3 rounded-xl bg-white/10 border border-white/10 backdrop-blur-sm">

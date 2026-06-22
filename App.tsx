@@ -60,6 +60,8 @@ import PMPromoView from './components/PMPromoView';
 
 import CustomerInventoryView from './components/CustomerInventoryView';
 
+import { weekLabel, weekId, weekRangeShort } from './utils/dates';
+
 import type {
   Toast,
   ToastInput,
@@ -87,6 +89,7 @@ import type {
   RepOrderSubmission,
   CMForm,
   VisitLog,
+  SubmittedDCR,
   SignedInUser,
   MaterialItem,
   NavItem,
@@ -119,18 +122,19 @@ export default function App() {
   const [activeVisit, setActiveVisit] = useState<RepActiveVisit | null>(null);
   const [cmPrefillHcp, setCmPrefillHcp] = useState<string>('');
   const [visitLogs, setVisitLogs] = useState<VisitLog[]>([]);
+  const [dcrs, setDcrs] = useState<SubmittedDCR[]>([]);
 
   const [repVisits, setRepVisits] = useState<RepVisit[]>([
     // Monday May 12
     { id: 101, day: 'mon', name: 'Reddington Hospital', contact: 'Dr. Akin Bello', role: 'Internal Med', time: '09:30', dist: '2.4', priority: 'high', status: 'done', address: '12 Idowu Martins, V.I.' },
     { id: 102, day: 'mon', name: 'St. Nicholas Hospital', contact: 'Dr. C. Okonkwo', role: 'Paediatrics', time: '11:00', dist: '4.1', priority: 'med', status: 'done', address: '57 Campbell Street, Lagos Island' },
     { id: 103, day: 'mon', name: 'HealthPlus Ikoyi', contact: 'Mrs. R. Doherty', role: 'Pharmacist', time: '14:00', dist: '5.8', priority: 'med', status: 'done', address: 'Awolowo Road, Ikoyi' },
-    // Tuesday May 13 — TODAY
-    { id: 1, day: 'tue', name: 'Lakeshore Specialist Hospital', contact: 'Dr. T. Adebayo', role: 'Internal Medicine', time: '10:00', dist: '1.2', priority: 'high', status: 'next', address: 'Plot 14, Adeola Odeku, Victoria Island' },
-    { id: 2, day: 'tue', name: 'MedPlus Pharmacy — Yaba', contact: 'Mrs. Funke Eze', role: 'Pharmacist', time: '11:30', dist: '2.8', priority: 'med', status: 'pending', address: '25 Murtala Muhammed Way, Yaba' },
-    { id: 3, day: 'tue', name: 'St. Nicholas Hospital', contact: 'Dr. C. Okonkwo', role: 'Paediatrics', time: '13:00', dist: '4.1', priority: 'med', status: 'pending', address: '57 Campbell Street, Lagos Island' },
-    { id: 4, day: 'tue', name: 'HealthPlus — Ikeja', contact: 'Mr. K. Bello', role: 'Manager', time: '14:30', dist: '6.3', priority: 'low', status: 'pending', address: 'Ikeja City Mall, Alausa' },
-    { id: 5, day: 'tue', name: 'Lagoon Hospital, VI', contact: 'Dr. A. Williams', role: 'Cardiology', time: '16:00', dist: '12.0', priority: 'high', status: 'pending', address: '17a Bourdillon Rd, Ikoyi' },
+    // Tuesday May 13 — TODAY (fresh day, AI-optimized route, nothing completed yet)
+    { id: 1, day: 'tue', name: 'Reddington Hospital VI', contact: 'Dr. Akin Bello', role: 'Internal Medicine', time: '09:30', fixedTime: true, dist: '2.4', priority: 'high', status: 'next', address: '12 Idowu Martins, Victoria Island', plannedProducts: ['Coflin Forte 600mg'] },
+    { id: 2, day: 'tue', name: 'MedPlus Lekki Phase 1', contact: 'Mrs. Funke Eze', role: 'Pharmacist', time: '10:25', dist: '5.9', priority: 'med', status: 'pending', address: 'Admiralty Way, Lekki Phase 1' },
+    { id: 3, day: 'tue', name: 'Lakeshore Specialist Hospital', contact: 'Dr. T. Adebayo', role: 'Internal Medicine', time: '11:05', dist: '0.6', priority: 'high', status: 'pending', address: 'Plot 14, Adeola Odeku, Victoria Island' },
+    { id: 4, day: 'tue', name: 'St Nicholas Hospital', contact: 'Dr. C. Okonkwo', role: 'Paediatrics', time: '13:00', fixedTime: true, dist: '7.8', priority: 'med', status: 'pending', address: '57 Campbell Street, Lagos Island' },
+    { id: 5, day: 'tue', name: 'Eko Hospital Ikeja', contact: 'Dr. N. Olaniyan', role: 'Paediatrics', time: '14:35', dist: '15.6', priority: 'high', status: 'pending', address: 'Mobolaji Bank Anthony Way, Ikeja' },
     // Wednesday May 14
     { id: 201, day: 'wed', name: 'EHA Clinic', contact: 'Dr. F. Onuoha', role: 'GP', time: '09:00', dist: '3.2', priority: 'med', status: 'pending', address: 'Lekki Phase 1' },
     { id: 202, day: 'wed', name: 'Vedic Lifecare', contact: 'Dr. M. Singh', role: 'Cardiology', time: '10:30', dist: '4.8', priority: 'high', status: 'pending', address: 'Eko Atlantic' },
@@ -147,8 +151,8 @@ export default function App() {
   ]);
 
   const [weekItinerary, setWeekItinerary] = useState({
-    weekId: 'W20-FY26',
-    weekLabel: 'Week 20 · May 12 – 16, 2026',
+    weekId: weekId(0),
+    weekLabel: weekLabel(0),
     status: 'approved' as 'draft' | 'submitted' | 'approved' | 'rejected',
     submittedAt: 'Friday 9 May, 17:42',
     approvedBy: 'Tunde Bakare (RSM)',
@@ -161,8 +165,8 @@ export default function App() {
 
   const [nextWeekVisits, setNextWeekVisits] = useState<RepVisit[]>([]);
   const [nextWeekItinerary, setNextWeekItinerary] = useState({
-    weekId: 'W21-FY26',
-    weekLabel: 'Week 21 · May 19 – 23, 2026',
+    weekId: weekId(1),
+    weekLabel: weekLabel(1),
     status: 'draft' as 'draft' | 'submitted' | 'approved' | 'rejected',
     submittedAt: '',
     approvedBy: 'Tunde Bakare (RSM)',
@@ -174,10 +178,10 @@ export default function App() {
   });
 
   const [itinerariesPending, setItinerariesPending] = useState<ItineraryPending[]>([
-    { id: 'it-1', rep: 'Chinedu Eze', area: 'Ikeja Cluster', week: 'W21 · May 19-23', visits: 32, submittedAt: 'Today 14:20', focus: 'Coflin push · Institutional', highlights: '5 A-tier targets · 2 new HCPs', escalationStatus: 'escalated' },
-    { id: 'it-2', rep: 'Tope Adeola', area: 'Lekki Phase 1', week: 'W21 · May 19-23', visits: 36, submittedAt: 'Today 13:45', focus: 'Antibiotics · Q2 close', highlights: 'Tope is 91% to target', escalationStatus: 'imminent' },
-    { id: 'it-3', rep: 'Bayo Salami', area: 'Lekki Phase 2', week: 'W21 · May 19-23', visits: 28, submittedAt: 'Today 11:10', focus: 'Mixed portfolio', highlights: 'Needs review — 4 fewer visits than W20', escalationStatus: null },
-    { id: 'it-4', rep: 'Yetunde Cole', area: 'V.I. West', week: 'W21 · May 19-23', visits: 24, submittedAt: 'Yesterday 16:50', focus: 'Pharmacy + retail', highlights: 'Coaching needed · low coverage', escalationStatus: 'escalated' },
+    { id: 'it-1', rep: 'Chinedu Eze', area: 'Ikeja Cluster', week: weekRangeShort(1), visits: 32, submittedAt: 'Today 14:20', focus: 'Coflin push · Institutional', highlights: '5 A-tier targets · 2 new HCPs', escalationStatus: 'escalated' },
+    { id: 'it-2', rep: 'Tope Adeola', area: 'Lekki Phase 1', week: weekRangeShort(1), visits: 36, submittedAt: 'Today 13:45', focus: 'Antibiotics · Q2 close', highlights: 'Tope is 91% to target', escalationStatus: 'imminent' },
+    { id: 'it-3', rep: 'Bayo Salami', area: 'Lekki Phase 2', week: weekRangeShort(1), visits: 28, submittedAt: 'Today 11:10', focus: 'Mixed portfolio', highlights: 'Needs review — 4 fewer visits than W20', escalationStatus: null },
+    { id: 'it-4', rep: 'Yetunde Cole', area: 'V.I. West', week: weekRangeShort(1), visits: 24, submittedAt: 'Yesterday 16:50', focus: 'Pharmacy + retail', highlights: 'Coaching needed · low coverage', escalationStatus: 'escalated' },
   ]);
 
   const [adjustmentsPending, setAdjustmentsPending] = useState<AdjustmentPending[]>([
@@ -227,6 +231,16 @@ export default function App() {
       ordersValue: '438k',
     };
   }, [repVisits]);
+
+  // HCPs met today = people logged across today's visit logs (at least the named
+  // HCP per log). Drives the "HCPs Met" progress on My Day.
+  const hcpsMetToday = useMemo(() => {
+    const today = new Date().toDateString();
+    const me = user?.email || 'rep';
+    return visitLogs
+      .filter(v => v.repId === me && new Date(v.timestamp).toDateString() === today)
+      .reduce((s, v) => s + Math.max(1, v.attendees.doctors + v.attendees.pharmacists + v.attendees.nurses + v.attendees.others), 0);
+  }, [visitLogs, user]);
 
   const [approvals, setApprovals] = useState<ApprovalItem[]>([
     { id: 'apr-1', type: 'discount', rep: 'Adaeze Okafor', detail: '18% on Lakeshore Specialist order', amount: '₦438,000', time: '2 min ago', urgent: true },
@@ -375,6 +389,21 @@ export default function App() {
     });
   };
 
+  const handleSubmitDCR = () => {
+    const today = new Date().toDateString();
+    const todaysLogs = visitLogs.filter(l => new Date(l.timestamp).toDateString() === today);
+    const dcr: SubmittedDCR = {
+      id: `dcr-${Date.now()}`,
+      rep: 'Adaeze Okafor',
+      submittedAt: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+      visitsCompleted: repStats.completed,
+      ordersToday: orders.filter(o => o.rep === 'Adaeze O.').length,
+      logs: todaysLogs,
+    };
+    setDcrs(prev => [dcr, ...prev]);
+    addToast({ type: 'success', title: 'DCR submitted to RSM', msg: `Tunde Bakare (RSM) will see your ${todaysLogs.length}-visit report` });
+  };
+
   const handlePlaceOrder = (visit: RepActiveVisit) => {
     setActiveVisit(visit);
     setView('rep-order');
@@ -465,6 +494,10 @@ export default function App() {
 
   const handleRemovePlannedVisit = (id: number | string) => {
     setNextWeekVisits(prev => prev.filter(v => v.id !== id));
+  };
+
+  const handleApplyOptimizedRoute = (day: string, optimized: RepVisit[]) => {
+    setNextWeekVisits(prev => [...prev.filter(v => v.day !== day), ...optimized]);
   };
 
   const handleSubmitItinerary = () => {
@@ -568,6 +601,12 @@ export default function App() {
         msg: `${item.rep} has been notified · ${item.amount}`,
       });
     }, 400);
+  };
+
+  const handleEscalateToNSM = (id: string) => {
+    const item = approvals.find(a => a.id === id) as ApprovalModalItem | undefined;
+    setApprovals(prev => prev.map(a => a.id === id ? { ...a, escalatedToNSM: true } as ApprovalModalItem : a));
+    addToast({ type: 'info', title: 'Escalated to NSM', msg: `${item?.rep ?? 'Item'} · ${item?.amount ?? ''} routed to national tier` });
   };
 
   const rejectItem = (id: string, _reason?: string) => {
@@ -1054,6 +1093,7 @@ export default function App() {
   // ===== RENDER VIEW =====
   const renderView = () => {
     const dashboardStats = { pendingCount: approvals.length };
+    const nsmScope = isNSMTrade ? 'Trade' : isNSMInst ? 'Institution' : 'Mobile & Frontline';
 
     if (view === 'campaigns') {
       return <CampaignsView scope="All campaigns · Cross-product · 60-day attribution" />;
@@ -1061,16 +1101,16 @@ export default function App() {
 
     if (isRep) {
       switch (view) {
-        case 'rep-day': return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} directives={directives} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
-        case 'rep-plan': return <RepPlanView visits={repVisits} onStartVisit={handleStartVisit} weekItinerary={weekItinerary} onRequestAdjustment={handleRequestAdjustment} nextWeekVisits={nextWeekVisits} nextWeekItinerary={nextWeekItinerary} onAddPlannedVisit={handleAddPlannedVisit} onRemovePlannedVisit={handleRemovePlannedVisit} onSubmitItinerary={handleSubmitItinerary} />;
+        case 'rep-day': return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} hcpsMet={hcpsMetToday} directives={directives} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
+        case 'rep-plan': return <RepPlanView visits={repVisits} onStartVisit={handleStartVisit} weekItinerary={weekItinerary} onRequestAdjustment={handleRequestAdjustment} nextWeekVisits={nextWeekVisits} nextWeekItinerary={nextWeekItinerary} onAddPlannedVisit={handleAddPlannedVisit} onRemovePlannedVisit={handleRemovePlannedVisit} onApplyOptimizedRoute={handleApplyOptimizedRoute} onSubmitItinerary={handleSubmitItinerary} />;
         case 'rep-visit': return <RepVisitLogView activeVisit={activeVisit} visitLogs={visitLogs} currentUserId={user?.email || 'rep'} currentUserName={user?.name || 'Rep'} onLogVisit={handleLogVisit} onCompleteVisit={handleCompleteVisit} onPlaceOrder={handlePlaceOrder} onNavigate={setView} />;
         case 'rep-order': return <RepOrderView activeVisit={activeVisit} onSubmitOrder={handleSubmitOrder} onBack={() => setView('rep-visit')} />;
         case 'rep-coach': return <RepCoachView customerInventory={customerInventory} onNavigate={setView} />;
         case 'rep-inventory': return <CustomerInventoryView customerInventory={customerInventory} onBack={() => setView('rep-day')} isPM={false} />;
-        case 'rep-dcr': return <RepDCRView visitsCompleted={repStats.completed} ordersToday={orders.filter(o => o.rep === 'Adaeze O.').length} />;
+        case 'rep-dcr': return <RepDCRView visitsCompleted={repStats.completed} ordersToday={orders.filter(o => o.rep === 'Adaeze O.').length} visitLogs={visitLogs} onSubmit={handleSubmitDCR} />;
         case 'rep-clinical': return <RepClinicalView onSubmitCM={handleSubmitCM} prefillHcp={cmPrefillHcp} onConsumePrefill={() => setCmPrefillHcp('')} />;
         case 'rep-orders': return <OrdersView orders={orders.filter(o => o.rep === 'Adaeze O.')} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
-        default: return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} directives={directives} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
+        default: return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} hcpsMet={hcpsMetToday} directives={directives} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
       }
     }
 
@@ -1110,7 +1150,7 @@ export default function App() {
       switch (view) {
         case 'fsm-trade': return <FSMDashboard onNavigate={setView} />;
         case 'fsm-distributors': return <FSMDistributorsView />;
-        case 'activity': return <FieldActivityView searchQuery={searchQuery} />;
+        case 'activity': return <FieldActivityView searchQuery={searchQuery} visitLogs={visitLogs} />;
         case 'orders': return <OrdersView orders={orders} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <FSMDashboard onNavigate={setView} />;
@@ -1145,7 +1185,7 @@ export default function App() {
       switch (view) {
         case 'dm-division': return <DMDashboard onNavigate={setView} approvals={approvals} />;
         case 'dm-regions': return <DMDashboard onNavigate={setView} approvals={approvals} />;
-        case 'dm-escalated': return <DMEscalatedView approvals={approvals} onOpenApproval={setApprovalModalItem as (item: ApprovalItem) => void} onApprove={approveItem} onReject={rejectItem} />;
+        case 'dm-escalated': return <DMEscalatedView approvals={approvals} onOpenApproval={setApprovalModalItem as (item: ApprovalItem) => void} onApprove={approveItem} onReject={rejectItem} onEscalateToNSM={handleEscalateToNSM} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         case 'dm-push': return (
           <div className="p-8 max-w-2xl mx-auto">
@@ -1175,34 +1215,34 @@ export default function App() {
 
     if (isNSM) {
       switch (view) {
-        case 'nsm-national': return <NSMDashboard onNavigate={setView} />;
-        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} />;
+        case 'nsm-national': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
+        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
         case 'nsm-forecast': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         case 'nsm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
-        default: return <NSMDashboard onNavigate={setView} />;
+        default: return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
       }
     }
 
     if (isNSMInst) {
       switch (view) {
-        case 'nsm_inst-dashboard': return <NSMDashboard onNavigate={setView} />;
-        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} />;
+        case 'nsm_inst-dashboard': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
+        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
         case 'nsm-forecast': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         case 'nsm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
-        default: return <NSMDashboard onNavigate={setView} />;
+        default: return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
       }
     }
 
     if (isNSMTrade) {
       switch (view) {
-        case 'nsm_trade-dashboard': return <NSMDashboard onNavigate={setView} />;
-        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} />;
+        case 'nsm_trade-dashboard': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
+        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
         case 'nsm-forecast': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         case 'nsm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
-        default: return <NSMDashboard onNavigate={setView} />;
+        default: return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
       }
     }
 
@@ -1246,22 +1286,22 @@ export default function App() {
 
     if (isCD) {
       switch (view) {
-        case 'cd-dashboard': return <CDDashboard onNavigate={setView} />;
+        case 'cd-dashboard': return <CDDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} />;
         case 'cd-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
-        default: return <CDDashboard onNavigate={setView} />;
+        default: return <CDDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} />;
       }
     }
 
     // MANAGER (RSM) ROUTES
     switch (view) {
       case 'dashboard': return <DashboardView approvals={approvals} onOpenApproval={setApprovalModalItem as (item: ApprovalItem) => void} onApprove={approveItem} onReject={rejectItem} dashboardStats={dashboardStats} />;
-      case 'activity': return <FieldActivityView searchQuery={searchQuery} />;
+      case 'activity': return <FieldActivityView searchQuery={searchQuery} visitLogs={visitLogs} />;
       case 'orders': return <OrdersView orders={orders} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
       case 'hcps': return <HCPsView searchQuery={searchQuery} />;
       case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
       case 'clinical': return <ClinicalView clinicalMeetings={clinicalMeetings} onApproveCM={approveCM} onRejectCM={rejectCM} />;
-      case 'reports': return <ReportsView />;
+      case 'reports': return <ReportsView dcrs={dcrs} />;
       case 'itineraries': return (
         <RSMItinerariesView
           itinerariesPending={itinerariesPending}
@@ -1412,7 +1452,7 @@ export default function App() {
     if (isBM) return <RoleSidebar {...common} roleType="bm" navItems={bmNav} statusPill={{ label: 'Cestra Brand', detail: '3 SKUs · Nationwide' }} />;
     if (isBMD) return <RoleSidebar {...common} roleType="bmd" navItems={bmdNav} statusPill={{ label: 'Brand Management', detail: '8 brands · 5 direct reports' }} />;
     if (isADC) return <RoleSidebar {...common} roleType="adc" navItems={adcNav} statusPill={{ label: 'Trade + M&F', detail: '80 reps · 2 NSMs' }} />;
-    if (isCD) return <RoleSidebar {...common} roleType="cd" navItems={cdNav} statusPill={{ label: 'Commercial', detail: '142 reps · ₦250BN FY26' }} />;
+    if (isCD) return <RoleSidebar {...common} roleType="cd" navItems={cdNav} statusPill={{ label: 'Commercial', detail: '142 reps · ₦2.4TN FY26' }} />;
     return <Sidebar {...common} approvalsCount={approvals.length} itinerariesBadge={itinerariesPending.length + adjustmentsPending.length} />;
   };
 
@@ -1460,6 +1500,7 @@ export default function App() {
           onClose={() => setApprovalModalItem(null)}
           onApprove={approveItem}
           onReject={rejectItem}
+          readOnly={!isDM}
         />
       )}
 

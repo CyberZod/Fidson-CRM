@@ -20,6 +20,7 @@ interface KpiCard {
 }
 
 export default function DashboardView({ approvals, onOpenApproval, onApprove, dashboardStats }: DashboardViewProps) {
+  const discounts = approvals.filter(a => a.type === 'discount');
   const kpis: KpiCard[] = [
     { l: 'Team Coverage', v: '78%', d: '+5% vs yesterday', trend: 'up', color: 'leaf', chart: [40, 55, 52, 68, 72, 75, 78] },
     { l: 'Pipeline Value', v: '₦42.3M', d: '96 active orders', trend: 'up', color: 'navy', chart: [28, 32, 35, 40, 38, 42, 42] },
@@ -121,8 +122,8 @@ export default function DashboardView({ approvals, onOpenApproval, onApprove, da
             <div className="px-5 py-4 border-b border-navy-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h3 className="font-display font-bold text-ink">Discount Activity in Region</h3>
-                {approvals.length > 0 ? (
-                  <span className="px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold">{approvals.length} ROUTED TO DM</span>
+                {discounts.length > 0 ? (
+                  <span className="px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold">{discounts.length} ROUTED TO DM</span>
                 ) : (
                   <span className="px-2 py-0.5 rounded-full bg-leaf-50 border border-leaf-200 text-leaf-700 text-[10px] font-bold">ALL CLEAR</span>
                 )}
@@ -130,7 +131,7 @@ export default function DashboardView({ approvals, onOpenApproval, onApprove, da
               <button className="text-xs font-semibold text-leaf-700 hover:text-leaf-800">View all →</button>
             </div>
 
-            {approvals.length === 0 ? (
+            {discounts.length === 0 ? (
               <div className="py-12 text-center">
                 <div className="w-14 h-14 rounded-full bg-leaf-50 mx-auto flex items-center justify-center">
                   <Icon name="check" size={24} className="text-leaf-600" strokeWidth={2.5} />
@@ -140,7 +141,7 @@ export default function DashboardView({ approvals, onOpenApproval, onApprove, da
               </div>
             ) : (
               <div className="divide-y divide-navy-50">
-                {approvals.map(a => (
+                {discounts.map(a => (
                   <div key={a.id} className={`${a.dismissing ? 'slide-out-up' : ''} px-5 py-3 hover:bg-paper transition-colors flex items-center gap-3 sm:gap-4`}>
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${a.type === 'discount' ? 'bg-amber-50 text-amber-700' : 'bg-navy-50 text-navy-700'}`}>
                       <Icon name={a.type === 'discount' ? 'cart' : 'flask'} size={18} />

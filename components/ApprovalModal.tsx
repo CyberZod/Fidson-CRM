@@ -7,11 +7,12 @@ interface ApprovalModalProps {
   onClose: () => void;
   onApprove: (id: string) => void;
   onReject: (id: string, reason?: string) => void;
+  readOnly?: boolean; // ponytail: RSM/PM view discounts but only DM signs off
 }
 
 type Step = 'review' | 'reject' | 'approving' | 'rejecting' | 'approved';
 
-export default function ApprovalModal({ item, onClose, onApprove, onReject }: ApprovalModalProps) {
+export default function ApprovalModal({ item, onClose, onApprove, onReject, readOnly = false }: ApprovalModalProps) {
   const [step, setStep] = useState<Step>('review');
   const [rejectReason, setRejectReason] = useState('');
 
@@ -131,10 +132,17 @@ export default function ApprovalModal({ item, onClose, onApprove, onReject }: Ap
               )}
             </div>
 
-            <div className="px-5 py-4 border-t border-navy-100 flex gap-2">
-              <button onClick={() => setStep('reject')} className="flex-1 py-2.5 rounded-lg border border-navy-200 text-sm font-bold text-navy-700 hover:bg-paper btn-press">Reject</button>
-              <button onClick={handleApprove} className="flex-1 py-2.5 rounded-lg bg-leaf-500 text-white text-sm font-bold hover:bg-leaf-600 btn-press">Approve</button>
-            </div>
+            {readOnly ? (
+              <div className="px-5 py-4 border-t border-navy-100 flex items-center justify-center gap-2 bg-paper">
+                <Icon name="lock" size={14} className="text-navy-400" />
+                <p className="text-xs font-semibold text-navy-500">Read-only · sign-off authority sits with the DM</p>
+              </div>
+            ) : (
+              <div className="px-5 py-4 border-t border-navy-100 flex gap-2">
+                <button onClick={() => setStep('reject')} className="flex-1 py-2.5 rounded-lg border border-navy-200 text-sm font-bold text-navy-700 hover:bg-paper btn-press">Reject</button>
+                <button onClick={handleApprove} className="flex-1 py-2.5 rounded-lg bg-leaf-500 text-white text-sm font-bold hover:bg-leaf-600 btn-press">Approve</button>
+              </div>
+            )}
           </>
         )}
 

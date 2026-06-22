@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import Icon from './Icon';
 import { PRODUCT_CATALOG } from '../assets/products';
+import { CALL_POINTS, coordOf, distanceKm } from '../assets/locations';
+import { weekDays, weekTag } from '../utils/dates';
 import type { RepVisit, WeekItinerary, AdjustmentRequest } from '../types';
 
 interface RepPlanViewProps {
@@ -12,8 +14,27 @@ interface RepPlanViewProps {
   nextWeekItinerary?: WeekItinerary;
   onAddPlannedVisit?: (visit: RepVisit) => void;
   onRemovePlannedVisit?: (id: number | string) => void;
+  onApplyOptimizedRoute?: (day: string, optimized: RepVisit[]) => void;
   onSubmitItinerary?: () => void;
 }
+
+// Route optimizer works on real coordinates (haversine) resolved from the
+// location's name via the call-point list.
+const legKm = (a: string, b: string) => distanceKm(coordOf(a), coordOf(b));
+const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + (m || 0); };
+const toTime = (mins: number) => `${String(Math.floor(mins / 60) % 24).padStart(2, '0')}:${String(Math.round(mins) % 60).padStart(2, '0')}`;
+const routeKm = (arr: RepVisit[]) => arr.reduce((s, v, i) => i ? s + legKm(v.name, arr[i - 1].name) : 0, 0);
+
+// All orderings of arr (n! — only called for small day plans).
+const permute = <T,>(arr: T[]): T[][] =>
+  arr.length <= 1 ? [arr] : arr.flatMap((x, i) => permute([...arr.slice(0, i), ...arr.slice(i + 1)]).map(p => [x, ...p]));
+
+// Fixed-time visits must stay in chronological order; flexible ones float.
+const fixedOrderOk = (perm: RepVisit[]): boolean => {
+  const f = perm.filter(v => v.fixedTime && v.time);
+  for (let i = 1; i < f.length; i++) if (toMin(f[i].time) < toMin(f[i - 1].time)) return false;
+  return true;
+};
 
 type WeekTab = 'current' | 'next';
 
@@ -34,7 +55,7 @@ interface DraftVisitForm {
   day: string;
   name: string;
   time: string;
-  dist: string;
+  fixedTime: boolean;
   priority: 'high' | 'med' | 'low';
   address: string;
   plannedProducts: string[];
@@ -44,7 +65,7 @@ const emptyDraftForm = (day: string): DraftVisitForm => ({
   day,
   name: '',
   time: '',
-  dist: '',
+  fixedTime: false,
   priority: 'med',
   address: '',
   plannedProducts: PRODUCT_CATALOG.filter(p => p.focus).map(p => p.name),
@@ -59,6 +80,7 @@ export default function RepPlanView({
   nextWeekItinerary,
   onAddPlannedVisit,
   onRemovePlannedVisit,
+  onApplyOptimizedRoute,
   onSubmitItinerary,
 }: RepPlanViewProps) {
   const hasNextWeek = !!nextWeekItinerary;
@@ -70,21 +92,10 @@ export default function RepPlanView({
   const [adjustForm, setAdjustForm] = useState<AdjustForm | null>(null);
   const [adjReason, setAdjReason] = useState('');
   const [draftForm, setDraftForm] = useState<DraftVisitForm | null>(null);
+  const [proposal, setProposal] = useState<{ day: string; visits: RepVisit[]; savedKm: number; savedMin: number } | null>(null);
 
-  const currentDays: DaySpec[] = [
-    { k: 'mon', l: 'Mon', date: 'May 12', label: 'Monday' },
-    { k: 'tue', l: 'Tue', date: 'May 13', label: 'Tuesday', today: true },
-    { k: 'wed', l: 'Wed', date: 'May 14', label: 'Wednesday' },
-    { k: 'thu', l: 'Thu', date: 'May 15', label: 'Thursday' },
-    { k: 'fri', l: 'Fri', date: 'May 16', label: 'Friday' },
-  ];
-  const nextDays: DaySpec[] = [
-    { k: 'mon', l: 'Mon', date: 'May 19', label: 'Monday' },
-    { k: 'tue', l: 'Tue', date: 'May 20', label: 'Tuesday' },
-    { k: 'wed', l: 'Wed', date: 'May 21', label: 'Wednesday' },
-    { k: 'thu', l: 'Thu', date: 'May 22', label: 'Thursday' },
-    { k: 'fri', l: 'Fri', date: 'May 23', label: 'Friday' },
-  ];
+  const currentDays: DaySpec[] = weekDays(0);
+  const nextDays: DaySpec[] = weekDays(1);
   const days = activeTab === 'next' ? nextDays : currentDays;
 
   const dayCounts = useMemo(() => {
@@ -134,7 +145,8 @@ export default function RepPlanView({
       day: draftForm.day,
       name: draftForm.name.trim(),
       time: draftForm.time.trim(),
-      dist: draftForm.dist.trim() || '0',
+      fixedTime: draftForm.fixedTime,
+      dist: '0',
       priority: draftForm.priority,
       status: 'pending',
       address: draftForm.address.trim(),
@@ -142,6 +154,70 @@ export default function RepPlanView({
     };
     onAddPlannedVisit?.(newVisit);
     setDraftForm(null);
+  };
+
+  // AI route optimization: reorder flexible visits along the shortest path while
+  // keeping fixed-time (HCP-given) slots anchored. A candidate route is only valid
+  // if the schedule is time-feasible — you must never arrive late to a fixed slot.
+  const DWELL_MIN = 30;
+  const START_MIN = 9 * 60;
+
+  // Walk a route assigning arrival times; returns km + retimed visits, or null
+  // if it would make the rep late to a fixed appointment.
+  const evalRoute = (order: RepVisit[]): { km: number; visits: RepVisit[] } | null => {
+    const start = Math.min(...order.map(v => (v.time ? toMin(v.time) : START_MIN)));
+    let clock = start, km = 0;
+    const visits: RepVisit[] = [];
+    for (let i = 0; i < order.length; i++) {
+      const v = order[i];
+      const leg = i > 0 ? legKm(v.name, order[i - 1].name) : 0;
+      if (i > 0) clock += DWELL_MIN + Math.max(10, Math.round(leg * 4)); // travel + dwell
+      km += leg;
+      if (v.fixedTime && v.time) {
+        if (clock > toMin(v.time) + 1) return null; // would arrive late — reject
+        clock = toMin(v.time); // arrive early and wait
+        visits.push({ ...v, dist: leg.toFixed(1) });
+      } else {
+        visits.push({ ...v, time: toTime(Math.round(clock / 5) * 5), dist: leg.toFixed(1) });
+      }
+    }
+    return { km, visits };
+  };
+
+  const handleOptimizeRoute = () => {
+    if (dayVisits.length < 2) return;
+    const original = routeKm(dayVisits);
+    let best: { km: number; visits: RepVisit[] } | null = null;
+    if (dayVisits.length <= 7) {
+      for (const p of permute(dayVisits)) {
+        if (!fixedOrderOk(p)) continue;
+        const e = evalRoute(p);
+        if (e && (!best || e.km < best.km)) best = e;
+      }
+    } else {
+      // Greedy nearest-neighbour fallback for large days.
+      const rest = [...dayVisits];
+      const ordered = [rest.shift()!];
+      while (rest.length) {
+        const last = ordered[ordered.length - 1];
+        rest.sort((a, b) => legKm(last.name, a.name) - legKm(last.name, b.name));
+        ordered.push(rest.shift()!);
+      }
+      best = evalRoute(ordered);
+    }
+    if (!best) return; // no feasible route (fixed slots conflict)
+    setProposal({
+      day: selectedDay,
+      visits: best.visits,
+      savedKm: Math.max(0, original - best.km),
+      savedMin: Math.round(Math.max(0, original - best.km) * 4),
+    });
+  };
+
+  const applyProposal = () => {
+    if (!proposal) return;
+    onApplyOptimizedRoute?.(proposal.day, proposal.visits);
+    setProposal(null);
   };
 
   const toggleDraftProduct = (productName: string) => {
@@ -168,7 +244,7 @@ export default function RepPlanView({
             }`}
           >
             This week
-            <span className="text-[9px] font-mono text-navy-400">W20</span>
+            <span className="text-[9px] font-mono text-navy-400">{weekTag(0)}</span>
           </button>
           <button
             onClick={() => setActiveTab('next')}
@@ -177,7 +253,7 @@ export default function RepPlanView({
             }`}
           >
             Plan next week
-            <span className="text-[9px] font-mono text-navy-400">W21</span>
+            <span className="text-[9px] font-mono text-navy-400">{weekTag(1)}</span>
             {nextWeekStatusLabel && (
               <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
                 nextWeekItinerary?.status === 'draft' ? 'bg-leaf-100 text-leaf-700' :
@@ -353,12 +429,19 @@ export default function RepPlanView({
                   {isPast && <span className="px-1.5 py-0.5 rounded bg-navy-100 text-navy-700 text-[9px] font-bold">COMPLETED</span>}
                   {isFuture && <span className="px-1.5 py-0.5 rounded bg-paper border border-navy-200 text-navy-700 text-[9px] font-bold">UPCOMING</span>}
                 </div>
-                <p className="text-xs text-navy-500 mt-0.5">{dayVisits.length} stops · AI-optimized route</p>
+                <p className="text-xs text-navy-500 mt-0.5">{dayVisits.length} stops{isDraft ? '' : ' · AI-optimized route'}</p>
               </div>
               {isDraft ? (
-                <button onClick={openDraftForm} className="px-3 py-1.5 rounded-lg bg-leaf-600 text-white text-xs font-bold flex items-center gap-1.5 btn-press hover:bg-leaf-700">
-                  <Icon name="plus" size={12} /> Add visit
-                </button>
+                <div className="flex items-center gap-2">
+                  {dayVisits.length >= 2 && (
+                    <button onClick={handleOptimizeRoute} className="px-3 py-1.5 rounded-lg bg-violet-600 text-white text-xs font-bold flex items-center gap-1.5 btn-press hover:bg-violet-700">
+                      <Icon name="sparkles" size={12} /> Optimize route
+                    </button>
+                  )}
+                  <button onClick={openDraftForm} className="px-3 py-1.5 rounded-lg bg-leaf-600 text-white text-xs font-bold flex items-center gap-1.5 btn-press hover:bg-leaf-700">
+                    <Icon name="plus" size={12} /> Add visit
+                  </button>
+                </div>
               ) : ((isToday || isFuture) && adjustmentsRemaining > 0 && (
                 <button onClick={() => setAdjustForm({ type: 'add', visit: null })} className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-xs font-bold flex items-center gap-1.5 btn-press hover:bg-amber-600">
                   <Icon name="plus" size={12} /> Request Adjustment
@@ -398,8 +481,10 @@ export default function RepPlanView({
                       <p className="text-[11px] text-navy-500 mt-0.5 truncate">{v.contact || v.address || 'Visit location'}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-xs font-mono font-bold text-navy-700">{v.time}</p>
-                      <p className="text-[10px] text-navy-400">{v.dist} km</p>
+                      <p className="text-xs font-mono font-bold text-navy-700 flex items-center justify-end gap-1">
+                        {v.fixedTime && <Icon name="lock" size={10} className="text-navy-400" />}{v.time}
+                      </p>
+                      {parseFloat(String(v.dist)) > 0 && <p className="text-[10px] text-navy-400">{v.dist} km</p>}
                     </div>
                     {!isDraft && isToday && v.status !== 'done' && <Icon name="chevronRight" size={16} className="text-navy-300" />}
                     {isDraft && (
@@ -453,14 +538,18 @@ export default function RepPlanView({
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Location</label>
-                  <p className="text-[10px] text-navy-500 mt-0.5">You'll record who you met when filling the visit log.</p>
+                  <p className="text-[10px] text-navy-500 mt-0.5">Pick a call point so AI can optimize the route. You'll record who you met in the visit log.</p>
                   <input
                     type="text"
+                    list="callpoints"
                     value={draftForm.name}
                     onChange={e => updateDraftForm({ name: e.target.value })}
-                    placeholder="Lakeshore Specialist Hospital"
+                    placeholder="Start typing — e.g. Lakeshore Specialist Hospital"
                     className="input-field w-full mt-1.5 px-3 py-2 rounded-lg bg-paper border border-navy-200 text-sm text-ink"
                   />
+                  <datalist id="callpoints">
+                    {CALL_POINTS.map(p => <option key={p.name} value={p.name}>{p.area}</option>)}
+                  </datalist>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -473,15 +562,24 @@ export default function RepPlanView({
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Distance (km)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={draftForm.dist}
-                      onChange={e => updateDraftForm({ dist: e.target.value })}
-                      placeholder="1.2"
-                      className="input-field w-full mt-1.5 px-3 py-2 rounded-lg bg-paper border border-navy-200 text-sm text-ink"
-                    />
+                    <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Time slot</label>
+                    <div className="mt-1.5 flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => updateDraftForm({ fixedTime: true })}
+                        className={`flex-1 px-2 py-2 rounded-lg text-xs font-bold border flex items-center justify-center gap-1.5 ${draftForm.fixedTime ? 'bg-navy-700 text-white border-navy-700' : 'bg-paper text-navy-700 border-navy-200 hover:border-leaf-400'}`}
+                      >
+                        <Icon name="lock" size={11} /> Fixed
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateDraftForm({ fixedTime: false })}
+                        className={`flex-1 px-2 py-2 rounded-lg text-xs font-bold border ${!draftForm.fixedTime ? 'bg-navy-700 text-white border-navy-700' : 'bg-paper text-navy-700 border-navy-200 hover:border-leaf-400'}`}
+                      >
+                        Flexible
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-navy-500 mt-1">{draftForm.fixedTime ? 'HCP gave this slot — AI keeps it locked.' : 'AI can move this to optimize the route.'}</p>
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Priority</label>
@@ -547,6 +645,53 @@ export default function RepPlanView({
             </div>
           )}
 
+          {isDraft && proposal && proposal.day === selectedDay && (
+            <div className="mt-4 rounded-2xl bg-white border-2 border-violet-300 overflow-hidden fade-up">
+              <div className="px-5 py-3 bg-violet-50 border-b border-violet-200 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Icon name="sparkles" size={14} className="text-violet-700" />
+                  <p className="font-display font-bold text-sm text-ink">AI proposed route · {selectedDayLabel?.label}</p>
+                </div>
+                <button onClick={() => setProposal(null)} className="text-navy-400 hover:text-navy-700">
+                  <Icon name="x" size={16} />
+                </button>
+              </div>
+              <div className="p-5 space-y-3">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-violet-50 border border-violet-200">
+                  <Icon name="trending" size={16} className="text-violet-700 flex-shrink-0" />
+                  <p className="text-[11px] text-violet-800">
+                    {proposal.savedKm > 0
+                      ? <>Reordered around your fixed slots — saves <span className="font-bold">~{proposal.savedKm.toFixed(1)} km</span> and <span className="font-bold">~{proposal.savedMin} min</span> of driving.</>
+                      : <>Your order is already efficient. Flexible times re-timed around the fixed slots.</>}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-navy-100 divide-y divide-navy-50 overflow-hidden">
+                  {proposal.visits.map((v, idx) => (
+                    <div key={v.id} className="px-4 py-2.5 flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-full bg-navy-100 text-navy-700 flex items-center justify-center font-display font-bold text-xs flex-shrink-0">{idx + 1}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-display font-semibold text-sm text-ink truncate">{v.name}</p>
+                        {idx > 0 && <p className="text-[10px] text-navy-400">{v.dist} km from previous stop</p>}
+                      </div>
+                      <p className="text-xs font-mono font-bold text-navy-700 flex items-center gap-1 flex-shrink-0">
+                        {v.fixedTime
+                          ? <span className="px-1.5 py-0.5 rounded bg-navy-700 text-white text-[9px] flex items-center gap-1"><Icon name="lock" size={9} /> FIXED</span>
+                          : <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px]">AI</span>}
+                        {v.time}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button onClick={() => setProposal(null)} className="flex-1 py-2.5 rounded-lg border border-navy-200 text-sm font-bold text-navy-700 hover:bg-paper btn-press">Discard</button>
+                  <button onClick={applyProposal} className="flex-1 py-2.5 rounded-lg bg-violet-600 text-white text-sm font-bold hover:bg-violet-700 btn-press flex items-center justify-center gap-1.5">
+                    <Icon name="check" size={14} /> Approve route
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {!isDraft && adjustForm && (
             <div className="mt-4 rounded-2xl bg-white border-2 border-amber-300 overflow-hidden fade-up">
               <div className="px-5 py-3 bg-amber-50 border-b border-amber-200 flex items-center justify-between">
@@ -603,7 +748,7 @@ export default function RepPlanView({
 
         <div className="fade-up stagger-3 space-y-4">
           <div className="rounded-2xl bg-white border border-navy-100 p-5">
-            <h3 className="font-display font-bold text-ink text-sm mb-3">Week 20 at a Glance</h3>
+            <h3 className="font-display font-bold text-ink text-sm mb-3">{weekTag(0)} at a Glance</h3>
             <div className="space-y-3">
               {[
                 { l: 'Total Visits', v: `${totalWeekVisits}`, i: 'location' as const },

@@ -1,5 +1,5 @@
 import Icon from './Icon';
-import type { IconName } from '../types';
+import type { IconName, SubmittedDCR } from '../types';
 
 interface ReportSpec {
   i: IconName;
@@ -8,7 +8,11 @@ interface ReportSpec {
   c: number;
 }
 
-export default function ReportsView() {
+interface ReportsViewProps {
+  dcrs?: SubmittedDCR[];
+}
+
+export default function ReportsView({ dcrs = [] }: ReportsViewProps) {
   const reports: ReportSpec[] = [
     { i: 'file', l: 'Daily Call Reports', s: 'Auto-generated from visits', c: 148 },
     { i: 'flask', l: 'Clinical Meeting Reports', s: 'Outcomes & attendees', c: 42 },
@@ -44,7 +48,41 @@ export default function ReportsView() {
           ))}
         </div>
 
-        <div className="lg:col-span-2 fade-up stagger-2 rounded-2xl bg-white border border-navy-100 overflow-hidden">
+        <div className="lg:col-span-2 space-y-6">
+        {dcrs.length > 0 && (
+          <div className="fade-up rounded-2xl bg-white border border-leaf-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-navy-100 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-leaf-500 pulse-dot" />
+              <h3 className="font-display font-bold text-ink">Submitted DCRs · Today</h3>
+              <span className="px-1.5 rounded bg-leaf-100 text-leaf-700 text-[10px] font-bold">{dcrs.length} new</span>
+            </div>
+            <div className="divide-y divide-navy-100">
+              {dcrs.map(d => (
+                <div key={d.id} className="px-5 py-4">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <p className="font-display font-bold text-sm text-ink">{d.rep}</p>
+                    <p className="text-[11px] text-navy-500 font-mono">Submitted {d.submittedAt}</p>
+                  </div>
+                  <p className="text-[11px] text-navy-500 mt-0.5">{d.visitsCompleted} visits done · {d.ordersToday} order(s) · {d.logs.length} logged</p>
+                  {d.logs.length > 0 && (
+                    <div className="mt-3 space-y-1.5">
+                      {d.logs.map(l => (
+                        <div key={l.id} className="flex items-start gap-2.5">
+                          <span className="font-mono text-[10px] text-navy-500 font-bold w-12 flex-shrink-0 pt-0.5">{new Date(l.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-display font-semibold text-xs text-ink truncate">{l.hcpName} · {l.institution}</p>
+                            <p className="text-[10px] text-navy-500 truncate">{l.productsDiscussed.join(', ') || 'No products'}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="fade-up stagger-2 rounded-2xl bg-white border border-navy-100 overflow-hidden">
           <div className="px-5 py-4 border-b border-navy-100 flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="font-display font-bold text-ink">Daily Call Report Preview</h3>
@@ -95,6 +133,7 @@ export default function ReportsView() {
               </p>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>

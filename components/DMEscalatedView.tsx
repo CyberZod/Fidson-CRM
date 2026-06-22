@@ -7,6 +7,7 @@ interface DMEscalatedViewProps {
   onOpenApproval?: (item: ApprovalItem) => void;
   onApprove?: (id: string) => void;
   onReject?: (id: string) => void;
+  onEscalateToNSM?: (id: string) => void;
 }
 
 interface UnifiedRow {
@@ -19,6 +20,7 @@ interface UnifiedRow {
   urgent?: boolean;
   ai?: EscalatedApproval['ai'];
   raw?: ApprovalItem;
+  escalated?: boolean;
   dismissing?: boolean;
 }
 
@@ -28,7 +30,7 @@ const customerFromDetail = (detail: string): string => {
   return detail.slice(onIdx + 4).replace(/ order$/, '').trim();
 };
 
-export default function DMEscalatedView({ approvals = [], onOpenApproval, onApprove, onReject }: DMEscalatedViewProps) {
+export default function DMEscalatedView({ approvals = [], onOpenApproval, onApprove, onReject, onEscalateToNSM }: DMEscalatedViewProps) {
   const [mockItems, setMockItems] = useState<EscalatedApproval[]>([
     { id: 'esc-3', rep: 'Marketing Dept', src: 'Marketing exception', cust: 'Q2 trade promo · 50 distributors', value: '₦3,200,000', disc: '25%', urgent: true, ai: 'recommend-approve' },
   ]);
@@ -47,6 +49,7 @@ export default function DMEscalatedView({ approvals = [], onOpenApproval, onAppr
         urgent: a.urgent,
         ai: a.urgent ? 'recommend-review' : 'recommend-approve',
         raw: a,
+        escalated: modal.escalatedToNSM,
       };
     });
   const mockRows: UnifiedRow[] = mockItems.map(m => ({ ...m }));
@@ -125,6 +128,13 @@ export default function DMEscalatedView({ approvals = [], onOpenApproval, onAppr
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   {item.raw && onOpenApproval && (
                     <button onClick={() => onOpenApproval(item.raw!)} className="px-2.5 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-paper btn-press">View</button>
+                  )}
+                  {item.raw && onEscalateToNSM && (
+                    item.escalated ? (
+                      <span className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-200">Escalated to NSM</span>
+                    ) : (
+                      <button onClick={() => onEscalateToNSM(item.id)} className="px-3 py-1.5 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-bold hover:bg-indigo-100 btn-press">Escalate → NSM</button>
+                    )
                   )}
                   <button onClick={() => handleReject(item)} className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
                   <button onClick={() => handleApprove(item)} className="px-3 py-1.5 rounded-lg bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 btn-press">Approve</button>

@@ -335,6 +335,7 @@ export interface ApprovalModalItem extends ApprovalItem {
   items?: { n: string; q: number; p: string }[];
   requestedDiscount?: string;
   justification?: string;
+  escalatedToNSM?: boolean;
 }
 
 // ===== Clinical row shape used by RSM/PM/MM clinical views =====
@@ -380,6 +381,7 @@ export interface RepVisit {
   name: string;
   contact?: string;
   time: string;
+  fixedTime?: boolean; // HCP gave this slot — optimizer treats it as an anchor
   dist: string | number;
   day?: string;
   status: 'done' | 'next' | 'pending' | 'in-progress' | string;
@@ -567,6 +569,15 @@ export interface VisitLog {
   summary: string;
   nextSteps: string;
   reminderDate?: string;
+}
+
+export interface SubmittedDCR {
+  id: string;
+  rep: string;
+  submittedAt: string;
+  visitsCompleted: number;
+  ordersToday: number;
+  logs: VisitLog[];
 }
 
 // ===== Customer Stock check (was Shelf Audit) =====
