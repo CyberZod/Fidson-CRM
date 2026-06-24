@@ -99,7 +99,8 @@ export default function DMEscalatedView({ approvals = [], onOpenApproval, onAppr
             </div>
           ) : items.map(item => (
             <div key={item.id} className={`${item.dismissing ? 'slide-out-up' : ''} px-5 py-4`}>
-              <div className="flex items-start gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
                 <div className="w-10 h-10 rounded-lg bg-rose-50 flex items-center justify-center flex-shrink-0">
                   <Icon name="cart" size={18} className="text-rose-700" />
                 </div>
@@ -125,19 +126,20 @@ export default function DMEscalatedView({ approvals = [], onOpenApproval, onAppr
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0 w-full sm:w-auto">
                   {item.raw && onOpenApproval && (
-                    <button onClick={() => onOpenApproval(item.raw!)} className="px-2.5 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-paper btn-press">View</button>
+                    <button onClick={() => onOpenApproval(item.raw!)} className="flex-1 sm:flex-none px-2.5 py-2 sm:py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-paper btn-press">View</button>
                   )}
                   {item.raw && onEscalateToNSM && (
                     item.escalated ? (
-                      <span className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-200">Escalated to NSM</span>
+                      <span className="px-3 py-2 sm:py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-200">Escalated to NSM</span>
                     ) : (
-                      <button onClick={() => onEscalateToNSM(item.id)} className="px-3 py-1.5 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-bold hover:bg-indigo-100 btn-press">Escalate → NSM</button>
+                      <button onClick={() => onEscalateToNSM(item.id)} className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-bold hover:bg-indigo-100 btn-press">Escalate → NSM</button>
                     )
                   )}
-                  <button onClick={() => handleReject(item)} className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
-                  <button onClick={() => handleApprove(item)} className="px-3 py-1.5 rounded-lg bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 btn-press">Approve</button>
+                  <button onClick={() => handleReject(item)} className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
+                  <button onClick={() => handleApprove(item)} className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 btn-press">Approve</button>
                 </div>
               </div>
             </div>

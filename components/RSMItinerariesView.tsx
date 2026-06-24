@@ -75,7 +75,8 @@ export default function RSMItinerariesView({
               return (
                 <div key={it.id} className={`${it.dismissing ? 'slide-out-up' : ''}`}>
                   <div className="px-5 py-4">
-                    <div className="flex items-start gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
                       <div className="w-10 h-10 rounded-lg bg-navy-50 flex items-center justify-center font-display font-bold text-xs text-navy-700 flex-shrink-0">
                         {it.rep.split(' ').map(x => x[0]).join('')}
                       </div>
@@ -108,12 +109,13 @@ export default function RSMItinerariesView({
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <button onClick={() => setExpandedItin(expanded ? null : it.id)} className="px-2.5 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-paper btn-press">
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0 w-full sm:w-auto">
+                        <button onClick={() => setExpandedItin(expanded ? null : it.id)} className="flex-1 sm:flex-none px-2.5 py-2 sm:py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-paper btn-press">
                           {expanded ? 'Hide' : 'Preview'}
                         </button>
-                        <button onClick={() => onRejectItinerary(it.id)} className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
-                        <button onClick={() => onApproveItinerary(it.id)} className="px-3 py-1.5 rounded-lg bg-navy-700 text-white text-xs font-bold hover:bg-navy-800 btn-press">Approve</button>
+                        <button onClick={() => onRejectItinerary(it.id)} className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
+                        <button onClick={() => onApproveItinerary(it.id)} className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg bg-navy-700 text-white text-xs font-bold hover:bg-navy-800 btn-press">Approve</button>
                       </div>
                     </div>
                   </div>
@@ -154,7 +156,8 @@ export default function RSMItinerariesView({
               <div className="py-12 text-center text-sm text-navy-500">No adjustment requests pending</div>
             ) : adjustmentsPending.map(adj => (
               <div key={adj.id} className={`${adj.dismissing ? 'slide-out-up' : ''} px-5 py-4`}>
-                <div className="flex items-start gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                     adj.type === 'reroute' ? 'bg-amber-50' :
                     adj.type === 'add' ? 'bg-leaf-50' : 'bg-navy-50'
@@ -191,9 +194,10 @@ export default function RSMItinerariesView({
                       <p className="text-xs text-navy-700 mt-0.5">{adj.reason}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <button onClick={() => onRejectAdjustment(adj.id)} className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
-                    <button onClick={() => onApproveAdjustment(adj.id)} className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 btn-press">Approve</button>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0 w-full sm:w-auto">
+                    <button onClick={() => onRejectAdjustment(adj.id)} className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
+                    <button onClick={() => onApproveAdjustment(adj.id)} className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 btn-press">Approve</button>
                   </div>
                 </div>
               </div>

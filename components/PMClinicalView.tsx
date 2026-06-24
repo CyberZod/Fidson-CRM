@@ -81,7 +81,8 @@ export default function PMClinicalView({ clinicalMeetings, onApproveCM, onReject
             <div className="py-12 text-center text-sm text-navy-500">No clinical meetings in this view</div>
           ) : filtered.map(cm => (
             <div key={cm.id} className={`${cm.dismissing ? 'slide-out-up' : ''} px-5 py-4 hover:bg-paper transition-colors`}>
-              <div className="flex items-start gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
                 <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0">
                   <Icon name="flask" size={18} className="text-violet-700" />
                 </div>
@@ -105,14 +106,15 @@ export default function PMClinicalView({ clinicalMeetings, onApproveCM, onReject
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button onClick={() => setOpenCm(cm)} className="px-2.5 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-paper btn-press flex items-center gap-1">
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
+                  <button onClick={() => setOpenCm(cm)} className="flex-1 sm:flex-none px-2.5 py-2 sm:py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-paper btn-press flex items-center justify-center gap-1">
                     <Icon name="eye" size={11} /> Details
                   </button>
                   {cm.s === 'pm-review' && (
                     <>
-                      <button onClick={() => onRejectCM(cm.id)} className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
-                      <button onClick={() => onApproveCM(cm.id)} className="px-3 py-1.5 rounded-lg bg-violet-500 text-white text-xs font-bold hover:bg-violet-600 btn-press">Approve</button>
+                      <button onClick={() => onRejectCM(cm.id)} className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
+                      <button onClick={() => onApproveCM(cm.id)} className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg bg-violet-500 text-white text-xs font-bold hover:bg-violet-600 btn-press">Approve</button>
                     </>
                   )}
                 </div>

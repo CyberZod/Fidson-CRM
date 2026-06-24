@@ -68,7 +68,8 @@ export default function MMContentApprovalsView({ contentApprovals, onApproveCont
             </div>
           ) : filtered.map(c => (
             <div key={c.id} className={`${c.dismissing ? 'slide-out-up' : ''} px-5 py-4`}>
-              <div className="flex items-start gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
                 <div className="w-10 h-10 rounded-lg bg-fuchsia-50 flex items-center justify-center flex-shrink-0">
                   <Icon name="file" size={18} className="text-fuchsia-700" />
                 </div>
@@ -86,10 +87,11 @@ export default function MMContentApprovalsView({ contentApprovals, onApproveCont
                     <span className="text-[10px] text-navy-500">Submitted: <span className="font-bold">{c.submitted}</span></span>
                   </div>
                 </div>
+                </div>
                 {c.status === 'pending' && (
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <button onClick={() => onRejectContent(c.id)} className="px-3 py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
-                    <button onClick={() => onApproveContent(c.id)} className="px-3 py-1.5 rounded-lg bg-fuchsia-500 text-white text-xs font-bold hover:bg-fuchsia-600 btn-press">Approve & Distribute</button>
+                  <div className="flex items-center gap-1.5 flex-shrink-0 w-full sm:w-auto">
+                    <button onClick={() => onRejectContent(c.id)} className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
+                    <button onClick={() => onApproveContent(c.id)} className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg bg-fuchsia-500 text-white text-xs font-bold hover:bg-fuchsia-600 btn-press">Approve & Distribute</button>
                   </div>
                 )}
               </div>
