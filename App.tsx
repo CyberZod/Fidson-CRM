@@ -8,6 +8,7 @@ import BottomNav from './components/BottomNav';
 import LoginScreen from './components/LoginScreen';
 import ToastContainer from './components/ToastContainer';
 import ApprovalModal from './components/ApprovalModal';
+import HelpdeskWidget from './components/HelpdeskWidget';
 import Icon from './components/Icon';
 
 import DashboardView from './components/DashboardView';
@@ -1503,6 +1504,8 @@ export default function App() {
           readOnly={!isDM}
         />
       )}
+
+      <HelpdeskWidget />
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
