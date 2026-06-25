@@ -216,7 +216,7 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
               <p className="stat-label text-navy-400 mb-2">Justification for RSM</p>
               <textarea
                 rows={3}
-                defaultValue="Customer ordering 200+ cartons (volume tier 3). Competitor offering 17% on similar SKUs. Lakeshore is a key institutional account, top 5 by quarterly volume."
+                placeholder="Explain why this discount is justified — order volume, competitor pressure, account value…"
                 className="input-field w-full p-3 rounded-xl bg-paper border border-navy-100 text-sm text-ink resize-none"
               />
             </div>

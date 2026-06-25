@@ -34,6 +34,15 @@ const ATTENDEE_KEYS: { key: keyof VisitLogAttendees; label: string; icon: IconNa
   { key: 'others', label: 'Others', icon: 'helpCircle' },
 ];
 
+// Fixed-cadre counters (the +/- boxes). "Others" is captured separately as
+// named groups so reps can specify exactly who else attended.
+const COUNTER_KEYS = ATTENDEE_KEYS.filter(k => k.key !== 'others');
+
+interface OtherGroup {
+  label: string;
+  count: number;
+}
+
 const emptyAttendees = (): VisitLogAttendees => ({
   doctors: 1,
   pharmacists: 0,
@@ -67,6 +76,7 @@ export default function RepVisitLogView({
   const plannedProducts = useMemo(() => activeVisit?.plannedProducts ?? [], [activeVisit]);
   const [products, setProducts] = useState<string[]>(plannedProducts);
   const [attendees, setAttendees] = useState<VisitLogAttendees>(emptyAttendees);
+  const [otherGroups, setOtherGroups] = useState<OtherGroup[]>([]);
   const [summary, setSummary] = useState('');
   const [nextSteps, setNextSteps] = useState('');
   const [reminderDate, setReminderDate] = useState('');
@@ -120,6 +130,7 @@ export default function RepVisitLogView({
     setNextSteps('');
     setReminderDate('');
     setAttendees(emptyAttendees());
+    setOtherGroups([]);
     setHcpType('Doctor');
     setCheckedIn(!!activeVisit.checkedIn);
     setLocation(null);
@@ -170,6 +181,12 @@ export default function RepVisitLogView({
     setAttendees(prev => ({ ...prev, [key]: Math.max(0, prev[key] + delta) }));
   };
 
+  const othersThisVisit = otherGroups.reduce((s, g) => s + g.count, 0);
+  const addOtherGroup = () => setOtherGroups(prev => [...prev, { label: '', count: 1 }]);
+  const updateOtherLabel = (idx: number, label: string) => setOtherGroups(prev => prev.map((g, i) => (i === idx ? { ...g, label } : g)));
+  const adjustOtherCount = (idx: number, delta: number) => setOtherGroups(prev => prev.map((g, i) => (i === idx ? { ...g, count: Math.max(0, g.count + delta) } : g)));
+  const removeOtherGroup = (idx: number) => setOtherGroups(prev => prev.filter((_, i) => i !== idx));
+
   const handleGetLocation = () => {
     setLoadingLoc(true);
     setManualLocation(false);
@@ -219,7 +236,8 @@ export default function RepVisitLogView({
         ? { latitude: location.lat, longitude: location.lng, isManual: false }
         : { latitude: 0, longitude: 0, isManual: true, address: 'Offline Entry' },
       productsDiscussed: products,
-      attendees,
+      attendees: { ...attendees, others: othersThisVisit },
+      otherAttendees: otherGroups.filter(g => g.label.trim() && g.count > 0),
       summary,
       nextSteps,
       reminderDate: reminderDate ? new Date(reminderDate).toISOString() : undefined,
@@ -253,7 +271,7 @@ export default function RepVisitLogView({
               {checkedIn && <div className="w-1.5 h-1.5 rounded-full bg-leaf-500 pulse-dot" />}
             </div>
             <h2 className="font-display text-xl font-bold text-ink">{activeVisit.name}</h2>
-            <p className="text-xs text-navy-500 font-mono">{activeVisit.contact ? `${activeVisit.contact} · ` : ''}{checkInStatusLine}</p>
+            <p className="text-xs text-navy-500 font-mono">{checkInStatusLine}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -427,13 +445,15 @@ export default function RepVisitLogView({
               </div>
               <div>
                 <label className="text-[10px] font-bold text-navy-400 tracking-wider uppercase">Institution</label>
-                <input
-                  type="text"
-                  required
-                  value={institution}
-                  onChange={e => setInstitution(e.target.value)}
-                  className="input-field w-full mt-1 px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink"
-                />
+                <div
+                  title="Locked to this visit's call point"
+                  className="w-full mt-1 px-3 py-2 rounded-lg bg-navy-50 border border-navy-100 text-sm text-ink flex items-center justify-between gap-2 cursor-not-allowed"
+                >
+                  <span className="truncate font-medium">{institution || '—'}</span>
+                  <span className="flex items-center gap-1 text-[10px] text-navy-400 flex-shrink-0 uppercase tracking-wider font-bold">
+                    <Icon name="lock" size={11} /> Fixed
+                  </span>
+                </div>
               </div>
               <div>
                 <label className="text-[10px] font-bold text-navy-400 tracking-wider uppercase">Phone</label>
@@ -589,8 +609,8 @@ export default function RepVisitLogView({
               <p className="stat-label text-navy-400">Engagement Breakdown</p>
               <span className="text-[10px] text-navy-500 font-mono">{todayStr}</span>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              {ATTENDEE_KEYS.map(({ key, label, icon }) => {
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {COUNTER_KEYS.map(({ key, label, icon }) => {
                 const total = existingDailyStats[key] + attendees[key];
                 return (
                   <div key={key} className="bg-paper rounded-xl border border-navy-100 p-3">
@@ -630,6 +650,64 @@ export default function RepVisitLogView({
                 );
               })}
             </div>
+
+            {/* Other attendees — named groups replace the old "Others" counter */}
+            <div className="mt-4 pt-4 border-t border-navy-100">
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <p className="text-[10px] font-bold text-navy-400 tracking-wider uppercase">Other Attendees</p>
+                <span className="text-[10px] text-navy-500 font-mono flex-shrink-0">{othersThisVisit} total</span>
+              </div>
+              <p className="text-[11px] text-navy-500 mb-3">Anyone who isn't a doctor, pharmacist or nurse — name the role and how many.</p>
+              {otherGroups.length > 0 && (
+                <div className="space-y-2 mb-2">
+                  {otherGroups.map((g, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={g.label}
+                        onChange={e => updateOtherLabel(idx, e.target.value)}
+                        placeholder="e.g. Lab Scientist, Procurement Officer"
+                        className="input-field flex-1 min-w-0 px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink"
+                      />
+                      <div className="flex items-center gap-1.5 bg-white rounded-lg p-1 border border-navy-100 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => adjustOtherCount(idx, -1)}
+                          className="w-7 h-7 rounded-md hover:bg-navy-50 text-navy-700 font-bold flex items-center justify-center btn-press"
+                          aria-label="Remove one"
+                        >
+                          <Icon name="x" size={12} strokeWidth={3} />
+                        </button>
+                        <span className="w-6 text-center font-display font-bold text-ink">{g.count}</span>
+                        <button
+                          type="button"
+                          onClick={() => adjustOtherCount(idx, 1)}
+                          className="w-7 h-7 rounded-md bg-navy-700 hover:bg-navy-800 text-white font-bold flex items-center justify-center btn-press"
+                          aria-label="Add one"
+                        >
+                          <Icon name="plus" size={12} strokeWidth={3} />
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeOtherGroup(idx)}
+                        className="w-8 h-8 rounded-lg border border-navy-100 text-navy-400 hover:text-rose-600 hover:border-rose-200 flex items-center justify-center flex-shrink-0 btn-press"
+                        aria-label="Remove attendee type"
+                      >
+                        <Icon name="x" size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={addOtherGroup}
+                className="w-full px-3 py-2 rounded-lg border border-dashed border-navy-200 text-navy-600 text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-paper btn-press"
+              >
+                <Icon name="plus" size={13} strokeWidth={2.5} /> Add attendee type
+              </button>
+            </div>
           </div>
         </div>
 
@@ -639,7 +717,7 @@ export default function RepVisitLogView({
             <div className="space-y-2">
               {ATTENDEE_KEYS.map(({ key, label, icon }) => {
                 const previous = existingDailyStats[key];
-                const adding = attendees[key];
+                const adding = key === 'others' ? othersThisVisit : attendees[key];
                 return (
                   <div key={key} className="flex items-center gap-3 p-2 rounded-lg bg-paper">
                     <div className="w-8 h-8 rounded-lg bg-white border border-navy-100 flex items-center justify-center text-navy-700">

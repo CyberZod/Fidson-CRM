@@ -3,12 +3,13 @@ import Icon from './Icon';
 import { PRODUCT_CATALOG } from '../assets/products';
 import { CALL_POINTS, coordOf, distanceKm } from '../assets/locations';
 import { weekDays, weekTag } from '../utils/dates';
-import type { RepVisit, WeekItinerary, AdjustmentRequest } from '../types';
+import type { RepVisit, WeekItinerary, AdjustmentRequest, RepAdjustment } from '../types';
 
 interface RepPlanViewProps {
   visits: RepVisit[];
   onStartVisit: (visit: RepVisit) => void;
   weekItinerary: WeekItinerary;
+  repAdjustments?: RepAdjustment[];
   onRequestAdjustment?: (req: AdjustmentRequest) => void;
   nextWeekVisits?: RepVisit[];
   nextWeekItinerary?: WeekItinerary;
@@ -75,6 +76,7 @@ export default function RepPlanView({
   visits,
   onStartVisit,
   weekItinerary,
+  repAdjustments,
   onRequestAdjustment,
   nextWeekVisits = [],
   nextWeekItinerary,
@@ -91,6 +93,22 @@ export default function RepPlanView({
   const [selectedDay, setSelectedDay] = useState<string>('tue');
   const [adjustForm, setAdjustForm] = useState<AdjustForm | null>(null);
   const [adjReason, setAdjReason] = useState('');
+  // Swap target: the call point (and time slot) the rep wants instead.
+  const [adjReplaceName, setAdjReplaceName] = useState('');
+  const [adjReplaceTime, setAdjReplaceTime] = useState('');
+
+  const openSwapForm = (visit: RepVisit) => {
+    setAdjustForm({ type: 'swap', visit });
+    setAdjReplaceName('');
+    setAdjReplaceTime(visit.time);
+    setAdjReason('');
+  };
+  const closeAdjustForm = () => {
+    setAdjustForm(null);
+    setAdjReason('');
+    setAdjReplaceName('');
+    setAdjReplaceTime('');
+  };
   const [draftForm, setDraftForm] = useState<DraftVisitForm | null>(null);
   const [proposal, setProposal] = useState<{ day: string; visits: RepVisit[]; savedKm: number; savedMin: number } | null>(null);
 
@@ -111,7 +129,10 @@ export default function RepPlanView({
   }, [effectiveVisits, days]);
 
   const selectedDayLabel = days.find(d => d.k === selectedDay);
-  const dayVisits = effectiveVisits.filter(v => v.day === selectedDay);
+  const dayVisits = effectiveVisits
+    .filter(v => v.day === selectedDay)
+    .slice()
+    .sort((a, b) => toMin(a.time) - toMin(b.time));
   const totalWeekVisits = effectiveVisits.length;
   const totalDistance = effectiveVisits.reduce((s, v) => s + parseFloat(String(v.dist || 0)), 0).toFixed(1);
 
@@ -119,17 +140,25 @@ export default function RepPlanView({
   const isPast = activeTab === 'current' && selectedDay === 'mon';
   const isFuture = activeTab === 'next' || ['wed', 'thu', 'fri'].includes(selectedDay);
 
-  const adjustmentsRemaining = effectiveItinerary.adjustmentsLimit - effectiveItinerary.adjustmentsUsedToday;
+  // The rep's own adjustment records only apply to the current (live) week.
+  const repAdj = activeTab === 'current' ? (repAdjustments ?? []) : [];
+  const adjustmentsRemaining = effectiveItinerary.adjustmentsLimit - repAdj.length;
+
+  const isSwap = adjustForm?.type === 'swap';
+  const swapReady = !isSwap || (!!adjReplaceName.trim() && !!adjReplaceTime.trim());
 
   const handleSubmitAdjustment = () => {
-    if (!adjustForm || !adjReason.trim()) return;
+    if (!adjustForm || !adjReason.trim() || !swapReady) return;
+    const area = CALL_POINTS.find(p => p.name === adjReplaceName.trim())?.area;
     onRequestAdjustment?.({
       type: adjustForm.type,
       visit: adjustForm.visit,
       reason: adjReason,
+      replacement: isSwap
+        ? { name: adjReplaceName.trim(), time: adjReplaceTime.trim(), area }
+        : null,
     });
-    setAdjustForm(null);
-    setAdjReason('');
+    closeAdjustForm();
   };
 
   const openDraftForm = () => setDraftForm(emptyDraftForm(selectedDay));
@@ -477,6 +506,9 @@ export default function RepPlanView({
                         <p className={`font-display font-semibold text-sm ${v.status === 'done' ? 'text-navy-500 line-through' : 'text-ink'}`}>{v.name}</p>
                         {v.status === 'next' && <span className="px-1.5 py-0.5 rounded bg-leaf-500 text-white text-[9px] font-bold">NEXT</span>}
                         {v.priority === 'high' && v.status !== 'done' && <span className="px-1.5 py-0.5 rounded bg-leaf-50 text-leaf-700 text-[9px] font-bold">HIGH</span>}
+                        {v.adjustmentStatus === 'pending' && <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold border border-amber-200">SWAP PENDING</span>}
+                        {v.adjustmentStatus === 'approved' && <span className="px-1.5 py-0.5 rounded bg-leaf-100 text-leaf-700 text-[9px] font-bold border border-leaf-200">SWAPPED IN</span>}
+                        {v.adjustmentStatus === 'rejected' && <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-bold border border-rose-200">SWAP DENIED</span>}
                       </div>
                       <p className="text-[11px] text-navy-500 mt-0.5 truncate">{v.contact || v.address || 'Visit location'}</p>
                     </div>
@@ -496,9 +528,9 @@ export default function RepPlanView({
                         <Icon name="x" size={12} />
                       </span>
                     )}
-                    {!isDraft && (isToday || isFuture) && v.status !== 'done' && adjustmentsRemaining > 0 && (
+                    {!isDraft && (isToday || isFuture) && v.status !== 'done' && !v.adjustmentStatus && adjustmentsRemaining > 0 && (
                       <span
-                        onClick={(e) => { e.stopPropagation(); setAdjustForm({ type: 'swap', visit: v }); }}
+                        onClick={(e) => { e.stopPropagation(); openSwapForm(v); }}
                         className="px-2 py-1 rounded-md border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[10px] font-bold flex-shrink-0 cursor-pointer"
                       >
                         Swap
@@ -701,7 +733,7 @@ export default function RepPlanView({
                     {adjustForm.type === 'add' ? 'Add Visit' : 'Swap Visit'} · Request RSM Approval
                   </p>
                 </div>
-                <button onClick={() => { setAdjustForm(null); setAdjReason(''); }} className="text-navy-400 hover:text-navy-700">
+                <button onClick={closeAdjustForm} className="text-navy-400 hover:text-navy-700">
                   <Icon name="x" size={16} />
                 </button>
               </div>
@@ -713,15 +745,48 @@ export default function RepPlanView({
                     <p className="text-[11px] text-navy-500">{adjustForm.visit.contact ? `${adjustForm.visit.contact} · ` : ''}{adjustForm.visit.time} · {selectedDayLabel?.label}</p>
                   </div>
                 )}
+
+                {isSwap && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-2">
+                      <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Replace with</label>
+                      <input
+                        type="text"
+                        list="swap-callpoints"
+                        value={adjReplaceName}
+                        onChange={e => setAdjReplaceName(e.target.value)}
+                        placeholder="Pick a call point…"
+                        className="input-field w-full mt-1.5 px-3 py-2 rounded-lg bg-paper border border-navy-200 text-sm text-ink"
+                      />
+                      <datalist id="swap-callpoints">
+                        {CALL_POINTS.filter(p => p.name !== adjustForm.visit?.name).map(p => (
+                          <option key={p.name} value={p.name}>{p.area}</option>
+                        ))}
+                      </datalist>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Time slot</label>
+                      <input
+                        type="time"
+                        value={adjReplaceTime}
+                        onChange={e => setAdjReplaceTime(e.target.value)}
+                        className="input-field w-full mt-1.5 px-3 py-2 rounded-lg bg-paper border border-navy-200 text-sm text-ink"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">
-                    {adjustForm.type === 'add' ? 'New visit details' : 'Reason for swap & replacement'}
+                    {adjustForm.type === 'add' ? 'New visit details' : 'Why the swap? (RSM sees this)'}
                   </label>
                   <textarea
                     rows={3}
                     value={adjReason}
                     onChange={e => setAdjReason(e.target.value)}
-                    placeholder="e.g. Dr. Adebayo cancelled — Reddington (Dr. Bello) requested urgent meeting on Coflin paediatric dosing. Same time slot, similar distance."
+                    placeholder={adjustForm.type === 'add'
+                      ? 'e.g. Walk-in opportunity at Vedic Lifecare — Dr. Singh free at 15:00.'
+                      : 'e.g. Dr. Adebayo cancelled — Reddington requested an urgent Coflin paediatric brief.'}
                     className="input-field w-full mt-1.5 p-3 rounded-xl bg-paper border border-navy-200 text-sm resize-none"
                   />
                 </div>
@@ -732,10 +797,10 @@ export default function RepPlanView({
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => { setAdjustForm(null); setAdjReason(''); }} className="flex-1 py-2.5 rounded-lg border border-navy-200 text-sm font-bold text-navy-700 hover:bg-paper btn-press">Cancel</button>
+                  <button onClick={closeAdjustForm} className="flex-1 py-2.5 rounded-lg border border-navy-200 text-sm font-bold text-navy-700 hover:bg-paper btn-press">Cancel</button>
                   <button
                     onClick={handleSubmitAdjustment}
-                    disabled={!adjReason.trim()}
+                    disabled={!adjReason.trim() || !swapReady}
                     className="flex-1 py-2.5 rounded-lg bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 disabled:opacity-50 btn-press flex items-center justify-center gap-1.5"
                   >
                     <Icon name="send" size={14} /> Submit to RSM
@@ -802,13 +867,28 @@ export default function RepPlanView({
             </div>
             <div className="space-y-2 mb-3">
               {[0, 1, 2].map(i => {
-                const used = i < effectiveItinerary.adjustmentsUsedToday;
-                return (
-                  <div key={i} className={`flex items-center gap-2 p-2 rounded-lg ${used ? 'bg-amber-50 border border-amber-200' : 'bg-paper border border-navy-100'}`}>
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${used ? 'bg-amber-500' : 'bg-navy-200'}`}>
-                      {used ? <Icon name="check" size={10} className="text-white" strokeWidth={3} /> : <span className="text-[10px] font-bold text-navy-500">{i + 1}</span>}
+                const adj = repAdj[i];
+                if (!adj) {
+                  return (
+                    <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-paper border border-navy-100">
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center bg-navy-200">
+                        <span className="text-[10px] font-bold text-navy-500">{i + 1}</span>
+                      </div>
+                      <p className="text-[11px] text-navy-700">Slot {i + 1} available</p>
                     </div>
-                    <p className="text-[11px] text-navy-700">{used ? 'Used · MedPlus → Eko Atlantic' : `Slot ${i + 1} available`}</p>
+                  );
+                }
+                const style = adj.status === 'approved'
+                  ? { box: 'bg-leaf-50 border-leaf-200', dot: 'bg-leaf-500', icon: 'check' as const, text: 'Approved' }
+                  : adj.status === 'rejected'
+                    ? { box: 'bg-rose-50 border-rose-200', dot: 'bg-rose-500', icon: 'x' as const, text: 'Rejected' }
+                    : { box: 'bg-amber-50 border-amber-200', dot: 'bg-amber-500', icon: 'clock' as const, text: 'Pending' };
+                return (
+                  <div key={i} className={`flex items-center gap-2 p-2 rounded-lg border ${style.box}`}>
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${style.dot}`}>
+                      <Icon name={style.icon} size={10} className="text-white" strokeWidth={3} />
+                    </div>
+                    <p className="text-[11px] text-navy-700 truncate"><span className="font-bold">{style.text}</span> · {adj.label}</p>
                   </div>
                 );
               })}
@@ -825,7 +905,7 @@ export default function RepPlanView({
               </div>
               <div className="flex items-center gap-2 p-2 rounded-lg bg-leaf-50">
                 <Icon name="check" size={14} className="text-leaf-600" strokeWidth={3} />
-                <p className="text-xs text-navy-700">RSM signed Sun 11 May</p>
+                <p className="text-xs text-navy-700">RSM signed Sun 21 Jun</p>
               </div>
               <div className="flex items-center gap-2 p-2 rounded-lg bg-leaf-50">
                 <Icon name="check" size={14} className="text-leaf-600" strokeWidth={3} />

@@ -88,6 +88,7 @@ import type {
   AdjustmentRequest,
   CustomerStockEntry,
   RepOrderSubmission,
+  RepAdjustment,
   CMForm,
   VisitLog,
   SubmittedDCR,
@@ -124,6 +125,9 @@ export default function App() {
   const [cmPrefillHcp, setCmPrefillHcp] = useState<string>('');
   const [visitLogs, setVisitLogs] = useState<VisitLog[]>([]);
   const [dcrs, setDcrs] = useState<SubmittedDCR[]>([]);
+  // Adaeze's own daily-adjustment records — drives the rep's adjustment cap and
+  // round-trips status (pending → approved/rejected) when the RSM decides.
+  const [repAdjustments, setRepAdjustments] = useState<RepAdjustment[]>([]);
 
   const [repVisits, setRepVisits] = useState<RepVisit[]>([
     // Monday May 12
@@ -157,9 +161,9 @@ export default function App() {
     status: 'approved' as 'draft' | 'submitted' | 'approved' | 'rejected',
     submittedAt: 'Friday 9 May, 17:42',
     approvedBy: 'Tunde Bakare (RSM)',
-    approvedAt: 'Sunday 11 May, 19:30',
+    approvedAt: 'Sunday 21 June, 19:30',
     rsmNote: 'Solid plan. Push for Lakeshore institutional close. Lagoon Hospital re-engagement is a priority.',
-    adjustmentsUsedToday: 1,
+    adjustmentsUsedToday: 0,
     adjustmentsLimit: 3,
     escalationStatus: null as 'escalated' | 'imminent' | null,
   });
@@ -244,7 +248,7 @@ export default function App() {
   }, [visitLogs, user]);
 
   const [approvals, setApprovals] = useState<ApprovalItem[]>([
-    { id: 'apr-1', type: 'discount', rep: 'Adaeze Okafor', detail: '18% on Lakeshore Specialist order', amount: '₦438,000', time: '2 min ago', urgent: true },
+    { id: 'apr-1', type: 'discount', rep: 'Yetunde Cole', detail: '18% on Lakeshore Specialist order', amount: '₦438,000', time: '2 min ago', urgent: true },
     { id: 'apr-2', type: 'visit-summary', rep: 'Chinedu Eze', detail: 'Respiratory CM · 25 attendees · Reddington', amount: '₦650,000', time: '12 min ago' },
     { id: 'apr-3', type: 'discount', rep: 'Tope Adeola', detail: '16% on HealthPlus Surulere', amount: '₦210,000', time: '45 min ago' },
   ]);
@@ -524,26 +528,58 @@ export default function App() {
   };
 
   const handleRequestAdjustment = (req: AdjustmentRequest) => {
-    if (weekItinerary.adjustmentsUsedToday >= weekItinerary.adjustmentsLimit) {
+    if (repAdjustments.length >= weekItinerary.adjustmentsLimit) {
       addToast({ type: 'error', title: 'Daily cap reached', msg: `You've used all ${weekItinerary.adjustmentsLimit} adjustments today` });
       return;
     }
+    const id = `adj-${Date.now()}`;
+
+    // A swap names a replacement call point; build the visit that will take the
+    // original's place if the RSM approves.
+    const replacementVisit: RepVisit | undefined = req.type === 'swap' && req.visit && req.replacement
+      ? {
+          id: `swap-${id}`,
+          name: req.replacement.name,
+          contact: undefined,
+          time: req.replacement.time || req.visit.time,
+          day: req.visit.day,
+          dist: req.visit.dist,
+          priority: req.visit.priority,
+          status: 'pending',
+          address: req.replacement.area,
+          plannedProducts: req.visit.plannedProducts,
+        }
+      : undefined;
+
+    const label = replacementVisit
+      ? `${req.visit!.name} → ${replacementVisit.name}`
+      : req.visit ? req.visit.name : 'New visit add';
+
     const newAdj: AdjustmentPending = {
-      id: `adj-${Date.now()}`,
+      id,
       rep: 'Adaeze Okafor',
-      visit: req.visit ? `${req.visit.name} (${req.visit.time})` : 'New visit add',
-      type: req.type === 'add' ? 'add' : 'reroute',
+      visit: replacementVisit
+        ? `${req.visit!.name} → ${replacementVisit.name} (${replacementVisit.time})`
+        : req.visit ? `${req.visit.name} (${req.visit.time})` : 'New visit add',
+      type: req.type,
       reason: req.reason,
       submittedAt: 'just now',
       urgent: false,
-      todayUsed: weekItinerary.adjustmentsUsedToday + 1,
+      todayUsed: repAdjustments.length + 1,
     };
     setAdjustmentsPending(prev => [newAdj, ...prev]);
+
+    // Mirror it onto the rep's own cap as a pending record...
+    setRepAdjustments(prev => [...prev, { id, label, type: req.type, status: 'pending', visitId: req.visit?.id ?? null, replacement: replacementVisit }]);
+    // ...and flag the affected visit so the rep's itinerary shows it in-flight.
+    if (req.visit) {
+      setRepVisits(prev => prev.map(v => v.id === req.visit!.id ? { ...v, adjustmentStatus: 'pending' } : v));
+    }
     setWeekItinerary(prev => ({ ...prev, adjustmentsUsedToday: prev.adjustmentsUsedToday + 1 }));
     addToast({
       type: 'info',
       title: 'Adjustment submitted',
-      msg: `Tunde Bakare (RSM) notified · ${weekItinerary.adjustmentsLimit - weekItinerary.adjustmentsUsedToday - 1} left today`,
+      msg: `Tunde Bakare (RSM) notified · ${weekItinerary.adjustmentsLimit - repAdjustments.length - 1} left today`,
     });
   };
 
@@ -569,6 +605,19 @@ export default function App() {
     if (!adj) return;
     setAdjustmentsPending(prev => prev.map(x => x.id === id ? { ...x, dismissing: true } : x));
     setTimeout(() => setAdjustmentsPending(prev => prev.filter(x => x.id !== id)), 400);
+    // Round-trip the decision back to the rep: mark the cap record approved and
+    // reflect it on the affected visit in the rep's itinerary.
+    const radj = repAdjustments.find(a => a.id === id);
+    setRepAdjustments(prev => prev.map(a => a.id === id ? { ...a, status: 'approved' } : a));
+    if (radj?.visitId != null) {
+      setRepVisits(prev => prev.map(v => {
+        if (v.id !== radj.visitId) return v;
+        // Swap: drop the original stop and slot in the replacement call point.
+        if (radj.replacement) return { ...radj.replacement, adjustmentStatus: 'approved' };
+        // Non-swap approval: just mark the original.
+        return { ...v, adjustmentStatus: 'approved' };
+      }));
+    }
     addToast({ type: 'success', title: 'Adjustment approved', msg: `${adj.rep} · Route updated · GPS synced` });
   };
 
@@ -577,6 +626,12 @@ export default function App() {
     if (!adj) return;
     setAdjustmentsPending(prev => prev.map(x => x.id === id ? { ...x, dismissing: true } : x));
     setTimeout(() => setAdjustmentsPending(prev => prev.filter(x => x.id !== id)), 400);
+    // Round-trip the rejection: the rep's cap slot flips to "Rejected · <visit>".
+    const radj = repAdjustments.find(a => a.id === id);
+    setRepAdjustments(prev => prev.map(a => a.id === id ? { ...a, status: 'rejected' } : a));
+    if (radj?.visitId != null) {
+      setRepVisits(prev => prev.map(v => v.id === radj.visitId ? { ...v, adjustmentStatus: 'rejected' } : v));
+    }
     addToast({ type: 'info', title: 'Adjustment denied', msg: `${adj.rep} · Stay on planned route` });
   };
 
@@ -964,7 +1019,7 @@ export default function App() {
     'dm-push': { t: 'Push to NSM', s: 'Divisional summary to National' },
     'nsm-national': { t: 'National Dashboard', s: 'Fidson Healthcare · All of Nigeria' },
     'nsm-divisions': { t: 'Divisions', s: 'South vs North · Cross-divisional view' },
-    'nsm-forecast': { t: 'AI Forecast', s: '12-month national outlook' },
+    'nsm-forecast': { t: 'Forecast', s: '12-month national outlook' },
     'nsm-directive': { t: 'Push National Directive', s: 'Broadcast across the organization' },
     'hom-dashboard': { t: 'Head of Marketing', s: 'Institution + Trade · Marketing oversight' },
     'hom-directive': { t: 'Push National Directive', s: 'Broadcast to field' },
@@ -1032,8 +1087,7 @@ export default function App() {
     { k: 'nsm-national', i: 'dashboard', l: 'National Dashboard' },
     { k: 'nsm-divisions', i: 'layers', l: 'Divisions' },
     { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
-    { k: 'nsm-forecast', i: 'trending', l: 'AI Forecast' },
-    { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
+    { k: 'nsm-forecast', i: 'trending', l: 'Forecast' },
     { k: 'nsm-directive', i: 'send', l: 'Push Directive' },
   ];
 
@@ -1063,8 +1117,7 @@ export default function App() {
     { k: 'nsm_inst-dashboard', i: 'dashboard', l: 'Institution Dashboard' },
     { k: 'nsm-divisions', i: 'layers', l: 'Regions' },
     { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
-    { k: 'nsm-forecast', i: 'trending', l: 'AI Forecast' },
-    { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
+    { k: 'nsm-forecast', i: 'trending', l: 'Forecast' },
     { k: 'nsm-directive', i: 'send', l: 'Push Directive' },
   ];
 
@@ -1072,8 +1125,7 @@ export default function App() {
     { k: 'nsm_trade-dashboard', i: 'dashboard', l: 'Trade Dashboard' },
     { k: 'nsm-divisions', i: 'layers', l: 'Regions' },
     { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
-    { k: 'nsm-forecast', i: 'trending', l: 'AI Forecast' },
-    { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
+    { k: 'nsm-forecast', i: 'trending', l: 'Forecast' },
     { k: 'nsm-directive', i: 'send', l: 'Push Directive' },
   ];
 
@@ -1103,7 +1155,7 @@ export default function App() {
     if (isRep) {
       switch (view) {
         case 'rep-day': return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} hcpsMet={hcpsMetToday} directives={directives} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
-        case 'rep-plan': return <RepPlanView visits={repVisits} onStartVisit={handleStartVisit} weekItinerary={weekItinerary} onRequestAdjustment={handleRequestAdjustment} nextWeekVisits={nextWeekVisits} nextWeekItinerary={nextWeekItinerary} onAddPlannedVisit={handleAddPlannedVisit} onRemovePlannedVisit={handleRemovePlannedVisit} onApplyOptimizedRoute={handleApplyOptimizedRoute} onSubmitItinerary={handleSubmitItinerary} />;
+        case 'rep-plan': return <RepPlanView visits={repVisits} onStartVisit={handleStartVisit} weekItinerary={weekItinerary} repAdjustments={repAdjustments} onRequestAdjustment={handleRequestAdjustment} nextWeekVisits={nextWeekVisits} nextWeekItinerary={nextWeekItinerary} onAddPlannedVisit={handleAddPlannedVisit} onRemovePlannedVisit={handleRemovePlannedVisit} onApplyOptimizedRoute={handleApplyOptimizedRoute} onSubmitItinerary={handleSubmitItinerary} />;
         case 'rep-visit': return <RepVisitLogView activeVisit={activeVisit} visitLogs={visitLogs} currentUserId={user?.email || 'rep'} currentUserName={user?.name || 'Rep'} onLogVisit={handleLogVisit} onCompleteVisit={handleCompleteVisit} onPlaceOrder={handlePlaceOrder} onNavigate={setView} />;
         case 'rep-order': return <RepOrderView activeVisit={activeVisit} onSubmitOrder={handleSubmitOrder} onBack={() => setView('rep-visit')} />;
         case 'rep-coach': return <RepCoachView customerInventory={customerInventory} onNavigate={setView} />;
@@ -1379,21 +1431,18 @@ export default function App() {
       { k: 'nsm-national', i: 'dashboard', l: 'National' },
       { k: 'nsm-divisions', i: 'layers', l: 'Divisions' },
       { k: 'nsm-forecast', i: 'trending', l: 'Forecast' },
-      { k: 'insights', i: 'sparkles', l: 'AI' },
       { k: 'nsm-directive', i: 'send', l: 'Push' },
     ], color: 'indigo' },
     nsm_inst: { items: [
       { k: 'nsm_inst-dashboard', i: 'dashboard', l: 'Institution' },
       { k: 'nsm-divisions', i: 'layers', l: 'Regions' },
       { k: 'nsm-forecast', i: 'trending', l: 'Forecast' },
-      { k: 'insights', i: 'sparkles', l: 'AI' },
       { k: 'nsm-directive', i: 'send', l: 'Push' },
     ], color: 'indigo' },
     nsm_trade: { items: [
       { k: 'nsm_trade-dashboard', i: 'dashboard', l: 'Trade' },
       { k: 'nsm-divisions', i: 'layers', l: 'Regions' },
       { k: 'nsm-forecast', i: 'trending', l: 'Forecast' },
-      { k: 'insights', i: 'sparkles', l: 'AI' },
       { k: 'nsm-directive', i: 'send', l: 'Push' },
     ], color: 'amber' },
     hom: { items: [

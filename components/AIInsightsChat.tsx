@@ -109,7 +109,7 @@ export default function AIInsightsChat({ role }: AIInsightsChatProps) {
       <div className="fade-up stagger-2 rounded-2xl bg-white border border-navy-100 overflow-hidden">
         <div className="px-4 py-2 border-b border-navy-100 flex items-center gap-2">
           <Icon name="sparkles" size={12} className="text-leaf-600" />
-          <p className="font-display font-bold text-ink text-xs">Ask the AI</p>
+          <p className="font-display font-bold text-ink text-xs">Ask Fidson AI</p>
           <span className="text-[10px] text-navy-500 hidden sm:inline">· freeform · tap a chip or type</span>
         </div>
 

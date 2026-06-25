@@ -389,6 +389,8 @@ export interface RepVisit {
   address?: string;
   role?: string;
   checkedIn?: boolean;
+  // Set when this visit is the subject of a daily adjustment request.
+  adjustmentStatus?: 'pending' | 'approved' | 'rejected';
 }
 
 // ===== Rep stats / dashboard =====
@@ -532,6 +534,19 @@ export interface AdjustmentRequest {
   type: 'add' | 'swap' | 'reroute' | string;
   visit: RepVisit | null;
   reason: string;
+  // For a swap: the call point the rep wants to visit instead.
+  replacement?: { name: string; time: string; area?: string } | null;
+}
+
+// ===== Rep's own daily-adjustment record (drives the rep's adjustment cap) =====
+export interface RepAdjustment {
+  id: string;
+  label: string;
+  type: 'add' | 'swap' | 'reroute' | string;
+  status: 'pending' | 'approved' | 'rejected';
+  visitId?: number | string | null;
+  // For a swap: the fully-formed visit that replaces visitId once approved.
+  replacement?: RepVisit;
 }
 
 // ===== Visit Log (rep-visit form submission) =====
@@ -566,6 +581,8 @@ export interface VisitLog {
   location: VisitLogLocation;
   productsDiscussed: string[];
   attendees: VisitLogAttendees;
+  // Named non-doctor/pharmacist/nurse attendee groups (role + headcount).
+  otherAttendees?: { label: string; count: number }[];
   summary: string;
   nextSteps: string;
   reminderDate?: string;
