@@ -109,6 +109,37 @@ interface BottomNavSpec {
   color: ColorKey;
 }
 
+// Build an ISO timestamp for today at the given hour:minute (for seeded/auto-filled DCR visits).
+function atToday(h: number, m: number): string {
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d.toISOString();
+}
+
+// One pre-submitted DCR from a second rep so the RSM feed shows multi-rep activity
+// before Adaeze even submits. Same shape as a live submission.
+function seedDcrs(): SubmittedDCR[] {
+  const mk = (id: string, hcpName: string, institution: string, specialty: string, h: number, m: number, products: string[], pharm = false): VisitLog => ({
+    id, repId: 'chinedu', repName: 'Chinedu Eze', timestamp: atToday(h, m),
+    hcpType: pharm ? 'Pharmacist' : 'Doctor', hcpName, institution, specialty,
+    location: { latitude: 6.6, longitude: 3.35, isManual: false },
+    productsDiscussed: products,
+    attendees: { doctors: pharm ? 0 : 1, pharmacists: pharm ? 1 : 0, nurses: 0, others: 0 },
+    summary: 'Detailed call completed; product focus delivered.', nextSteps: 'Follow up next cycle.',
+  });
+  const logs = [
+    mk('ce-1', 'Dr. K. Balogun', 'Reddington Hospital Ikeja', 'Cardiology', 9, 15, ['Coflin Forte 600mg']),
+    mk('ce-2', 'Mrs. A. Nwosu', 'HealthPlus Ikeja', 'Pharmacist', 10, 40, ['Astrazon', 'Coflin Forte 600mg'], true),
+    mk('ce-3', 'Dr. S. Oyelaran', 'Eko Hospital Ikeja', 'Paediatrics', 12, 30, ['Coflin Forte 600mg']),
+    mk('ce-4', 'Dr. I. Okafor', 'First Consultant Ikeja', 'Internal Medicine', 14, 50, ['Astrazon']),
+  ];
+  return [{
+    id: 'dcr-seed-chinedu', rep: 'Chinedu Eze', submittedAt: '4:55 PM',
+    visitsCompleted: logs.length, ordersToday: 2, logs, samples: 28,
+    aiSummary: 'Solid institutional day across the Ikeja cluster — 4 A-tier calls with consistent Coflin focus and strong pharmacy pull-through at HealthPlus. 2 orders booked. Recommend follow-up on the Eko Hospital paediatrics lead next cycle.',
+  }];
+}
+
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -124,7 +155,7 @@ export default function App() {
   const [activeVisit, setActiveVisit] = useState<RepActiveVisit | null>(null);
   const [cmPrefillHcp, setCmPrefillHcp] = useState<string>('');
   const [visitLogs, setVisitLogs] = useState<VisitLog[]>([]);
-  const [dcrs, setDcrs] = useState<SubmittedDCR[]>([]);
+  const [dcrs, setDcrs] = useState<SubmittedDCR[]>(seedDcrs);
   // Adaeze's own daily-adjustment records — drives the rep's adjustment cap and
   // round-trips status (pending → approved/rejected) when the RSM decides.
   const [repAdjustments, setRepAdjustments] = useState<RepAdjustment[]>([]);
@@ -397,16 +428,37 @@ export default function App() {
   const handleSubmitDCR = () => {
     const today = new Date().toDateString();
     const todaysLogs = visitLogs.filter(l => new Date(l.timestamp).toDateString() === today);
+    // Whatever Adaeze logged live shows as-is; auto-fill the rest of today's plan so the
+    // report always reads as a full end-of-day DCR ("this is what her day looks like").
+    const loggedInstitutions = new Set(todaysLogs.map(l => l.institution));
+    const fillerLogs: VisitLog[] = repVisits
+      .filter(v => v.day === 'tue' && !loggedInstitutions.has(v.name))
+      .map(v => {
+        const [h, m] = (v.time || '12:00').split(':').map(Number);
+        const pharm = (v.role || '').toLowerCase().includes('pharmac');
+        return {
+          id: `fill-${v.id}`, repId: 'adaeze', repName: 'Adaeze Okafor', timestamp: atToday(h, m),
+          activeVisitId: v.id, hcpType: pharm ? 'Pharmacist' : 'Doctor', hcpName: v.contact ?? 'HCP',
+          institution: v.name, specialty: v.role ?? '',
+          location: { latitude: 6.43, longitude: 3.42, isManual: false },
+          productsDiscussed: v.plannedProducts ?? ['Coflin Forte 600mg'],
+          attendees: { doctors: pharm ? 0 : 1, pharmacists: pharm ? 1 : 0, nurses: 0, others: 0 },
+          summary: 'Detailed call completed; product focus delivered.', nextSteps: 'Follow up next cycle.',
+        };
+      });
+    const fullLogs = [...todaysLogs, ...fillerLogs].sort((a, b) => +new Date(a.timestamp) - +new Date(b.timestamp));
     const dcr: SubmittedDCR = {
       id: `dcr-${Date.now()}`,
       rep: 'Adaeze Okafor',
       submittedAt: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
-      visitsCompleted: repStats.completed,
+      visitsCompleted: fullLogs.length,
       ordersToday: orders.filter(o => o.rep === 'Adaeze O.').length,
-      logs: todaysLogs,
+      logs: fullLogs,
+      samples: fullLogs.length * 6,
+      aiSummary: `Full day across ${fullLogs.length} calls in the V.I.–Lekki corridor with strong Coflin focus — ${todaysLogs.length} detailed live, the rest auto-compiled from her plan. Tracking 87% target attainment for the day.`,
     };
     setDcrs(prev => [dcr, ...prev]);
-    addToast({ type: 'success', title: 'DCR submitted to RSM', msg: `Tunde Bakare (RSM) will see your ${todaysLogs.length}-visit report` });
+    addToast({ type: 'success', title: 'DCR submitted to RSM', msg: `Tunde Bakare (RSM) will see your ${fullLogs.length}-visit report` });
   };
 
   const handlePlaceOrder = (visit: RepActiveVisit) => {

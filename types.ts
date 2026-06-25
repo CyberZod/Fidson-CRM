@@ -595,6 +595,8 @@ export interface SubmittedDCR {
   visitsCompleted: number;
   ordersToday: number;
   logs: VisitLog[];
+  samples?: number;
+  aiSummary?: string;
 }
 
 // ===== Customer Stock check (was Shelf Audit) =====
