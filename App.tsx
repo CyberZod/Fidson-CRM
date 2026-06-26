@@ -27,6 +27,9 @@ import RepOrderView from './components/RepOrderView';
 import RepCoachView from './components/RepCoachView';
 import RepDCRView from './components/RepDCRView';
 import RepClinicalView from './components/RepClinicalView';
+import CustomersView from './components/CustomersView';
+import RepInvoicesView from './components/RepInvoicesView';
+import PerformanceView from './components/PerformanceView';
 
 import ASMDashboard from './components/ASMDashboard';
 import ASMTeamView from './components/ASMTeamView';
@@ -279,9 +282,10 @@ export default function App() {
   }, [visitLogs, user]);
 
   const [approvals, setApprovals] = useState<ApprovalItem[]>([
-    { id: 'apr-1', type: 'discount', rep: 'Yetunde Cole', detail: '18% on Lakeshore Specialist order', amount: '₦438,000', time: '2 min ago', urgent: true },
-    { id: 'apr-2', type: 'visit-summary', rep: 'Chinedu Eze', detail: 'Respiratory CM · 25 attendees · Reddington', amount: '₦650,000', time: '12 min ago' },
-    { id: 'apr-3', type: 'discount', rep: 'Tope Adeola', detail: '16% on HealthPlus Surulere', amount: '₦210,000', time: '45 min ago' },
+    { id: 'apr-1', type: 'discount', rep: 'Yetunde Cole', detail: '18% on Lakeshore Specialist order', amount: '₦438,000', time: '2 min ago', urgent: true, nsmChannel: 'Institution' },
+    { id: 'apr-2', type: 'visit-summary', rep: 'Chinedu Eze', detail: 'Respiratory CM · 25 attendees · Reddington', amount: '₦650,000', time: '12 min ago', nsmChannel: 'Institution' },
+    { id: 'apr-3', type: 'discount', rep: 'Tope Adeola', detail: '16% on HealthPlus Surulere', amount: '₦210,000', time: '45 min ago', nsmChannel: 'Trade' },
+    { id: 'apr-trade-1', type: 'order', rep: 'Babatunde Owolabi', detail: '12% Q3 bulk scheme · 12 Lagos distributors', amount: '₦4,800,000', time: '8 min ago', urgent: true, customer: 'WestEnd Distributors Ltd', discountPct: '12%', nsmChannel: 'Trade' },
   ]);
 
   const [orders, setOrders] = useState<OrderRow[]>([
@@ -570,6 +574,7 @@ export default function App() {
       area: 'V.I. / Lekki',
       week: nextWeekItinerary.weekLabel,
       visits: nextWeekVisits.length,
+      plannedVisits: nextWeekVisits,
       submittedAt,
       focus: 'Mixed portfolio',
       highlights: `${nextWeekVisits.length} stops planned across the week`,
@@ -1046,7 +1051,6 @@ export default function App() {
     'rep-order': { t: 'Place Order', s: 'SOA-integrated · Real-time pricing' },
     'rep-coach': { t: 'AI Coach', s: 'Personalized insights & recommendations' },
     'rep-dcr': { t: 'My DCR', s: 'Daily Call Report · Auto-generated' },
-    'rep-inventory': { t: 'Customer Inventory', s: 'HCP Stock-on-Hand & Restock Actions' },
     'rep-clinical': { t: 'Request CM', s: 'Submit clinical meeting request' },
     'rep-orders': { t: 'My Orders', s: 'Your order history · SOA synced' },
     'asm-area': { t: 'Area Overview', s: 'Lekki/V.I. Cluster · 4 reps' },
@@ -1092,6 +1096,7 @@ export default function App() {
   // ===== NAV CONFIGS =====
   const asmNav: NavItem[] = [
     { k: 'asm-area', i: 'dashboard', l: 'Area Overview' },
+    { k: 'performance', i: 'trending', l: 'Performance' },
     { k: 'asm-team', i: 'users', l: 'Team Coaching', badge: 1 },
     { k: 'asm-log', i: 'activity', l: 'My Activity Log' },
     { k: 'orders', i: 'cart', l: 'Area Orders', badge: approvals.filter(a => a.type === 'discount').length },
@@ -1100,6 +1105,7 @@ export default function App() {
 
   const fsmNav: NavItem[] = [
     { k: 'fsm-trade', i: 'dashboard', l: 'Trade Dashboard' },
+    { k: 'performance', i: 'trending', l: 'Performance' },
     { k: 'fsm-distributors', i: 'package', l: 'Distributors', badge: 2 },
     { k: 'activity', i: 'activity', l: 'Trade Reps' },
     { k: 'orders', i: 'cart', l: 'Trade Orders' },
@@ -1129,6 +1135,7 @@ export default function App() {
   const dmNav: NavItem[] = [
     { k: 'dm-division', i: 'dashboard', l: 'Division Overview' },
     { k: 'dm-regions', i: 'map', l: 'Regional Performance' },
+    { k: 'performance', i: 'trending', l: 'Target vs Achieved' },
     { k: 'dm-escalated', i: 'alert', l: 'Escalated Approvals', badge: 2 },
     { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
     { k: 'insights', i: 'sparkles', l: 'Cross-Regional Intel' },
@@ -1211,10 +1218,11 @@ export default function App() {
         case 'rep-visit': return <RepVisitLogView activeVisit={activeVisit} visitLogs={visitLogs} currentUserId={user?.email || 'rep'} currentUserName={user?.name || 'Rep'} onLogVisit={handleLogVisit} onCompleteVisit={handleCompleteVisit} onPlaceOrder={handlePlaceOrder} onNavigate={setView} />;
         case 'rep-order': return <RepOrderView activeVisit={activeVisit} onSubmitOrder={handleSubmitOrder} onBack={() => setView('rep-visit')} />;
         case 'rep-coach': return <RepCoachView customerInventory={customerInventory} onNavigate={setView} />;
-        case 'rep-inventory': return <CustomerInventoryView customerInventory={customerInventory} onBack={() => setView('rep-day')} isPM={false} />;
         case 'rep-dcr': return <RepDCRView visitsCompleted={repStats.completed} ordersToday={orders.filter(o => o.rep === 'Adaeze O.').length} visitLogs={visitLogs} onSubmit={handleSubmitDCR} />;
         case 'rep-clinical': return <RepClinicalView onSubmitCM={handleSubmitCM} prefillHcp={cmPrefillHcp} onConsumePrefill={() => setCmPrefillHcp('')} />;
         case 'rep-orders': return <OrdersView orders={orders.filter(o => o.rep === 'Adaeze O.')} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
+        case 'rep-customers': return <CustomersView />;
+        case 'rep-invoices': return <RepInvoicesView orders={orders.filter(o => o.rep === 'Adaeze O.')} />;
         default: return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} hcpsMet={hcpsMetToday} directives={directives} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
       }
     }
@@ -1222,6 +1230,7 @@ export default function App() {
     if (isASM) {
       switch (view) {
         case 'asm-area': return <ASMDashboard onNavigate={setView} />;
+        case 'performance': return <PerformanceView subtitle="Target vs Achieved · Q2 · your area reps" />;
         case 'asm-team': return <ASMTeamView />;
         case 'asm-log': return <ASMActivityLogView />;
         case 'orders': return <OrdersView orders={orders.filter(o => ['Adaeze O.', 'Tope A.'].includes(o.rep))} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
@@ -1253,18 +1262,19 @@ export default function App() {
 
     if (isFSM) {
       switch (view) {
-        case 'fsm-trade': return <FSMDashboard onNavigate={setView} />;
+        case 'fsm-trade': return <FSMDashboard onNavigate={setView} approvals={approvals} onEscalateToNSM={handleEscalateToNSM} />;
+        case 'performance': return <PerformanceView title="Trade Rep Performance" subtitle="Target vs Achieved · Q2 · your trade reps" />;
         case 'fsm-distributors': return <FSMDistributorsView />;
         case 'activity': return <FieldActivityView searchQuery={searchQuery} visitLogs={visitLogs} />;
         case 'orders': return <OrdersView orders={orders} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
-        default: return <FSMDashboard onNavigate={setView} />;
+        default: return <FSMDashboard onNavigate={setView} approvals={approvals} onEscalateToNSM={handleEscalateToNSM} />;
       }
     }
 
     if (isPM) {
       switch (view) {
-        case 'pm-portfolio': return <PMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} customerInventory={customerInventory} accompaniments={accompaniments} approvals={approvals} />;
+        case 'pm-portfolio': return <PMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} customerInventory={customerInventory} accompaniments={accompaniments} approvals={approvals} visitLogs={visitLogs} />;
         case 'pm-materials': return <PMMaterialsView onPushMaterial={handlePushMaterial} />;
         case 'pm-clinical': return <PMClinicalView clinicalMeetings={clinicalMeetings} onApproveCM={handlePMApproveCM} onRejectCM={rejectCM} />;
         case 'pm-inventory': return <CustomerInventoryView customerInventory={customerInventory} onBack={() => setView('pm-portfolio')} isPM />;
@@ -1272,7 +1282,7 @@ export default function App() {
         case 'pm-field': return <PMFieldView accompaniments={accompaniments} onSaveAccompaniment={handleSaveAccompaniment} jointCalls={jointCalls} onScheduleJointCall={handleScheduleJointCall} onBack={() => setView('pm-portfolio')} />;
         case 'pm-promo': return <PMPromoView promoRequests={promoRequests} onApprove={handleApprovePromo} onReject={handleRejectPromo} onLaunch={handleLaunchPromo} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
-        default: return <PMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} customerInventory={customerInventory} accompaniments={accompaniments} approvals={approvals} />;
+        default: return <PMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} customerInventory={customerInventory} accompaniments={accompaniments} approvals={approvals} visitLogs={visitLogs} />;
       }
     }
 
@@ -1290,6 +1300,11 @@ export default function App() {
       switch (view) {
         case 'dm-division': return <DMDashboard onNavigate={setView} approvals={approvals} />;
         case 'dm-regions': return <DMDashboard onNavigate={setView} approvals={approvals} />;
+        case 'performance': return <PerformanceView title="Regional Performance" subtitle="Target vs Achieved · Q2 · regions reporting to you" rows={[
+          { name: 'South-West Region', unit: 'RSM · A. Bello', target: 48, achieved: 44.2 },
+          { name: 'South-East Region', unit: 'RSM · N. Eze', target: 40, achieved: 41.5 },
+          { name: 'South-South Region', unit: 'RSM · P. Etim', target: 36, achieved: 28.9 },
+        ]} />;
         case 'dm-escalated': return <DMEscalatedView approvals={approvals} onOpenApproval={setApprovalModalItem as (item: ApprovalItem) => void} onApprove={approveItem} onReject={rejectItem} onEscalateToNSM={handleEscalateToNSM} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         case 'dm-push': return (

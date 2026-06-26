@@ -18,7 +18,7 @@ interface InsightRow {
 }
 
 export default function NSMDashboard({ onNavigate, approvals = [], dcrs = [], clinicalMeetings = [], scope = 'National' }: NSMDashboardProps) {
-  const nsmEscalations = approvals.filter(a => a.escalatedToNSM);
+  const nsmEscalations = approvals.filter(a => a.escalatedToNSM && (!a.nsmChannel || a.nsmChannel === scope));
   const pendingApprovals = approvals.length;
   const cmRequests = clinicalMeetings.filter(c => c.s === 'pm-review' || c.s === 'hom-review').length;
   const allRegions: RegionData[] = [

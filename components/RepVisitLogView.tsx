@@ -79,6 +79,9 @@ export default function RepVisitLogView({
   const [otherGroups, setOtherGroups] = useState<OtherGroup[]>([]);
   const [summary, setSummary] = useState('');
   const [nextSteps, setNextSteps] = useState('');
+  const [competitorBrand, setCompetitorBrand] = useState('');
+  const [competitorPromo, setCompetitorPromo] = useState('');
+  const [competitorPricing, setCompetitorPricing] = useState('');
   const [reminderDate, setReminderDate] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [hcpSuggestOpen, setHcpSuggestOpen] = useState(false);
@@ -128,6 +131,9 @@ export default function RepVisitLogView({
     setPhone('');
     setSummary('');
     setNextSteps('');
+    setCompetitorBrand('');
+    setCompetitorPromo('');
+    setCompetitorPricing('');
     setReminderDate('');
     setAttendees(emptyAttendees());
     setOtherGroups([]);
@@ -241,6 +247,9 @@ export default function RepVisitLogView({
       summary,
       nextSteps,
       reminderDate: reminderDate ? new Date(reminderDate).toISOString() : undefined,
+      marketIntel: (competitorBrand.trim() || competitorPromo.trim() || competitorPricing.trim())
+        ? { competitor: competitorBrand.trim(), promo: competitorPromo.trim(), pricing: competitorPricing.trim() }
+        : undefined,
     };
 
     onLogVisit(log);
@@ -599,6 +608,50 @@ export default function RepVisitLogView({
                 onChange={e => setNextSteps(e.target.value)}
                 placeholder="e.g. Drop samples next week, send paediatric pack"
                 className="input-field w-full px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink"
+              />
+            </div>
+          </div>
+
+          {/* Market intel — optional competitor signal, routes to PM */}
+          <div className="rounded-2xl bg-white border border-navy-100 p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon name="flag" size={14} className="text-violet-700" />
+                <p className="stat-label text-navy-400">Market Intel</p>
+              </div>
+              <span className="text-[10px] text-navy-500 font-mono">Optional · routes to PM</span>
+            </div>
+            <p className="text-[11px] text-navy-500 -mt-1">Spotted a competitor scheme, promo or price? Capture it — your PM sees it as a Competitor Signal.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-bold text-navy-400 tracking-wider uppercase">Competitor Brand Seen</label>
+                <input
+                  type="text"
+                  value={competitorBrand}
+                  onChange={e => setCompetitorBrand(e.target.value)}
+                  placeholder="e.g. GSK · Augmentin"
+                  className="input-field w-full mt-1 px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-navy-400 tracking-wider uppercase">Promotion / Scheme Observed</label>
+                <input
+                  type="text"
+                  value={competitorPromo}
+                  onChange={e => setCompetitorPromo(e.target.value)}
+                  placeholder="e.g. 15% trade discount · BOGOF on cartons"
+                  className="input-field w-full mt-1 px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-navy-400 tracking-wider uppercase">Pricing Intel</label>
+              <textarea
+                rows={2}
+                value={competitorPricing}
+                onChange={e => setCompetitorPricing(e.target.value)}
+                placeholder="e.g. Augmentin 625mg at ₦950/strip — 8% under our list price."
+                className="input-field w-full mt-1 px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink resize-none"
               />
             </div>
           </div>

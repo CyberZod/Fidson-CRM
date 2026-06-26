@@ -109,6 +109,7 @@ export interface ApprovalItem {
   reason?: string;
   rationale?: string;
   channel?: 'booklet' | 'erp';
+  nsmChannel?: 'Institution' | 'Trade'; // which NSM desk owns this on escalation
   approvalThreshold?: string;
   escalationStatus?: EscalationStatus;
   dismissing?: boolean;
@@ -156,6 +157,7 @@ export interface ItineraryPending {
   focus: string;
   highlights: string;
   submittedAt: string;
+  plannedVisits?: RepVisit[];
   escalationStatus?: EscalationStatus;
   dismissing?: boolean;
 }
@@ -586,6 +588,9 @@ export interface VisitLog {
   summary: string;
   nextSteps: string;
   reminderDate?: string;
+  // Optional competitor/market intel captured during the call. Omitted when the
+  // rep left all three fields blank.
+  marketIntel?: { competitor: string; promo: string; pricing: string };
 }
 
 export interface SubmittedDCR {

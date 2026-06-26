@@ -1,7 +1,10 @@
 import Icon from './Icon';
+import type { ApprovalItem, ApprovalModalItem } from '../types';
 
 interface FSMDashboardProps {
   onNavigate: (view: string) => void;
+  approvals?: ApprovalItem[];
+  onEscalateToNSM?: (id: string) => void;
 }
 
 type DistStatus = 'critical' | 'low' | 'healthy';
@@ -22,7 +25,8 @@ const DIST_COLORS: Record<DistStatus, { bar: string; badge: string; text: string
   healthy: { bar: 'bg-leaf-500', badge: 'bg-leaf-100 text-leaf-700', text: 'text-leaf-700' },
 };
 
-export default function FSMDashboard({ onNavigate }: FSMDashboardProps) {
+export default function FSMDashboard({ onNavigate, approvals = [], onEscalateToNSM }: FSMDashboardProps) {
+  const tradeEscalations = approvals.filter(a => a.nsmChannel === 'Trade');
   const distributors: Distributor[] = [
     { n: 'PHC Pharmacy Distributors', loc: 'Port Harcourt', stock: 8, days: 6, status: 'critical', orders: '₦1.2M/wk', sku: 'Tuxil-N' },
     { n: 'WestEnd Distributors Ltd', loc: 'Lagos', stock: 23, days: 14, status: 'low', orders: '₦4.8M/wk', sku: 'Coflin' },
@@ -68,6 +72,43 @@ export default function FSMDashboard({ onNavigate }: FSMDashboardProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          {tradeEscalations.length > 0 && (
+            <div className="fade-up rounded-2xl bg-white border border-indigo-200 overflow-hidden">
+              <div className="px-5 py-4 border-b border-indigo-100 bg-indigo-50/50 flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <h3 className="font-display font-bold text-ink flex items-center gap-2"><Icon name="alert" size={16} className="text-indigo-700" /> Escalate to NSM Trade</h3>
+                  <p className="text-xs text-navy-500 mt-0.5">Trade exceptions above your sign-off — distributor schemes &amp; discounts routed to national</p>
+                </div>
+                <span className="px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">FSM TIER</span>
+              </div>
+              <div className="divide-y divide-navy-50">
+                {tradeEscalations.map(a => {
+                  const escalated = (a as ApprovalModalItem).escalatedToNSM;
+                  return (
+                    <div key={a.id} className="px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-display font-semibold text-sm text-ink truncate">{a.customer || a.detail}</p>
+                          {a.urgent && <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-bold">URGENT</span>}
+                        </div>
+                        <p className="text-[11px] text-navy-500 mt-0.5">{a.detail} · {a.rep}</p>
+                        <div className="mt-1.5 flex items-center gap-4">
+                          <div><p className="stat-label text-navy-400">Value</p><p className="font-mono font-bold text-ink text-sm">{a.amount}</p></div>
+                          {a.discountPct && <div><p className="stat-label text-navy-400">Discount</p><p className="font-mono font-bold text-amber-700 text-sm">{a.discountPct}</p></div>}
+                        </div>
+                      </div>
+                      {onEscalateToNSM && (escalated ? (
+                        <span className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-200 self-start">Escalated to NSM Trade</span>
+                      ) : (
+                        <button onClick={() => onEscalateToNSM(a.id)} className="px-3 py-2 sm:py-1.5 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-bold hover:bg-indigo-100 btn-press self-start">Escalate → NSM Trade</button>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="fade-up rounded-2xl bg-white border border-navy-100 overflow-hidden">
             <div className="px-5 py-4 border-b border-navy-100 flex items-center justify-between flex-wrap gap-2">
               <div>
@@ -161,6 +202,22 @@ export default function FSMDashboard({ onNavigate }: FSMDashboardProps) {
               <div className="px-2 pt-2 border-t border-navy-100">
                 <p className="text-[10px] text-navy-500">4 of 12 distributors still pending audit. Due May 31.</p>
               </div>
+            </div>
+          </div>
+
+          <div className="fade-up stagger-2 rounded-2xl bg-white border border-navy-100 p-5">
+            <h3 className="font-display font-bold text-ink text-sm mb-3 flex items-center gap-2"><Icon name="sparkles" size={14} className="text-leaf-700" /> AI Alerts</h3>
+            <div className="space-y-2">
+              {[
+                { t: 'Region behind target', d: 'SW Trade 88% to Q2 — Ibadan zone lagging', c: 'amber' },
+                { t: 'Distributor stock low', d: 'PHC Pharmacy 6 days cover · reorder flagged', c: 'rose' },
+                { t: 'Conversion alert', d: 'WestEnd order cycle slowing vs W20', c: 'amber' },
+              ].map((al, i) => (
+                <div key={i} className={`p-2.5 rounded-lg border ${al.c === 'rose' ? 'bg-rose-50 border-rose-100' : 'bg-amber-50 border-amber-100'}`}>
+                  <p className={`text-xs font-bold ${al.c === 'rose' ? 'text-rose-700' : 'text-amber-700'}`}>{al.t}</p>
+                  <p className="text-[11px] text-navy-600 mt-0.5">{al.d}</p>
+                </div>
+              ))}
             </div>
           </div>
 

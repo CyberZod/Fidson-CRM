@@ -37,9 +37,10 @@ export default function RepSidebar({
     { k: 'rep-day', i: 'dashboard', l: 'My Day' },
     { k: 'rep-plan', i: 'map', l: "Today's Plan", badge: 5 },
     { k: 'rep-visit', i: 'location', l: 'Active Visit', live: !!activeVisit },
+    { k: 'rep-customers', i: 'users', l: 'My Customers' },
     { k: 'rep-orders', i: 'cart', l: 'My Orders' },
+    { k: 'rep-invoices', i: 'file', l: 'My Invoices' },
     { k: 'rep-coach', i: 'sparkles', l: 'AI Coach' },
-    { k: 'rep-inventory', i: 'package', l: 'Customer Inventory' },
     { k: 'rep-dcr', i: 'file', l: 'My DCR' },
   ];
 

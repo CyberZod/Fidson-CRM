@@ -1,6 +1,6 @@
 import Icon from './Icon';
 import ProductLens from './ProductLens';
-import type { ApprovalItem, ClinicalMeetingRow, CustomerInventoryItem, AccompanimentRow, ApprovalModalItem } from '../types';
+import type { ApprovalItem, ClinicalMeetingRow, CustomerInventoryItem, AccompanimentRow, ApprovalModalItem, VisitLog } from '../types';
 
 interface PMDashboardProps {
   onNavigate: (view: string) => void;
@@ -8,6 +8,7 @@ interface PMDashboardProps {
   customerInventory?: CustomerInventoryItem[];
   accompaniments?: AccompanimentRow[];
   approvals?: ApprovalItem[];
+  visitLogs?: VisitLog[];
 }
 
 export default function PMDashboard({
@@ -16,9 +17,16 @@ export default function PMDashboard({
   customerInventory = [],
   accompaniments = [],
   approvals = [],
+  visitLogs = [],
 }: PMDashboardProps) {
   const recentDiscounts = approvals.filter(a => a.type === 'discount').slice(0, 3);
   const pendingCMs = clinicalMeetings ? clinicalMeetings.filter(c => c.s === 'pm-review').length : 0;
+
+  // Competitor signals aggregated from rep visit logs (newest-first). The latest
+  // headlines the card; affected locations are the distinct institutions reporting.
+  const signals = visitLogs.filter(l => l.marketIntel);
+  const latestSignal = signals[0];
+  const signalRegions = Array.from(new Set(signals.map(s => s.institution).filter(Boolean))).slice(0, 5);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto">
@@ -138,17 +146,37 @@ export default function PMDashboard({
                   <Icon name="flag" size={16} className="text-white" />
                 </div>
                 <p className="text-[10px] font-bold text-violet-200 tracking-[0.2em] uppercase">Competitor Signal</p>
+                {signals.length > 0 && (
+                  <span className="ml-auto px-2 py-0.5 rounded-full bg-white/15 text-[10px] font-bold">{signals.length} live</span>
+                )}
               </div>
-              <h3 className="font-display text-lg font-bold leading-tight">GSK Augmentin promo detected</h3>
-              <p className="text-sm text-white/80 mt-2">5 reps reported 15% trade discount on Augmentin in last 48hrs. May pressure Astrazon conversion.</p>
-              <div className="mt-3 p-3 rounded-xl bg-white/10 border border-white/10">
-                <p className="text-[10px] font-bold text-violet-200 tracking-wider uppercase mb-1">Affected Regions</p>
-                <div className="flex flex-wrap gap-1">
-                  {['Lagos VI', 'Lekki', 'Ikoyi', 'Yaba', 'Surulere'].map(r => (
-                    <span key={r} className="px-2 py-0.5 rounded bg-white/15 text-[10px] font-medium">{r}</span>
-                  ))}
-                </div>
-              </div>
+              {latestSignal?.marketIntel ? (
+                <>
+                  <h3 className="font-display text-lg font-bold leading-tight">
+                    {latestSignal.marketIntel.competitor || 'Competitor activity'}{latestSignal.marketIntel.promo ? ` — ${latestSignal.marketIntel.promo}` : ''}
+                  </h3>
+                  <p className="text-sm text-white/80 mt-2">
+                    {signals.length} rep report{signals.length === 1 ? '' : 's'} from the field.
+                    {latestSignal.marketIntel.pricing ? ` ${latestSignal.marketIntel.pricing}` : ''}
+                    {` Latest: ${latestSignal.repName} at ${latestSignal.institution}.`}
+                  </p>
+                  {signalRegions.length > 0 && (
+                    <div className="mt-3 p-3 rounded-xl bg-white/10 border border-white/10">
+                      <p className="text-[10px] font-bold text-violet-200 tracking-wider uppercase mb-1">Reported At</p>
+                      <div className="flex flex-wrap gap-1">
+                        {signalRegions.map(r => (
+                          <span key={r} className="px-2 py-0.5 rounded bg-white/15 text-[10px] font-medium">{r}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <h3 className="font-display text-lg font-bold leading-tight">No competitor signals yet</h3>
+                  <p className="text-sm text-white/80 mt-2">When reps capture competitor schemes, promos or pricing on a visit, they surface here. Nothing reported in the field so far.</p>
+                </>
+              )}
               <button onClick={() => onNavigate('pm-materials')} className="mt-4 px-3 py-2 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold btn-press flex items-center gap-1.5 backdrop-blur-sm">
                 Push counter-detail brief <Icon name="arrowRight" size={12} />
               </button>

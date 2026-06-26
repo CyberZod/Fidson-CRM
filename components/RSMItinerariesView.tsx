@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import Icon from './Icon';
-import type { ItineraryPending, AdjustmentPending } from '../types';
+import type { ItineraryPending, AdjustmentPending, RepVisit } from '../types';
+
+const DAYS: { k: string; l: string }[] = [
+  { k: 'mon', l: 'Mon' }, { k: 'tue', l: 'Tue' }, { k: 'wed', l: 'Wed' },
+  { k: 'thu', l: 'Thu' }, { k: 'fri', l: 'Fri' },
+];
+const toMin = (t: string) => { const [h, m] = (t || '').split(':').map(Number); return h * 60 + (m || 0); };
 
 interface RSMItinerariesViewProps {
   itinerariesPending: ItineraryPending[];
@@ -123,15 +129,48 @@ export default function RSMItinerariesView({
                     <div className="px-5 pb-4">
                       <div className="rounded-xl bg-paper border border-navy-100 overflow-hidden">
                         <p className="px-4 pt-3 text-[10px] font-bold text-navy-400 tracking-wider uppercase">Daily Breakdown</p>
-                        <div className="p-3 grid grid-cols-5 gap-2">
-                          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((d, i) => (
-                            <div key={d} className="p-2 rounded-lg bg-white text-center">
-                              <p className="text-[10px] font-bold text-navy-500">{d}</p>
-                              <p className="font-display text-base font-bold text-ink">{Math.floor(it.visits / 5) + (i < it.visits % 5 ? 1 : 0)}</p>
-                              <p className="text-[9px] text-navy-400">visits</p>
-                            </div>
-                          ))}
-                        </div>
+                        {it.plannedVisits && it.plannedVisits.length > 0 ? (
+                          <div className="p-3 space-y-2">
+                            {DAYS.map(d => {
+                              const stops = it.plannedVisits!
+                                .filter(v => v.day === d.k)
+                                .sort((a, b) => toMin(a.time) - toMin(b.time));
+                              return (
+                                <div key={d.k} className="rounded-lg bg-white border border-navy-50 overflow-hidden">
+                                  <div className="px-3 py-1.5 flex items-center justify-between bg-navy-50/50">
+                                    <p className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">{d.l}</p>
+                                    <p className="text-[10px] text-navy-400">{stops.length} stop{stops.length === 1 ? '' : 's'}</p>
+                                  </div>
+                                  {stops.length === 0 ? (
+                                    <p className="px-3 py-2 text-[10px] text-navy-300 italic">No visits planned</p>
+                                  ) : (
+                                    <div className="divide-y divide-navy-50">
+                                      {stops.map(v => (
+                                        <div key={v.id} className="px-3 py-1.5 flex items-center gap-2">
+                                          <span className="font-mono text-[10px] font-bold text-navy-500 w-10 flex items-center gap-0.5 flex-shrink-0">
+                                            {v.fixedTime && <Icon name="lock" size={8} className="text-navy-400" />}{v.time}
+                                          </span>
+                                          <p className="text-[11px] text-ink truncate flex-1">{v.name}</p>
+                                          {v.priority === 'high' && <span className="px-1 py-0 rounded bg-leaf-50 text-leaf-700 text-[8px] font-bold flex-shrink-0">HIGH</span>}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="p-3 grid grid-cols-5 gap-2">
+                            {DAYS.map((d, i) => (
+                              <div key={d.k} className="p-2 rounded-lg bg-white text-center">
+                                <p className="text-[10px] font-bold text-navy-500">{d.l}</p>
+                                <p className="font-display text-base font-bold text-ink">{Math.floor(it.visits / 5) + (i < it.visits % 5 ? 1 : 0)}</p>
+                                <p className="text-[9px] text-navy-400">visits</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         <div className="px-4 py-2 border-t border-navy-100 bg-navy-50/50">
                           <p className="text-[10px] text-navy-500"><span className="font-bold">AI hint:</span> Route balance acceptable. Suggest adding 1 more Lekki Phase 2 stop on Wednesday.</p>
                         </div>
