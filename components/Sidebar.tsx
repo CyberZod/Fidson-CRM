@@ -40,6 +40,7 @@ export default function Sidebar({
     { k: 'itineraries', i: 'calendar', l: 'Itineraries', badge: itinerariesBadge },
     { k: 'orders', i: 'cart', l: 'Orders & Approvals', badge: approvalsCount },
     { k: 'hcps', i: 'users', l: 'HCPs & Customers' },
+    { k: 'pipeline', i: 'filter', l: 'Team Pipeline' },
     { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
     { k: 'insights', i: 'sparkles', l: 'AI Insights' },
     { k: 'clinical', i: 'flask', l: 'Clinical Meetings' },

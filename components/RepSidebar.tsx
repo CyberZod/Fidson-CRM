@@ -38,6 +38,7 @@ export default function RepSidebar({
     { k: 'rep-plan', i: 'map', l: "Today's Plan", badge: 5 },
     { k: 'rep-visit', i: 'location', l: 'Active Visit', live: !!activeVisit },
     { k: 'rep-customers', i: 'users', l: 'My Customers' },
+    { k: 'rep-pipeline', i: 'filter', l: 'Pipeline' },
     { k: 'rep-orders', i: 'cart', l: 'My Orders' },
     { k: 'rep-invoices', i: 'file', l: 'My Invoices' },
     { k: 'rep-coach', i: 'sparkles', l: 'AI Coach' },

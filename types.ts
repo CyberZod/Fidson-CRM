@@ -7,7 +7,7 @@ export type IconName =
   | 'location' | 'clock' | 'pill' | 'package' | 'camera' | 'layers' | 'filter'
   | 'download' | 'eye' | 'refresh' | 'target' | 'calendar' | 'helpCircle'
   | 'logout' | 'send' | 'edit' | 'flag' | 'barChart' | 'fingerprint' | 'mail'
-  | 'lock' | 'eyeOff' | 'panelClose' | 'panelOpen';
+  | 'lock' | 'eyeOff' | 'panelClose' | 'panelOpen' | 'mic';
 
 // ===== Toasts =====
 export type ToastType = 'success' | 'error' | 'info';

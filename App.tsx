@@ -28,7 +28,11 @@ import RepCoachView from './components/RepCoachView';
 import RepDCRView from './components/RepDCRView';
 import RepClinicalView from './components/RepClinicalView';
 import CustomersView from './components/CustomersView';
+import type { Account } from './components/CustomersView';
 import RepInvoicesView from './components/RepInvoicesView';
+import RepPipelineView from './components/RepPipelineView';
+import PipelineView from './components/PipelineView';
+import { SEED_LEADS, REP_OWNER, type Lead } from './assets/leads';
 import PerformanceView from './components/PerformanceView';
 
 import ASMDashboard from './components/ASMDashboard';
@@ -158,6 +162,8 @@ export default function App() {
   const [activeVisit, setActiveVisit] = useState<RepActiveVisit | null>(null);
   const [cmPrefillHcp, setCmPrefillHcp] = useState<string>('');
   const [visitLogs, setVisitLogs] = useState<VisitLog[]>([]);
+  const [leads, setLeads] = useState<Lead[]>(SEED_LEADS);
+  const [convertedCustomers, setConvertedCustomers] = useState<Account[]>([]);
   const [dcrs, setDcrs] = useState<SubmittedDCR[]>(seedDcrs);
   // Adaeze's own daily-adjustment records — drives the rep's adjustment cap and
   // round-trips status (pending → approved/rejected) when the RSM decides.
@@ -427,6 +433,70 @@ export default function App() {
       title: 'Visit logged',
       msg: `${log.hcpName} · ${log.institution} · ${log.productsDiscussed.length} product(s) detailed`,
     });
+  };
+
+  // ===== PIPELINE / LEAD HANDLERS (scripted) =====
+  const handleEnrichLead = (id: string) => {
+    const lead = leads.find(l => l.id === id);
+    setLeads(prev => prev.map(l => l.id === id ? {
+      ...l, stage: 'enriched', enriched: true, completeness: 90,
+      dedupeNote: l.dedupeNote ?? 'New record · no duplicate found',
+      timeline: [{ date: 'Just now', title: 'Enriched', detail: 'Linked to the account and territory; profile completed from Fidson data; checked for duplicates' }, ...l.timeline],
+    } : l));
+    addToast({ type: 'success', title: 'Lead enriched', msg: lead ? `Linked to ${lead.org} · ${lead.territory} · deduped · profile 90%` : 'Profile completed and deduped' });
+  };
+
+  const handleConsentLead = (id: string) => {
+    const lead = leads.find(l => l.id === id);
+    setLeads(prev => prev.map(l => l.id === id ? {
+      ...l, stage: 'consented', consent: true, consentDate: 'Just now', completeness: Math.max(l.completeness, 95),
+      timeline: [{ date: 'Just now', title: 'Consent recorded', detail: 'Opted in to product and pricing information; lawful basis and scope stamped for NDPA' }, ...l.timeline],
+    } : l));
+    addToast({ type: 'success', title: 'Consent recorded', msg: lead ? `${lead.name} opted in · lawful basis logged for outreach` : 'Lawful basis captured for outreach' });
+  };
+
+  const handleSendLead = (id: string) => {
+    const lead = leads.find(l => l.id === id);
+    setLeads(prev => prev.map(l => l.id === id ? {
+      ...l, stage: 'nurturing',
+      timeline: [{ date: 'Just now', title: 'Information sent', detail: 'Product information pack emailed via M365 / Outlook; unsubscribe honoured' }, ...l.timeline],
+    } : l));
+    addToast({ type: 'success', title: 'Information sent', msg: lead ? `Product pack emailed to ${lead.name} via Outlook` : 'Outreach logged to the lead timeline' });
+  };
+
+  const leadToAccount = (l: Lead): Account => ({
+    id: `conv-${l.id}`,
+    name: l.channel === 'HCP' ? l.name : l.org,
+    channel: l.channel,
+    tier: 'B',
+    territory: l.territory,
+    address: l.org,
+    phone: l.phone ?? '—',
+    email: l.email ?? '—',
+    lastVisitDays: 0,
+    lifetimeValue: 'New',
+    openCommitments: 0,
+    people: [{ name: l.name, role: l.role }],
+    timeline: [
+      { kind: 'visit', date: 'Today', title: 'Converted from pipeline', detail: `${l.name} · ${l.role}` },
+      { kind: 'commitment', date: 'Earlier', title: 'Consent on record', detail: 'Opted in to product information' },
+    ],
+  });
+
+  const handleConvertLead = (id: string) => {
+    const lead = leads.find(l => l.id === id);
+    if (!lead) return;
+    setLeads(prev => prev.map(l => l.id === id ? {
+      ...l, stage: 'customer',
+      timeline: [{ date: 'Just now', title: 'Converted to customer', detail: 'Now an active account in My Customers' }, ...l.timeline],
+    } : l));
+    setConvertedCustomers(prev => [leadToAccount(lead), ...prev]);
+    addToast({ type: 'success', title: 'Converted to customer', msg: `${lead.name} is now in My Customers` });
+  };
+
+  const handleAddLead = (lead: Lead) => {
+    setLeads(prev => [lead, ...prev]);
+    addToast({ type: 'success', title: 'Added to pipeline', msg: `${lead.name} · ${lead.role}` });
   };
 
   const handleSubmitDCR = () => {
@@ -1098,6 +1168,7 @@ export default function App() {
     { k: 'asm-area', i: 'dashboard', l: 'Area Overview' },
     { k: 'performance', i: 'trending', l: 'Performance' },
     { k: 'asm-team', i: 'users', l: 'Team Coaching', badge: 1 },
+    { k: 'pipeline', i: 'filter', l: 'Team Pipeline' },
     { k: 'asm-log', i: 'activity', l: 'My Activity Log' },
     { k: 'orders', i: 'cart', l: 'Area Orders', badge: approvals.filter(a => a.type === 'discount').length },
     { k: 'asm-pushup', i: 'send', l: 'Push to BM' },
@@ -1135,6 +1206,7 @@ export default function App() {
   const dmNav: NavItem[] = [
     { k: 'dm-division', i: 'dashboard', l: 'Division Overview' },
     { k: 'dm-regions', i: 'map', l: 'Regional Performance' },
+    { k: 'pipeline', i: 'filter', l: 'Division Pipeline' },
     { k: 'performance', i: 'trending', l: 'Target vs Achieved' },
     { k: 'dm-escalated', i: 'alert', l: 'Escalated Approvals', badge: 2 },
     { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
@@ -1197,6 +1269,7 @@ export default function App() {
 
   const cdNav: NavItem[] = [
     { k: 'cd-dashboard', i: 'dashboard', l: 'National Command' },
+    { k: 'pipeline', i: 'filter', l: 'National Pipeline' },
     { k: 'campaigns', i: 'trending', l: 'Campaigns & ROI' },
     { k: 'insights', i: 'sparkles', l: 'Strategic Insights' },
     { k: 'cd-directive', i: 'send', l: 'Push Directive' },
@@ -1211,17 +1284,23 @@ export default function App() {
       return <CampaignsView scope="All campaigns · Cross-product · 60-day attribution" />;
     }
 
+    // Shared manager-side lead funnel (all non-rep roles reach it via 'pipeline').
+    if (view === 'pipeline' && !isRep) {
+      return <PipelineView leads={leads} />;
+    }
+
     if (isRep) {
       switch (view) {
         case 'rep-day': return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} hcpsMet={hcpsMetToday} directives={directives} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
         case 'rep-plan': return <RepPlanView visits={repVisits} onStartVisit={handleStartVisit} weekItinerary={weekItinerary} repAdjustments={repAdjustments} onRequestAdjustment={handleRequestAdjustment} nextWeekVisits={nextWeekVisits} nextWeekItinerary={nextWeekItinerary} onAddPlannedVisit={handleAddPlannedVisit} onRemovePlannedVisit={handleRemovePlannedVisit} onApplyOptimizedRoute={handleApplyOptimizedRoute} onSubmitItinerary={handleSubmitItinerary} />;
-        case 'rep-visit': return <RepVisitLogView activeVisit={activeVisit} visitLogs={visitLogs} currentUserId={user?.email || 'rep'} currentUserName={user?.name || 'Rep'} onLogVisit={handleLogVisit} onCompleteVisit={handleCompleteVisit} onPlaceOrder={handlePlaceOrder} onNavigate={setView} />;
+        case 'rep-visit': return <RepVisitLogView activeVisit={activeVisit} visitLogs={visitLogs} currentUserId={user?.email || 'rep'} currentUserName={user?.name || 'Rep'} onLogVisit={handleLogVisit} onCompleteVisit={handleCompleteVisit} onPlaceOrder={handlePlaceOrder} onNavigate={setView} onAddLead={handleAddLead} />;
         case 'rep-order': return <RepOrderView activeVisit={activeVisit} onSubmitOrder={handleSubmitOrder} onBack={() => setView('rep-visit')} />;
         case 'rep-coach': return <RepCoachView customerInventory={customerInventory} onNavigate={setView} />;
         case 'rep-dcr': return <RepDCRView visitsCompleted={repStats.completed} ordersToday={orders.filter(o => o.rep === 'Adaeze O.').length} visitLogs={visitLogs} onSubmit={handleSubmitDCR} />;
         case 'rep-clinical': return <RepClinicalView onSubmitCM={handleSubmitCM} prefillHcp={cmPrefillHcp} onConsumePrefill={() => setCmPrefillHcp('')} />;
         case 'rep-orders': return <OrdersView orders={orders.filter(o => o.rep === 'Adaeze O.')} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
-        case 'rep-customers': return <CustomersView />;
+        case 'rep-customers': return <CustomersView extraAccounts={convertedCustomers} />;
+        case 'rep-pipeline': return <RepPipelineView leads={leads.filter(l => l.repName === REP_OWNER)} onEnrich={handleEnrichLead} onConsent={handleConsentLead} onSend={handleSendLead} onConvert={handleConvertLead} onNavigate={setView} />;
         case 'rep-invoices': return <RepInvoicesView orders={orders.filter(o => o.rep === 'Adaeze O.')} />;
         default: return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} hcpsMet={hcpsMetToday} directives={directives} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
       }

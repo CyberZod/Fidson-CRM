@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Icon from './Icon';
 import { PRODUCT_CATALOG } from '../assets/products';
+import { REP_OWNER, type Lead } from '../assets/leads';
 import type {
   HcpType,
   IconName,
@@ -18,7 +19,14 @@ interface RepVisitLogViewProps {
   onCompleteVisit: (id: string | number) => void;
   onPlaceOrder: (visit: RepActiveVisit) => void;
   onNavigate: (view: string) => void;
+  onAddLead: (lead: Lead) => void;
 }
+
+type VoicePhase = 'recording' | 'transcribing' | 'structuring';
+
+// What the rep "said" — the scripted transcript the demo plays back.
+const VOICE_TRANSCRIPT =
+  "saw dr adebayo at the paediatric ward, detailed coflin forte and tuxil-n, he'll take a trial if pricing works, gsk pushing augmentin at fifteen percent trade discount, also met dr ngozi okeke the consultant paediatrician, drop samples next week";
 
 const HCP_TYPES: { v: HcpType; l: string; i: IconName }[] = [
   { v: 'Doctor', l: 'Doctor', i: 'pill' },
@@ -59,6 +67,7 @@ export default function RepVisitLogView({
   onCompleteVisit,
   onPlaceOrder,
   onNavigate,
+  onAddLead,
 }: RepVisitLogViewProps) {
   const [checkedIn, setCheckedIn] = useState(false);
   const [checkInLabel, setCheckInLabel] = useState<string>('');
@@ -87,6 +96,18 @@ export default function RepVisitLogView({
   const [hcpSuggestOpen, setHcpSuggestOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const [productQuery, setProductQuery] = useState('');
+
+  // Scripted voice dictation
+  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [voicePhase, setVoicePhase] = useState<VoicePhase | null>(null);
+  const [recordSecs, setRecordSecs] = useState(0);
+  const [voiceFilled, setVoiceFilled] = useState(false);
+
+  // New contact met → pipeline intake
+  const [contactName, setContactName] = useState('');
+  const [contactRole, setContactRole] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactAdded, setContactAdded] = useState(false);
 
   const productSuggestions = useMemo(() => {
     const q = productQuery.trim().toLowerCase();
@@ -144,6 +165,12 @@ export default function RepVisitLogView({
     setHcpSuggestOpen(false);
   }, [activeVisit]);
 
+  useEffect(() => {
+    if (voicePhase !== 'recording') return;
+    const t = window.setInterval(() => setRecordSecs(s => s + 1), 1000);
+    return () => window.clearInterval(t);
+  }, [voicePhase]);
+
   const todayStr = new Date().toDateString();
   const existingDailyStats = useMemo<VisitLogAttendees>(() => {
     return visitLogs
@@ -181,6 +208,77 @@ export default function RepVisitLogView({
 
   const toggleProduct = (name: string) => {
     setProducts(prev => (prev.includes(name) ? prev.filter(p => p !== name) : [...prev, name]));
+  };
+
+  const startDictation = () => {
+    setVoiceFilled(false);
+    setRecordSecs(0);
+    setVoicePhase('recording');
+    setVoiceOpen(true);
+  };
+
+  const cancelDictation = () => {
+    setVoiceOpen(false);
+    setVoicePhase(null);
+  };
+
+  // Scripted: transcribe -> structure -> drop the parsed fields into the form.
+  const stopDictation = () => {
+    setVoicePhase('transcribing');
+    window.setTimeout(() => setVoicePhase('structuring'), 1300);
+    window.setTimeout(() => {
+      applyVoiceFill();
+      setVoiceOpen(false);
+      setVoicePhase(null);
+      setVoiceFilled(true);
+    }, 2600);
+  };
+
+  const applyVoiceFill = () => {
+    setHcpType('Doctor');
+    setHcpName('Dr. T. Adebayo');
+    setSpecialty('Paediatrics');
+    const focus = PRODUCT_CATALOG.filter(p => p.focus).slice(0, 2).map(p => p.name);
+    const picked = focus.length ? focus : PRODUCT_CATALOG.slice(0, 2).map(p => p.name);
+    setProducts(prev => Array.from(new Set([...prev, ...picked])));
+    setSummary('Detailed Coflin Forte and Tuxil-N on the paediatric ward. Dr. Adebayo is open to a trial if pricing works. Receptive overall.');
+    setNextSteps('Drop paediatric samples next week and follow up on pricing.');
+    setCompetitorBrand('GSK · Augmentin');
+    setCompetitorPromo('15% trade discount');
+    setCompetitorPricing('Augmentin pushed at ~15% trade discount on the ward.');
+    setAttendees(prev => ({ ...prev, doctors: Math.max(prev.doctors, 1) }));
+    // Pre-fill the new-contact card with the extra person mentioned in the note.
+    setContactName('Dr. Ngozi Okeke');
+    setContactRole('Consultant Paediatrician');
+    setContactPhone('');
+    setContactAdded(false);
+  };
+
+  const addContactToPipeline = () => {
+    if (!contactName.trim()) return;
+    const lead: Lead = {
+      id: `ld-${Date.now()}`,
+      name: contactName.trim(),
+      role: contactRole.trim() || 'Contact',
+      org: institution || activeVisit?.name || 'Field contact',
+      channel: 'HCP',
+      territory: 'Lekki Cluster',
+      region: 'South-West',
+      repName: REP_OWNER,
+      phone: contactPhone.trim() || undefined,
+      stage: 'captured',
+      completeness: 30,
+      consent: false,
+      enriched: false,
+      metContext: `Met during the ${institution || activeVisit?.name || 'field'} visit`,
+      source: 'Visit-log attendee',
+      timeline: [{ date: 'Just now', title: 'Captured in the field', detail: 'Added from visit-log attendees' }],
+    };
+    onAddLead(lead);
+    setContactAdded(true);
+    setContactName('');
+    setContactRole('');
+    setContactPhone('');
   };
 
   const adjustAttendee = (key: keyof VisitLogAttendees, delta: number) => {
@@ -286,6 +384,13 @@ export default function RepVisitLogView({
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={startDictation}
+            className="px-4 py-2 rounded-lg bg-navy-700 text-white text-sm font-bold flex items-center gap-1.5 btn-press"
+          >
+            <Icon name="mic" size={14} /> Dictate Visit
+          </button>
+          <button
+            type="button"
             onClick={() => onPlaceOrder(activeVisit)}
             className="px-4 py-2 rounded-lg bg-leaf-500 text-white text-sm font-bold flex items-center gap-1.5 btn-press"
           >
@@ -296,6 +401,21 @@ export default function RepVisitLogView({
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 fade-up stagger-1 space-y-4">
+          {voiceFilled && (
+            <div className="rounded-2xl bg-navy-700 text-white p-4 flex items-start gap-3 relative overflow-hidden">
+              <div className="absolute inset-0 ai-shimmer" />
+              <div className="relative flex items-start gap-3 w-full">
+                <Icon name="sparkles" size={18} className="text-leaf-300 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-bold">Drafted from your voice note</p>
+                  <p className="text-xs text-white/80 mt-0.5">HCP, products, summary, next steps and competitor intel were filled in. Review and edit before saving.</p>
+                </div>
+                <button type="button" onClick={() => setVoiceFilled(false)} className="text-white/60 hover:text-white flex-shrink-0">
+                  <Icon name="x" size={16} />
+                </button>
+              </div>
+            </div>
+          )}
           {/* GPS panel */}
           <div className="rounded-2xl bg-white border border-navy-100 overflow-hidden">
             <div
@@ -762,6 +882,36 @@ export default function RepVisitLogView({
               </button>
             </div>
           </div>
+
+          {/* New contact met → pipeline intake */}
+          <div className="rounded-2xl bg-white border border-navy-100 p-5">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <Icon name="filter" size={14} className="text-navy-700" />
+                <p className="stat-label text-navy-400">New Contact Met</p>
+              </div>
+              <span className="text-[10px] text-navy-500 font-mono">Feeds your pipeline</span>
+            </div>
+            <p className="text-[11px] text-navy-500 mb-3">Met someone new on this visit? Capture them here and they enter your pipeline as a fresh lead.</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <input value={contactName} onChange={e => { setContactName(e.target.value); setContactAdded(false); }} placeholder="Name" className="input-field px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink" />
+              <input value={contactRole} onChange={e => setContactRole(e.target.value)} placeholder="Role / specialty" className="input-field px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink" />
+              <input value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="Phone (optional)" className="input-field px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink" />
+            </div>
+            <button
+              type="button"
+              onClick={addContactToPipeline}
+              disabled={!contactName.trim()}
+              className="mt-3 w-full py-2.5 rounded-lg bg-navy-700 hover:bg-navy-800 disabled:opacity-50 text-white text-sm font-bold flex items-center justify-center gap-1.5 btn-press"
+            >
+              <Icon name="plus" size={14} /> Add to Pipeline
+            </button>
+            {contactAdded && (
+              <p className="mt-2 text-[11px] text-leaf-700 font-semibold flex items-center gap-1">
+                <Icon name="checkCircle" size={12} /> Added to your pipeline as a captured lead.
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="fade-up stagger-2 space-y-4">
@@ -838,6 +988,41 @@ export default function RepVisitLogView({
           )}
         </div>
       </form>
+
+      {voiceOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-navy-900/60" />
+          <div className="relative w-full max-w-sm rounded-2xl bg-white shadow-2xl p-6 text-center">
+            {voicePhase === 'recording' ? (
+              <>
+                <div className="mx-auto w-20 h-20 rounded-full bg-rose-500 flex items-center justify-center gps-pulse">
+                  <Icon name="mic" size={32} className="text-white" />
+                </div>
+                <p className="mt-4 font-display text-lg font-bold text-ink">Listening…</p>
+                <p className="text-sm text-navy-500 mt-1 font-mono">{Math.floor(recordSecs / 60)}:{String(recordSecs % 60).padStart(2, '0')}</p>
+                <p className="text-[11px] text-navy-400 mt-3 leading-relaxed">Speak the visit naturally. Mention the HCP, products, what was discussed, any competitor activity and your next step.</p>
+                <div className="mt-5 flex gap-2">
+                  <button type="button" onClick={cancelDictation} className="flex-1 py-2.5 rounded-lg border border-navy-200 text-navy-700 text-sm font-bold btn-press">Cancel</button>
+                  <button type="button" onClick={stopDictation} className="flex-1 py-2.5 rounded-lg bg-navy-700 text-white text-sm font-bold flex items-center justify-center gap-1.5 btn-press"><Icon name="checkCircle" size={15} /> Stop &amp; Fill</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mx-auto w-20 h-20 rounded-full bg-navy-700 flex items-center justify-center relative overflow-hidden">
+                  <div className="absolute inset-0 ai-shimmer" />
+                  <Icon name="sparkles" size={30} className="text-leaf-300 relative" />
+                </div>
+                <p className="mt-4 font-display text-lg font-bold text-ink">{voicePhase === 'transcribing' ? 'Transcribing…' : 'Structuring with Fidson vocabulary…'}</p>
+                <p className="text-[11px] text-navy-400 mt-2 italic leading-relaxed">"{VOICE_TRANSCRIPT}"</p>
+                <div className="mt-4 flex items-center justify-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full pulse-dot ${voicePhase === 'transcribing' ? 'bg-navy-700' : 'bg-leaf-500'}`} />
+                  <span className={`w-2 h-2 rounded-full ${voicePhase === 'structuring' ? 'bg-navy-700 pulse-dot' : 'bg-navy-200'}`} />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Icon from './Icon';
 import type { IconName } from '../types';
 
-type Channel = 'Institution' | 'Trade' | 'HCP';
+export type Channel = 'Institution' | 'Trade' | 'HCP';
 type Tier = 'A' | 'B' | 'C';
 type EventKind = 'visit' | 'order' | 'discount' | 'intel' | 'commitment';
 
@@ -16,7 +16,7 @@ interface Person {
   name: string;
   role: string;
 }
-interface Account {
+export interface Account {
   id: string;
   name: string;
   channel: Channel;
@@ -128,16 +128,26 @@ const coverageLabel = (days: number) =>
     : days <= 14 ? { t: 'Due soon', c: 'text-amber-700 bg-amber-50' }
       : { t: 'Coverage gap', c: 'text-rose-700 bg-rose-50' };
 
-export default function CustomersView() {
+interface CustomersViewProps {
+  extraAccounts?: Account[];
+}
+
+export default function CustomersView({ extraAccounts = [] }: CustomersViewProps) {
+  const allAccounts = [...extraAccounts, ...ACCOUNTS];
   const [filter, setFilter] = useState<'All' | Channel>('All');
-  const [selectedId, setSelectedId] = useState<string>(ACCOUNTS[0].id);
+  const [selectedId, setSelectedId] = useState<string>(allAccounts[0].id);
 
-  const shown = filter === 'All' ? ACCOUNTS : ACCOUNTS.filter(a => a.channel === filter);
-  const selected = ACCOUNTS.find(a => a.id === selectedId) ?? shown[0] ?? ACCOUNTS[0];
+  // When a lead is converted in the pipeline it lands here; surface it.
+  useEffect(() => {
+    if (extraAccounts.length) setSelectedId(extraAccounts[0].id);
+  }, [extraAccounts.length]);
 
-  const covered = ACCOUNTS.filter(a => a.lastVisitDays <= 7).length;
-  const gaps = ACCOUNTS.filter(a => a.lastVisitDays > 14).length;
-  const avgDays = Math.round(ACCOUNTS.reduce((s, a) => s + a.lastVisitDays, 0) / ACCOUNTS.length);
+  const shown = filter === 'All' ? allAccounts : allAccounts.filter(a => a.channel === filter);
+  const selected = allAccounts.find(a => a.id === selectedId) ?? shown[0] ?? allAccounts[0];
+
+  const covered = allAccounts.filter(a => a.lastVisitDays <= 7).length;
+  const gaps = allAccounts.filter(a => a.lastVisitDays > 14).length;
+  const avgDays = Math.round(allAccounts.reduce((s, a) => s + a.lastVisitDays, 0) / allAccounts.length);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto space-y-6">
@@ -149,7 +159,7 @@ export default function CustomersView() {
       {/* Coverage strip — answers territory & coverage */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
-          { l: 'Total Accounts', v: String(ACCOUNTS.length), d: 'allocated · no overlaps', c: 'navy' },
+          { l: 'Total Accounts', v: String(allAccounts.length), d: 'allocated · no overlaps', c: 'navy' },
           { l: 'Covered (≤7d)', v: String(covered), d: 'visited this week', c: 'leaf' },
           { l: 'Coverage Gaps', v: String(gaps), d: '>2 weeks unvisited', c: 'rose' },
           { l: 'Avg Days / Visit', v: `${avgDays}d`, d: 'across portfolio', c: 'amber' },
@@ -188,6 +198,7 @@ export default function CustomersView() {
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <p className="font-display font-semibold text-sm text-ink truncate">{a.name}</p>
                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${TIER_BADGE[a.tier]}`}>TIER {a.tier}</span>
+                      {a.id.startsWith('conv-') && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-leaf-500 text-white">NEW</span>}
                     </div>
                     <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${CHANNEL_BADGE[a.channel]}`}>{a.channel}</span>
