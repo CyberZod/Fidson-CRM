@@ -72,11 +72,13 @@ Excluded by design: 24 technical enablers (BC sync, RBAC enforcement, guardrails
 - **FID-108** As a marketing leader, I want campaigns tracked with spend, attribution and ROI, so that marketing money goes where it provably works. · `marketing` · needs: FID-33 order data, campaign data
 - **NEW-16** ⚠ As an exec, I want a board-pack export of the national picture, so that board reporting comes from the system, not from screenshots. · `manager` · needs: FID-31; confirm actually wanted
 
-## Reports Author
+## Reporting
 
-- **FID-95** As a reports author, I want the standard report pack (25+) generated from live data, so that recurring reports are opened, not built. · `manager` · needs: all core data
-- **FID-96** As a reports author, I want to build custom reports without engineering, so that new questions don't become tickets. · `manager` `admin` · needs: FID-95 foundations
-- **FID-97** As a reports author, I want scheduled distribution and PDF/Excel export, so that the right people get the right numbers without asking. · `manager` · needs: FID-95/96
+Note: "Reports Author" was a role invented by our PRD v2, not by Fidson. Reframed around real people; ⚠ open question 7 asks Fidson who builds custom reports.
+
+- **FID-95** As a manager at any level, I want the standard reports for my scope (the 25+ recurring ones) generated from live data, so that recurring reports are opened, not built. · `manager` · needs: all core data
+- **FID-96** ⚠ As a user my company has granted report-building permission, I want to build a custom report without engineering, so that new questions don't become development tickets. (Who holds this permission at Fidson is open question 7.) · `manager` `admin` · needs: FID-95 foundations
+- **FID-97** As a manager, I want reports scheduled and delivered (PDF/Excel) to the right people automatically, so that nobody asks anybody to "send the numbers". · `manager` · needs: FID-95/96
 
 ## Marketing (PM / MM / HoM)
 
@@ -108,3 +110,4 @@ Excluded by design: 24 technical enablers (BC sync, RBAC enforcement, guardrails
 4. **NEW-8**: complaints: customer complaints, internal field issues, or both? Fidson's MVS just says "complaint and issue escalation".
 5. **NEW-13**: measuring managers is politically sensitive; confirm Fidson wants it visible (their URS red note says yes: "Managers' supervision performance measurement").
 6. **NEW-16**: board-pack export: real need or nice-to-have? Cheap either way, but starved milestones want the answer.
+7. **FID-96**: who actually builds custom reports at Fidson (commercial analyst, HoM's team, their App Dev Team)? "Reports Author" was our PRD's invention; the permission needs a real owner or the story shrinks to the standard pack only.
