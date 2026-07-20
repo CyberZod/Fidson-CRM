@@ -16,7 +16,7 @@ Read: indentation = depends on everything above it in its chain. A → B means B
     - FID-18 detailing · FID-19 samples · FID-22 next steps/reminders · FID-24 competitor signals · FID-102 stock capture · NEW-4 corrections · FID-39 voice logging · FID-40 AI pre-fill (all attach to the record)
     - FID-15 manager sees team visits
       - FID-26 dashboards
-        - FID-31 national dashboard · NEW-29/30 manager+strategic insights
+        - FID-31 national dashboard · NEW-29 field-manager alerts · NEW-30 DM/NSM strategic insights
     - FID-101 DCR auto-generation
     - FID-20 capture contact w/ consent
       - FID-21 pipeline to customer
