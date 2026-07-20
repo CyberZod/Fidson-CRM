@@ -84,7 +84,7 @@ Note: "Reports Author" was a role invented by our PRD v2, not by Fidson. Reframe
 
 - **FID-105** As a marketing manager, I want a content approval workflow that auto-distributes approved materials to reps, so that the field always details from current, approved content. · `marketing` · needs: content storage (seeded earlier for FID-23)
 - **FID-106** As a PM, I want promo requests from the field reviewed and launched as tracked campaigns, so that promotions are decisions, not favors. · `marketing` · needs: approval flow, FID-108
-- **NEW-17** As a marketing team member, I want a marketing log (conferences, promo item orders), so that marketing activity is on the same system of record as field activity. · `marketing` · needs: little; mostly standalone
+- ~~NEW-17~~ removed: built on six words in Fidson's URS margin ("Marketing log: Conferences, Promotional items ordering") with no persona or detail, and possibly already covered by FID-28 + FID-106. Parked as open question 8 until Fidson explains what they meant.
 - **NEW-18** As a PM, I want material open-rate visibility, so that I know which content the field actually uses. · `marketing` · needs: FID-105, FID-23
 
 ## Sales Admin (new persona)
@@ -111,3 +111,4 @@ Note: "Reports Author" was a role invented by our PRD v2, not by Fidson. Reframe
 5. **NEW-13**: measuring managers is politically sensitive; confirm Fidson wants it visible (their URS red note says yes: "Managers' supervision performance measurement").
 6. **NEW-16**: board-pack export: real need or nice-to-have? Cheap either way, but starved milestones want the answer.
 7. **FID-96**: who actually builds custom reports at Fidson (commercial analyst, HoM's team, their App Dev Team)? "Reports Author" was our PRD's invention; the permission needs a real owner or the story shrinks to the standard pack only.
+8. **Marketing log** (was NEW-17): Fidson's URS margin says "Marketing log: Conferences, Promotional items ordering" and nothing else. Ask: who logs, what exactly, and is it already covered by clinical meetings (FID-28) + promo requests (FID-106)? No story until answered.
