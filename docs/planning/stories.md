@@ -101,7 +101,7 @@ Note: "Reports Author" was a role invented by our PRD v2, not by Fidson. Reframe
 
 ## Cross-persona
 
-- **FID-30** As any user, I want a notification center where everything addressed to me collects (approvals, escalations, directives, reminders), so that one glance shows me everything waiting on me. (WHICH events notify is each source story's AC: FID-28's decision notice, NEW-10's nudge, FID-107's directive. Delivery machinery = standalone enabler.) · `rep-app` `manager` · needs: notification engine (enabler)
+- **FID-30** As any user, I want a notification center where everything addressed to me collects (approvals, escalations, directives, reminders), so that one glance shows me everything waiting on me. (Layering: source stories close their loops by VISIBILITY alone (the decision/queue is in the app) and do not depend on this; alert-me-immediately AC lines get added to source stories once the notification system exists; that system is machinery that emerges at refinement as a shared enabler, like the escalation engine. This story is only the center screen, and belongs late in the sequence, after several notifying workflows exist.) · `rep-app` `manager` · needs: 2-3 shipped notifying workflows, notification engine (enabler)
 - **FID-36** As a rep, I want the invoice generated the moment an order is confirmed, so that my customer holds paperwork before I leave the building. · `orders` · needs: FID-33, pricing
 
 ## Open questions for the product owner (the ⚠ items)
