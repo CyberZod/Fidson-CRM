@@ -39,11 +39,10 @@ Excluded by design: 24 technical enablers (BC sync, RBAC enforcement, guardrails
 
 - **NEW-20** As a PM, I want high-impact (multi-regional) clinical meeting requests escalated to the HoM for final sign-off, so that big-budget events get senior eyes without slowing routine ones. · `marketing` `manager` · needs: FID-28
 
-## Manager (ASM/FSM/RSM and up, where hierarchy-scoped)
+## Managers (role named when the job is role-specific; shared behaviors stay one story with AC per level)
 
 - **FID-15** As a manager, I want to see my team's visits as they happen, so that I know the field without chasing reports. · `manager` · needs: FID-14, seed hierarchy (manager_id rung; full RBAC later)
-- **FID-25** As a sales-chain manager (ASM/RSM/DM/NSM), I want to see exactly my geographic slice of the hierarchy and nothing else, so that every level sees what it should and no more. (Per-role scope differences = AC scenarios; enforcement engine = enablers FID-92/93/94.) · `manager` · needs: seed hierarchy, RBAC
-- **NEW-22** As a product-chain manager (PM/MM/HoM), I want to see my products' field activity across all territories, so that product oversight isn't blocked by geographic walls. (The product-scope half of the old FID-25; different scoping logic, ships separately.) · `manager` `marketing` · needs: seed hierarchy + product assignments, RBAC
+- **SCOPING CONSTRAINT (not a story; formerly FID-25/NEW-22):** every hierarchy-scoped story carries the AC line "Given my role, I see only data within my scope." Two scoping rules: sales chain = geographic subtree (ASM->RSM->DM->NSM->ADC->CD); product chain = own products across all territories (PM/MM/HoM, BM/BMD by brand). Enforced once by the RBAC enablers (FID-92/93/94). The FID-25 ticket retires into these at the Jira rebuild.
 - **FID-26** As a manager, I want coverage and compliance dashboards with drill-down, so that I coach from patterns, not anecdotes. · `manager` · needs: FID-14/12 data
 - **FID-27** As a manager, I want to delegate my approvals when I'm unavailable and escalate issues upward, so that the field never stalls waiting for one person. · `manager` · needs: approval flow, hierarchy
 - **FID-35** As a manager, I want discount requests above threshold routed to me with context and AI recommendation, so that pricing stays controlled without slowing honest orders. · `manager` `orders` · needs: FID-33, pricing rules
