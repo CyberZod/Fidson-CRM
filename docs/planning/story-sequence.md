@@ -13,7 +13,7 @@ Gates written as [seed: X] (data import) or [enabler: X] (machinery). A gate lis
 1. FID-11 sign in with Entra
 2. FID-14 core visit record (who/where/when + note)
 3. FID-15 manager sees team visits (manager_id rung)
-4. FID-12 GPS check-in ⚠ evidence-vs-enforcement
+4. FID-12 GPS check-in (decided: evidence with visible flagging)
 5. FID-13 offline logging + sync (the risk king; early on purpose)
 
 ## Wave 2 · The shape of the day

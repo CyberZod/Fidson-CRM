@@ -9,7 +9,7 @@ Excluded by design: 24 technical enablers (BC sync, RBAC enforcement, guardrails
 ## Rep
 
 - **FID-11** As a rep, I want to sign in with my existing Fidson Microsoft account, so that I don't manage another password and IT can revoke my access instantly. · `rep-app` · needs: Entra tenant config (Azure)
-- **FID-12** ⚠ As a rep, I want my arrival at a facility captured automatically with GPS, so that my presence is provable without me doing anything. · `rep-app` · needs: seed facilities; policy decision: evidence vs enforcement
+- **FID-12** As a rep, I want my arrival at a facility captured automatically with GPS, so that my presence is provable without me doing anything. (DECIDED 2026-07-20: evidence, not enforcement. AC: check-in always succeeds; location + distance-from-facility recorded; offline check-ins marked unverified; distant/unusual check-ins flagged for manager visibility, never blocked; GPS active only during the work session. Flags surface in FID-15/26 now, feed FID-42 later. Privacy policy handled via DPIA-before-pilot.) · `rep-app` · needs: seed facilities
 - **FID-13** As a rep, I want visits I log without signal to save and sync themselves, so that no field work is ever lost or double-counted. · `rep-app` `visit-form` · needs: FID-14
 - **FID-14** As a rep, I want to create the basic record of a visit (who I saw, where, when, a short note), so that the visit exists once, in one system, and everything else about the call can attach to it. (Deliberately minimal: detailing, samples, next steps, intel are separate stories that add sections to this record.) · `rep-app` `visit-form` · needs: seed facilities, FID-11
 - **FID-17** As a rep, I want to plan my day from the facilities in my territory, so that my itinerary matches where I'm accountable. · `rep-app` · needs: seed territories + assignments
@@ -42,9 +42,9 @@ Excluded by design: 24 technical enablers (BC sync, RBAC enforcement, guardrails
 
 ## Managers (role named when the job is role-specific; shared behaviors stay one story with AC per level)
 
-- **FID-15** As a manager, I want to see my team's visits as they happen, so that I know the field without chasing reports. · `manager` · needs: FID-14, seed hierarchy (manager_id rung; full RBAC later)
+- **FID-15** As a manager, I want to see my team's visits as they happen, so that I know the field without chasing reports. (AC includes: each visit shows its verification status: GPS-verified / unverified-offline / flagged-distant, per the FID-12 decision.) · `manager` · needs: FID-14, seed hierarchy (manager_id rung; full RBAC later)
 - **SCOPING CONSTRAINT (not a story; formerly FID-25/NEW-22):** every hierarchy-scoped story carries the AC line "Given my role, I see only data within my scope." Two scoping rules: sales chain = geographic subtree (ASM->RSM->DM->NSM->ADC->CD); product chain = own products across all territories (PM/MM/HoM, BM/BMD by brand). Enforced once by the RBAC enablers (FID-92/93/94). The FID-25 ticket retires into these at the Jira rebuild.
-- **FID-26** As a manager, I want coverage and compliance dashboards with drill-down, so that I coach from patterns, not anecdotes. · `manager` · needs: FID-14/12 data
+- **FID-26** As a manager, I want coverage and compliance dashboards with drill-down, so that I coach from patterns, not anecdotes. (AC includes GPS-verification rate per rep/territory, per the FID-12 decision.) · `manager` · needs: FID-14/12 data
 - **FID-27** As a manager, I want to delegate my approvals when I'm unavailable and escalate issues upward, so that the field never stalls waiting for one person. ("Upward"/"delegate" resolve via the hierarchy + approval flow as sources of truth; AC names the concrete chains.) · `manager` · needs: approval flow, hierarchy
 - **FID-35** As a manager, I want discount requests above threshold routed to me with context and AI recommendation, so that pricing stays controlled without slowing honest orders. · `manager` `orders` · needs: FID-33, pricing rules
 - **FID-103** As a manager (RSM), I want to approve or reject weekly itineraries and daily adjustment requests, with auto-escalation to my DM when I'm unavailable, so that plans are governed without becoming bottlenecks. · `manager` · needs: NEW-5, hierarchy
@@ -106,7 +106,7 @@ Note: "Reports Author" was a role invented by our PRD v2, not by Fidson. Reframe
 
 ## Open questions for the product owner (the ⚠ items)
 
-1. **FID-12**: GPS = evidence (passive proof) or enforcement (geo-fence rejects distant check-ins)? Fidson's URS flags HR/Legal review of geotagging; the answer shapes rep trust on day one.
+1. ~~FID-12~~ ANSWERED 2026-07-20: evidence with visible flagging. Check-ins never blocked; distance recorded; flags visible to managers (FID-15/26), AI patterns later (FID-42); GPS session-scoped. Privacy policy rides DPIA-before-pilot; confirm with Fidson HR/Legal there.
 2. **NEW-4**: visit-log corrections: how long a window, and do edits show an audit trail? (Recommend: 24h + full trail.)
 3. **NEW-7**: quote & proposal: how formal? A priced PDF from the catalogue, or a negotiation workflow? (Recommend: start with priced PDF.)
 4. **NEW-8**: complaints: customer complaints, internal field issues, or both? Fidson's MVS just says "complaint and issue escalation".
