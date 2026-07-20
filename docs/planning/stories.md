@@ -27,6 +27,7 @@ Excluded by design: 24 technical enablers (BC sync, RBAC enforcement, guardrails
 - **FID-39** As a rep, I want to log a visit by speaking, with Fidson's product names understood, so that logging takes a minute in the car, not an evening at home. · `rep-app` `ai` · needs: FID-14, AI service
 - **FID-101** As a rep, I want my Daily Call Report generated from what I already logged, so that end-of-day reporting takes zero extra typing. · `rep-app` · needs: FID-14/18 data
 - **FID-102** As a rep, I want to record a customer's stock during a visit and see restock suggestions, so that I catch empty shelves before competitors do. · `rep-app` `visit-form` · needs: seed catalogue, FID-14
+- **FID-40** As a rep, I want AI to pre-fill and summarize my visit for my review before saving, so that good records take less typing, with me in the loop. (Moved from cross-persona; it is a rep story.) · `ai` `rep-app` · needs: FID-14/18, AI service
 - **NEW-1** As a rep, I want a My Customers view with a full 360 per customer (visit history, orders, commitments, LTV, key people), so that I never open cold with someone we've known for years. (This is the prototype's CustomersView, productized. AI suggestions on the same data are FID-41, separate.) · `rep-app` · needs: FID-14/33 data accrues
 - **NEW-2** As a rep, I want to see my numbers against my targets each week, so that I know where I stand before my manager tells me. · `rep-app` · needs: targets data (seed or manager-set)
 - **NEW-3** As a user receiving a directive (any level), I want to acknowledge it on record, so that senders see who has seen what and re-sending stops. · `rep-app` `manager` · needs: FID-107 (directives exist)
@@ -66,10 +67,13 @@ Excluded by design: 24 technical enablers (BC sync, RBAC enforcement, guardrails
 ## Leadership / National / Exec
 
 - **FID-31** As a national leader, I want a live national dashboard (divisions, pipeline, forecast), so that I see the whole field the way an RSM sees a region. · `manager` · needs: all visit/order data, hierarchy
-- **FID-41** As any role, I want insights and next-best-actions scoped to my job, so that the system tells me where to act, not just what happened. · `ai` · needs: rules engine (Layer 1), visit/order data
-- **FID-42** As a leader, I want unusual field patterns flagged (coverage gaps, activity anomalies), so that problems surface without anyone hunting. · `ai` `manager` · needs: months of visit data, AI service
-- **FID-43** As a leader, I want churn-risk and forecasts with explained drivers, so that I act on next quarter before it happens. · `ai` `manager` · needs: long data history, AI service
-- **FID-108** As a marketing leader, I want campaigns tracked with spend, attribution and ROI, so that marketing money goes where it provably works. · `marketing` · needs: FID-33 order data, campaign data
+- **FID-41** As a rep, I want next-best-action suggestions and lead priorities each morning (which customer to see, which product to push, which lead is going cold), so that my day starts with the system's homework, not guesswork. · `rep-app` `ai` · needs: rules engine (Layer 1), visit/order data
+- **NEW-29** As a field manager (ASM/FSM/RSM), I want alerts on my territory (coverage gaps, conversion drops, unusual rep activity, distributor stock warnings), so that problems reach me before month-end numbers do. · `manager` `ai` · needs: rules engine, visit/order data
+- **NEW-30** As a DM or NSM, I want strategic insights (at-risk accounts, high-potential markets, division benchmarking), so that national decisions ride on patterns no one person can see. · `manager` `ai` · needs: months of data, AI service
+- **NEW-31** As a PM or HoM, I want product intelligence (volume vs target, clinical meeting ROI, competitor signal patterns), so that portfolio decisions come from the field record. · `marketing` `ai` · needs: detailing/campaign data, AI service
+- **FID-42** As a field manager (FSM/RSM), I want unusual field patterns flagged automatically (geo-coverage anomalies, activity that doesn't match check-ins), so that problems surface without anyone hunting. · `ai` `manager` · needs: months of visit data, AI service
+- **FID-43** As a DM or NSM, I want churn-risk and forecasts with explained drivers, so that I act on next quarter before it happens. · `ai` `manager` · needs: long data history, AI service
+- **FID-108** As the HoM or an MM, I want campaigns tracked with spend, attribution and ROI, so that marketing money goes where it provably works. · `marketing` · needs: FID-33 order data, campaign data
 - **NEW-16** ⚠ As an exec, I want a board-pack export of the national picture, so that board reporting comes from the system, not from screenshots. · `manager` · needs: FID-31; confirm actually wanted
 
 ## Reporting
@@ -84,7 +88,6 @@ Note: "Reports Author" was a role invented by our PRD v2, not by Fidson. Reframe
 
 - **FID-105** As a marketing manager, I want a content approval workflow that auto-distributes approved materials to reps, so that the field always details from current, approved content. · `marketing` · needs: content storage (seeded earlier for FID-23)
 - **FID-106** As a PM, I want promo requests from the field reviewed and launched as tracked campaigns, so that promotions are decisions, not favors. · `marketing` · needs: approval flow, FID-108
-- ~~NEW-17~~ removed: built on six words in Fidson's URS margin ("Marketing log: Conferences, Promotional items ordering") with no persona or detail, and possibly already covered by FID-28 + FID-106. Parked as open question 8 until Fidson explains what they meant.
 - **NEW-18** As a PM, I want material open-rate visibility, so that I know which content the field actually uses. · `marketing` · needs: FID-105, FID-23
 
 ## Sales Admin (new persona)
@@ -98,9 +101,8 @@ Note: "Reports Author" was a role invented by our PRD v2, not by Fidson. Reframe
 
 ## Cross-persona
 
-- **FID-30** As any user, I want real-time notifications for the approvals and escalations that involve me, so that nothing waits on someone who doesn't know they're waited on. · `rep-app` `manager` · needs: notification service (standalone enabler, big/shared)
-- **FID-36** As a rep and their customer, I want the invoice generated the moment an order is confirmed, so that paperwork never lags the sale. · `orders` · needs: FID-33, pricing
-- **FID-40** As a rep, I want AI to pre-fill and summarize my visit for my review, so that good records take less typing, with me in the loop. · `ai` `rep-app` · needs: FID-14/18, AI service
+- **FID-30** As any user, I want a notification center where everything addressed to me collects (approvals, escalations, directives, reminders), so that one glance shows me everything waiting on me. (WHICH events notify is each source story's AC: FID-28's decision notice, NEW-10's nudge, FID-107's directive. Delivery machinery = standalone enabler.) · `rep-app` `manager` · needs: notification engine (enabler)
+- **FID-36** As a rep, I want the invoice generated the moment an order is confirmed, so that my customer holds paperwork before I leave the building. · `orders` · needs: FID-33, pricing
 
 ## Open questions for the product owner (the ⚠ items)
 
