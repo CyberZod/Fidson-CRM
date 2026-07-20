@@ -12,6 +12,7 @@ dist-ssr
 .agents
 fidson-video
 skills-lock.json
-docs
+docs/*
+!docs/planning
 DEMO_SCRIPT.md
 GRILLING_PREP.md
