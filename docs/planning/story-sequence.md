@@ -1,126 +1,62 @@
-# Story Dependency Sequence (step 2 output, 2026-07-20)
+# Story Dependency Graph (v2, 2026-07-22: hard story-to-story dependencies only)
 
-The 82 stories from [stories.md](stories.md) arranged in dependency order. A story appears only after everything in its needs-line. Waves are dependency layers, NOT milestones: milestones get cut across these waves later (a milestone may take all of wave 1 plus slices of waves 2-3).
+Supersedes the v1 "waves" arrangement. This version orders stories ONLY by hard dependency: story B appears under story A only if B cannot be built or make sense until A is done. Seeds (data imports) and machinery (approval engine, notification engine, AI service) are deliberately EXCLUDED: refinement resolves those, per the absorb-or-extract rule, and they do not order stories. Data-richness preferences (e.g. customer 360 is better once orders exist) are rungs, not dependencies, and are marked (rung) where relevant.
 
-Keys are immutable; order lives here. NEW-x items get real FID keys at Jira creation, minted in this order.
+Read: indentation = depends on everything above it in its chain. A → B means B needs A done first.
 
-Gates written as [seed: X] (data import) or [enabler: X] (machinery). A gate listed once applies to everything after it in that wave.
+## The identity/visit tree (the big one)
 
-## Wave 1 · Identity and the core record
+- FID-11 sign in with Entra (root)
+  - FID-14 core visit record
+    - FID-12 GPS check-in (decided: evidence w/ flagging)
+      - NEW-14 manager/PM own check-ins
+      - FID-42 anomaly detection (reads check-in data)
+    - FID-13 offline logging + sync
+      - FID-69 sync conflict queue (admin; conflicts only exist once offline sync does)
+    - FID-18 detailing · FID-19 samples · FID-22 next steps/reminders · FID-24 competitor signals · FID-102 stock capture · NEW-4 corrections · FID-39 voice logging · FID-40 AI pre-fill (all attach to the record)
+    - FID-15 manager sees team visits
+      - FID-26 dashboards
+        - FID-31 national dashboard · NEW-29/30 manager+strategic insights
+    - FID-101 DCR auto-generation
+    - FID-20 capture contact w/ consent
+      - FID-21 pipeline to customer
+    - NEW-1 customer 360 (visits-only first; orders enrich later (rung))
+    - FID-41 rep next-best-action (reads visit data)
+    - FID-95 standard reports → FID-96 custom builder → FID-97 scheduled distribution
+    - FID-43 churn/forecast (reads visit+order data; sample-data rung per JBS §4.1)
+    - FID-33 place order
+      - FID-35 discount approvals · FID-36 invoices · NEW-19 sales admin routing · FID-108 campaign ROI (needs order data) · NEW-24 distributor stock health (order data enriches (rung))
+      - NEW-31 PM/HoM product intelligence (detailing + campaign data)
 
-[seed: facilities/customers from Fidson Excel] [seed: org hierarchy] [enabler: infra/CI (done), Entra config]
+## Independent chains (roots; can start anytime)
 
-1. FID-11 sign in with Entra
-2. FID-14 core visit record (who/where/when + note)
-3. FID-15 manager sees team visits (manager_id rung)
-4. FID-12 GPS check-in (decided: evidence with visible flagging)
-5. FID-13 offline logging + sync (the risk king; early on purpose)
+- FID-17 plan my day → NEW-5 weekly itinerary → FID-103 RSM approval → NEW-21 daily adjustments; NEW-5 → NEW-6 route optimization; NEW-5 → FID-104 joint calls (scheduling rides itineraries)
+- FID-28 CM request + PM decision → NEW-20 HoM high-impact tier
+- FID-107 directives loop → NEW-3 acknowledgment
+- NEW-15 distributor directory → NEW-24 stock health → NEW-25 push reorder; NEW-15 → NEW-26 quarterly audit
+- FID-105 content approval workflow → NEW-18 open rates (also fed by FID-23)
+- NEW-12 ASM→BM summary · NEW-27 RSM→DM · NEW-28 DM→NSM → NEW-23 auto-draft (upgrade on the family)
+- Standalone roots, no parents and no children blocking on them at story level: FID-23 offline content, FID-29 expenses, FID-37 SOA deep link, NEW-2 performance vs targets, NEW-7 quotes ⚠, NEW-8 complaints ⚠, NEW-9 focus products, NEW-10 1:1 messages, NEW-11 coaching log, FID-106 promo requests, NEW-16 board pack ⚠
 
-## Wave 2 · The shape of the day
+## Aggregators (multi-parent: need SOME parents done, not all)
 
-[seed: territories + rep assignments]
+- FID-30 notification center: needs 2-3 notifying stories live (FID-28, FID-107, FID-22 are the natural first three)
+- NEW-13 supervision view: reads outputs of FID-27, FID-101, NEW-11, NEW-14; meaningful once at least two exist
 
-6. FID-17 plan my day from my territory
-7. NEW-5 weekly itinerary draft + submit
-8. FID-103 RSM approves itineraries + adjustments (pairs with 7, 9)
-9. NEW-21 daily adjustment requests (capped)
-10. NEW-6 route optimization (needs 7 + facility coordinates)
+## Admin portal: every story is a self-service replacement of something in use
 
-## Wave 3 · Visit depth (the form grows)
+- FID-62 form builder ← visit form (FID-14 + sections)
+- FID-63 workflow builder ← hardcoded approval chains (FID-28/35/103 in use)
+- FID-64 organigramme editor ← seeded hierarchy in use
+- FID-65 permission matrix ← RBAC in use
+- FID-66 territory editor ← territory seed in use (FID-17)
+- FID-67 catalogue manager ← catalogue seed in use (FID-18/33)
+- FID-68 AI rules editor ← rules engine in use (FID-41)
+- FID-69 conflict queue ← FID-13 (listed in the visit tree; the one admin story with a true early parent)
+- FID-70 config audit ← any admin editing exists (62-68)
+- FID-71..75 AI governance ← AI stories in use (39/40/41)
+Rule of thumb: each replacement can ship a "foundation" rung (view + basic edit) early, per the JBS week-6 commitment, with the full builder later.
 
-[seed: product catalogue from price list] [seed: content bundle]
+## What this graph is for
 
-11. FID-18 detailing record
-12. FID-19 samples logged
-13. FID-22 next steps + in-app reminders
-14. FID-24 competitor signals
-15. FID-102 customer stock capture + restock suggestions
-16. FID-23 offline marketing content
-17. FID-101 DCR auto-generation
-18. NEW-4 visit correction window ⚠ policy
-
-## Wave 4 · Pipeline
-
-19. FID-20 capture new contact with consent
-20. FID-21 advance contacts to customer
-
-## Wave 5 · Management layer
-
-[seed: targets] [enabler: approval/escalation engine (first consumer here)] [RBAC hardening: matrix chains]
-
-21. FID-26 coverage/compliance dashboards
-22. NEW-2 rep sees own performance vs targets
-23. FID-27 delegation + upward escalation
-24. FID-107 directives send/receive loop
-25. NEW-3 directive acknowledgment
-26. NEW-10 1:1 manager-to-rep messages (incl. nudges)
-27. NEW-11 ASM coaching log
-28. NEW-14 manager/PM own field check-ins
-29. NEW-9 focus products per rep/territory
-30. FID-104 joint calls + accompaniment logging
-31. NEW-12 ASM pushes weekly summary to BM
-32. NEW-27 RSM pushes to DM
-33. NEW-28 DM pushes to NSM
-
-## Wave 6 · Money
-
-[enabler: SOA deep link] [seed: distributor data]
-
-34. FID-33 place order from visit (signature, LPO in AC)
-35. FID-35 discount thresholds + approvals (rides approval engine)
-36. FID-36 invoice on confirmation
-37. NEW-19 sales admin order routing
-38. FID-37 customer SOA (deep-link rung)
-39. NEW-1 customer 360 (needs visit + order history to be worth opening)
-40. NEW-15 distributor directory + onboarding
-41. NEW-24 distributor stock health
-42. NEW-25 push reorder
-43. NEW-26 quarterly distributor audit checklist
-
-## Wave 7 · Marketing workflows
-
-44. FID-28 clinical meeting request + PM decision
-45. NEW-20 high-impact CM escalation to HoM
-46. FID-29 expense claims (references CM budgets)
-47. FID-105 content approval + auto-distribution (replaces content seed)
-48. NEW-18 material open-rate visibility
-49. FID-106 promo requests -> campaigns
-50. FID-108 campaign ROI tracking
-
-## Wave 8 · Aggregation and closure
-
-[gate: several notifying workflows now exist]
-
-51. FID-30 notification center (+ retrofit tasks wiring 28/107/22 into it)
-52. FID-95 standard report pack
-53. FID-96 custom report builder ⚠ who builds
-54. FID-97 scheduled distribution + export
-55. FID-31 national dashboard
-56. NEW-16 board-pack export ⚠ wanted?
-57. NEW-13 manager supervision view ⚠ sensitivity (sources: 23, 27, 101, NEW-11, NEW-14)
-58. NEW-8 complaints to closure ⚠ scope
-
-## Wave 9 · Intelligence
-
-[enabler: AI service + guardrails] [enabler: rules engine (Layer 1), currently unticketed] [enabler: ERP sync FID-34 (unlocks native SOA + live stock)]
-
-59. FID-40 AI pre-fill and summarize visits
-60. FID-39 voice logging with Fidson vocabulary
-61. FID-41 rep next-best-action + lead priorities
-62. NEW-29 field manager alerts
-63. NEW-30 DM/NSM strategic insights
-64. NEW-31 PM/HoM product intelligence
-65. FID-42 anomaly detection
-66. FID-43 churn risk + forecasting
-67. NEW-23 auto-drafted weekly summaries
-68. NEW-7 quotes with enforced pricing ⚠ scope
-
-## Wave 10 · Self-service (the admin portal, kept fat on purpose)
-
-69-82. FID-62..70 (forms, workflows, organigramme, permissions, territories, catalogue, AI rules, sync conflicts, config audit) and FID-71..75 (model governance). Each replaces a seed or hardcoded flow from earlier waves with client-editable configuration. Sequenced last because every one of them needs its subject to exist and stabilize first.
-
-## Reading this for milestone cutting (step 3)
-
-- Waves 1-2 plus FID-18/19 from wave 3 cover Fidson's MVS rows for territory, GPS, journey planning, offline: the pilot-able core.
-- The MVS "complete system" claim needs: orders (wave 6 through FID-36), distributor management (NEW-15/24), complaints (NEW-8), route optimization (NEW-6), reporting (52-54), approvals (engine + FID-35).
-- The 8 open questions block nothing before wave 6 except FID-12's policy (wave 1!): get that answered first.
+Milestones pick stories in any order that respects the arrows: a story may ship in any milestone at-or-after all its parents. The JBS 10-week schedule is one legal such picking (verified against this graph; its early pulls: conflict queue, complaints, 360, admin foundation, are all rungs or roots, not violations). FID-27 delegation and FID-29 expenses etc. sit wherever their milestone wants them.
