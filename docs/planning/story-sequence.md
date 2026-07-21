@@ -41,7 +41,7 @@ Read: indentation = depends on everything above it in its chain. A → B means B
 ## Aggregators (multi-parent: need SOME parents done, not all)
 
 - NEW-13 supervision view: reads outputs of FID-27, FID-101, NEW-11, NEW-14; meaningful once at least two exist. (Survives as a story because its persona is one and its metrics are named and fixed today, even though sources ship later.)
-- ~~FID-30~~ notification center: NOT a story yet (see stories.md): born later, once 2-3 notifying workflows are live and its contents are enumerable facts. Until then: per-role delivery AC lives in notifying stories; the component is an emergent enabler.
+- ~~FID-30~~ notification center: composite; decomposes into per-role notification stories (see stories.md), each written once that role's notification types are facts, each depending on its own feeders. Shared screen machinery = enabler. Same treatment as FID-41's per-role split.
 
 ## Admin portal: every story is a self-service replacement of something in use
 

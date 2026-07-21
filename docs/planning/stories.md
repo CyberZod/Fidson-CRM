@@ -101,7 +101,7 @@ Note: "Reports Author" was a role invented by our PRD v2, not by Fidson. Reframe
 
 ## Cross-persona
 
-- ~~FID-30~~ **not yet a story (deferred candidate, settled 2026-07-21):** a notification-center story's meaning is entirely borrowed from notifying stories that don't exist yet, so it cannot be written honestly today (unlike login, whose uniformity is intrinsic). The rules that replace it now: each notifying story's AC covers per-role delivery/visibility; the notification component emerges at refinement as a shared enabler. When 2-3 notifying workflows are LIVE and their types are enumerable facts, the inbox story gets written then, with fixed contents, and slotted into a milestone. The existing FID-30 Jira ticket parks in backlog at the rebuild.
+- ~~FID-30~~ **composite, decomposes per role (settled 2026-07-21):** "as a user, I want a notification center" is epic-grade phrasing, like "as a user, I want a dashboard", which we never wrote either (dashboards are FID-15/26/31 per role). The feature WILL be built; its story-level form is per-role notification stories ("As a rep, I want my pending items: CM decisions, directives to acknowledge, due follow-ups: in one place", "As an RSM, I want mine: itineraries awaiting approval, escalations, discount requests"), same treatment as FID-41's per-role split. Each role's story is written once that role's notification types are facts. Shared screen machinery = enabler. The FID-30 Jira ticket parks in backlog at the rebuild.
 - **FID-36** As a rep, I want the invoice generated the moment an order is confirmed, so that my customer holds paperwork before I leave the building. · `orders` · needs: FID-33, pricing
 
 ## Open questions for the product owner (the ⚠ items)
