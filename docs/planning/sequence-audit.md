@@ -11,15 +11,15 @@ Scope: all 93 milestone-mapped board items + gap candidates, audited against the
 | 3 | Territory data + rep assignment | FID-17 (M1) | FID-66 territory editor (M13), FID-89 auto-assign (M4) | Seed enabler in M1: territory list + assignments from Fidson data |
 | 4 | Product catalogue | FID-18 detailing, FID-19 samples, FID-102 audit (M3) | FID-34 ERP sync (M9), FID-67 manager (M13) | Seed enabler in M3: import price list. Already logged |
 | 5 | Approved marketing content | FID-23 rep accesses content offline (M3) | FID-105 content approval workflow (M7) | Seed enabler in M3: manually loaded content bundle; approval workflow stays M7 |
-| 6 | Notification delivery | FID-22 reminders (M3), FID-90 lead SLA escalation (M4) | FID-30 real-time notifications (M6) | Either in-app-only rung for M3/M4 (lists, no push) or pull a basic notification enabler to M4 |
-| 7 | ERP read access (SOA statement) | FID-37 rep sees SOA (M8) | FID-34 BC sync (M9) | Per URS: deep link into existing SOA app is the M8 rung; native SOA view moves after FID-34 |
+| 6 | Notification delivery | FID-22 reminders (M3), FID-90 lead SLA escalation (M4) | FID-30 real-time notifications (M6) | Either in-app-only lists (no push) for M3/M4 or pull a basic notification enabler to M4 |
+| 7 | ERP read access (SOA statement) | FID-37 rep sees SOA (M8) | FID-34 BC sync (M9) | Per URS: deep link into existing SOA app ships M8 (FID-37); native SOA view is follow-up story NEW-32, after FID-34 |
 | 8 | Audit trail mechanism | RBAC (M5), approvals (M6), config changes | FID-78 audit & retention (M14) | Split FID-78: append-only log mechanism built by M5; retention/chaining verification stays M14 |
 | 9 | Baseline security (Key Vault, encryption, rate limits) | Any deployed environment (M1+) | FID-79 security posture (M14) | Split: mechanisms are infra day-1 (partly built already); pen-test verification stays M14 |
 | 10 | DPIA / NDPA lawful basis | Field Pilot 1 with real reps + real HCP data (M2) | FID-81 compliance deliverables (M14) | DPIA + geotagging privacy check (HR/Legal, flagged in Fidson's own URS) must precede Pilot 1 |
 | 11 | Basic rep onboarding material | Field Pilot 1 (M2), Pilot 2 (M6) | FID-54 training & materials (M14) | Thin quick-start guide per pilot; full training stays M14 |
 | 12 | Rules engine (Layer-1 scoring) | FID-41 next-best-action (M11), AI coach cards | Not named anywhere | Create enabler: deterministic scoring job (recency, cadence, coverage, commitments). It is the spec's Layer 1 and currently has no ticket |
 
-## B. Soft notes (acceptable rungs, record at refinement)
+## B. Soft notes (acceptable shallow-first versions, record at refinement)
 
 - Approval chains for M6-M8 (CM, expenses, discounts) may be hardcoded flows; FID-63 workflow builder (M13) later replaces them with configuration. Not a violation if recorded.
 - FID-15 (M1) uses manager_id-level RBAC-lite; real matrix RBAC lands M5 (FID-92-94). Write the seam note in the ticket.
