@@ -8,6 +8,27 @@ One home for every named artifact. An **artifact** is a piece of data a story co
 
 **A leak** is an artifact required but produced by nothing, not even a planned story. Resolve by writing the producer, adding a seed, or renaming to match an existing artifact.
 
+## Story number → Jira key
+
+The full stories live in **Jira (project FID), the single source of truth**; the drafting doc (user-stories.md) was deleted after the push. This registry keeps the planning-era story numbers for readability; resolve them here. (Stories 33 and 45 were dissolved into AC of 25 and 15; never created in Jira.)
+
+| # | FID | # | FID | # | FID | # | FID | # | FID | # | FID |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 113 | 15 | 127 | 28 | 135 | 41 | 147 | 55 | 174 | 69 | 154 |
+| 2 | 114 | 16 | 128 | 29 | 136 | 42 | 168 | 56 | 112 | 70 | 155 |
+| 3 | 115 | 17 | 129 | 30 | 137 | 43 | 148 | 57 | 175 | 71 | 117 |
+| 4 | 116 | 18 | 163 | 31 | 138 | 44 | 149 | 58 | 181 | 72 | 179 |
+| 5 | 161 | 19 | 164 | 32 | 139 | 46 | 150 | 59 | 182 | 73 | 180 |
+| 6 | 119 | 20 | 165 | 34 | 140 | 47 | 151 | 60 | 183 | 74 | 156 |
+| 7 | 120 | 21 | 130 | 35 | 141 | 48 | 152 | 61 | 184 | 75 | 157 |
+| 8 | 121 | 22 | 131 | 36 | 142 | 49 | 153 | 62 | 176 | 76 | 158 |
+| 9 | 122 | 23 | 132 | 37 | 143 | 50 | 169 | 63 | 185 | 77 | 189 |
+| 10 | 123 | 24 | 166 | 38 | 144 | 51 | 170 | 64 | 186 | 78 | 118 |
+| 11 | 124 | 25 | 167 | 39 | 145 | 52 | 171 | 65 | 187 | 79 | 159 |
+| 12 | 125 | 26 | 133 | 40 | 146 | 53 | 172 | 66 | 177 | 80 | 160 |
+| 13 | 162 | 27 | 134 | — | — | 54 | 173 | 67 | 178 | — | — |
+| 14 | 126 | — | — | — | — | — | — | 68 | 188 | — | — |
+
 | Artifact (the wire) | What it is (the understanding) | Produced by | Now | Required by |
 |---|---|---|---|---|
 | People & Reporting Lines | who exists and their role (identity); feeds Territory Assignments and Product Assignment | admin (58) or Entra sync | seeded | broadcast audience (47); feeds 59, 63 |
