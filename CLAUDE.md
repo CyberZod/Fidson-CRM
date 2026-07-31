@@ -13,6 +13,10 @@ Two things live here, and only two:
 - **Build rules, architecture, runbooks: the fidrep repo's `docs/`.** This repo holds no build rules.
 - **Artifact shapes:** designed in `seed-registry.md`; once codified, the Pydantic models in fidrep are the source of truth for shape.
 
+## Knowledge base
+
+Tales' cross-project methodology lives in the `Tales-Consulting/knowledge` repo (locally `Dev/knowledge/`), separate from both project repos. **To build or maintain it, read `okf-spec.md` at its root (OKF v0.2) — the authoritative format spec; never guess the format.** (A local copy of the spec sits at `docs/SPEC.md` here, untracked — `docs/*` is gitignored; the knowledge repo's copy is canonical.)
+
 ## Prototype commands
 
 ```
