@@ -122,3 +122,12 @@ The figures are built bottom-up from usage, not guessed top-down. The core assum
 ---
 
 *Tales Consulting · Fidson FieldForce · Infrastructure & Run Cost Overview · July 2026 · Confidential. Planning estimates at Azure West Europe list prices; confirmed against Fidson's actual Azure estate at Phase 0.*
+
+---
+
+## Revision queue (internal — apply at the next client touchpoint)
+
+Tracked here so the doc never drifts silently from the build. Each item is applied as a visible revision, then removed from this list.
+
+1. **§2 "Node.js and Python"** → the backend is now all Python (FastAPI); drop Node.js from the open-source foundations line. No cost impact.
+2. **Hosting naming**: build resolution (2026-07-31) is core API + web on App Service, AI tier on Container Apps — matching this doc's tiers. If Phase 0 changes that, revise §1/§4 accordingly.
