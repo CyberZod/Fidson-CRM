@@ -3,15 +3,13 @@
 Two things live here, and only two:
 
 1. **The demo prototype** (Vite + React + TS) of the Fidson FieldForce SFA-CRM. Demo-ware: scripted data, no backend. The production system is built separately in the **fidrep** repo (Tales-Consulting/fidrep) and depends on nothing here except the registries below.
-2. **The planning corpus** (`docs/planning/`) — see its [README](docs/planning/README.md). The two live documents are:
-   - `seed-registry.md` — the **artifact registry**: produced-by/required-by graph, seeded-vs-real status, designed shapes, story#→FID key map.
-   - `enabler-registry.md` — shared engines → their first-consumer story.
+2. **Historical planning material** (`docs/planning/`). The artifact registry and enabler registry that once lived there moved into the fidrep repo as `docs/registry.md` (2026-08-23); what remains here is archive, not a source of truth.
 
 ## Sources of truth
 
 - **User stories & milestones: Jira, project FID** (talesconsulting.atlassian.net). Never maintained in markdown here. Drafts may be written for review, then pushed to Jira and **deleted**.
 - **Build rules, architecture, runbooks: the fidrep repo's `docs/`.** This repo holds no build rules.
-- **Artifact shapes:** designed in `seed-registry.md`; once codified, the Pydantic models in fidrep are the source of truth for shape.
+- **Artifact shapes:** designed in fidrep's `docs/registry.md`; once codified, the Zod contracts in fidrep's `packages/contracts` are the source of truth for shape.
 
 ## Knowledge base
 
