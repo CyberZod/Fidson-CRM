@@ -19,7 +19,7 @@ export default function RepCoachView({ customerInventory = [] }: RepCoachViewPro
   const insights: InsightCard[] = [
     { cat: 'Priority', icon: 'target', color: 'leaf', title: 'Focus on Lekki this week', body: '5 untouched A-tier HCPs in your zone. Average LTV ₦8.2M each.', action: 'Plan visits' },
     { cat: 'Conversion', icon: 'trending', color: 'leaf', title: 'Coflin warm leads', body: '3 doctors asked for paediatric data last visit. High likelihood to convert.', action: 'Send clinical pack' },
-    { cat: 'Coverage', icon: 'alert', color: 'amber', title: 'MedPlus Yaba — 12 days', body: 'You haven\'t visited in 12 days. They\'re overdue for restock conversation.', action: 'Schedule visit' },
+    { cat: 'Coverage', icon: 'alert', color: 'amber', title: 'MedPlus Yaba · 12 days', body: 'You haven\'t visited in 12 days. They\'re overdue for restock conversation.', action: 'Schedule visit' },
     { cat: 'Win-back', icon: 'refresh', color: 'navy', title: 'HealthPlus declining', body: 'Order frequency dropped 30% in 60 days. Recommend in-person check-in.', action: 'View account' },
   ];
 

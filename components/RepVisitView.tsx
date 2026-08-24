@@ -234,7 +234,7 @@ export default function RepVisitView({
                   <p className="stat-label text-navy-400">Products Detailed Today</p>
                   <span className="text-[10px] text-navy-500 font-mono">{detailedProducts.length} selected</span>
                 </div>
-                <p className="text-[11px] text-navy-500 mb-3">{plannedProducts.length > 0 ? 'Pre-filled from your visit plan. Tap to add or remove.' : 'No products were planned for this visit — tap to add what you actually detailed.'}</p>
+                <p className="text-[11px] text-navy-500 mb-3">{plannedProducts.length > 0 ? 'Pre-filled from your visit plan. Tap to add or remove.' : 'No products were planned for this visit · tap to add what you actually detailed.'}</p>
                 <div className="space-y-2">
                   {PRODUCT_CATALOG.map(p => {
                     const selected = detailedProducts.includes(p.name);
@@ -417,7 +417,7 @@ export default function RepVisitView({
                 <p className="stat-label text-navy-400 mb-2">Pricing Intel</p>
                 <textarea
                   rows={3}
-                  defaultValue="Augmentin 625mg at ₦950/strip — 8% under our list price. Competitor pushing volume tier 2 incentives."
+                  defaultValue="Augmentin 625mg at ₦950/strip · 8% under our list price. Competitor pushing volume tier 2 incentives."
                   className="input-field w-full px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink resize-none"
                 />
               </div>

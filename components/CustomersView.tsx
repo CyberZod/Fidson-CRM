@@ -25,14 +25,14 @@ export interface Account {
   address: string;
   phone: string;
   email: string;
-  lastVisitDays: number;   // days since last visit — drives coverage
+  lastVisitDays: number;   // days since last visit · drives coverage
   lifetimeValue: string;
   openCommitments: number;
   people: Person[];
   timeline: TimelineEvent[];
 }
 
-// ponytail: seeded accounts with embedded history — production reads these from Postgres,
+// ponytail: seeded accounts with embedded history · production reads these from Postgres,
 // joined live from visits/orders/approvals. Names mirror existing demo data so it reads true.
 const ACCOUNTS: Account[] = [
   {
@@ -44,7 +44,7 @@ const ACCOUNTS: Account[] = [
       { name: 'Dr. Amaka Obi', role: 'Head, Paediatrics' },
     ],
     timeline: [
-      { kind: 'commitment', date: 'Today', title: 'Open: Astrazon clinical pack', detail: 'Dr. Singh awaiting paediatric dosing data — due this week' },
+      { kind: 'commitment', date: 'Today', title: 'Open: Astrazon clinical pack', detail: 'Dr. Singh awaiting paediatric dosing data · due this week' },
       { kind: 'discount', date: '2 days ago', title: '18% discount requested', detail: '₦438,000 order · pending DM sign-off' },
       { kind: 'order', date: '2 days ago', title: 'Order FDS-0428 placed', detail: 'Coflin Forte 600mg · ₦438,000' },
       { kind: 'visit', date: '2 days ago', title: 'Detailing visit', detail: 'Adaeze Okafor · Coflin paediatric ward push' },
@@ -67,7 +67,7 @@ const ACCOUNTS: Account[] = [
     email: 'orders@medplus-yaba.ng', lastVisitDays: 12, lifetimeValue: '₦9.7M', openCommitments: 1,
     people: [{ name: 'Mrs. Bisi Adeyemi', role: 'Branch Pharmacist' }],
     timeline: [
-      { kind: 'commitment', date: '12 days ago', title: 'Open: sample promise', detail: 'Tuxil-N samples promised — not yet fulfilled' },
+      { kind: 'commitment', date: '12 days ago', title: 'Open: sample promise', detail: 'Tuxil-N samples promised · not yet fulfilled' },
       { kind: 'intel', date: '12 days ago', title: 'Competitor: GSK pressure', detail: 'Augmentin 15% trade discount observed' },
       { kind: 'visit', date: '12 days ago', title: 'Coverage visit', detail: 'Stock low · reorder flagged' },
     ],
@@ -95,7 +95,7 @@ const ACCOUNTS: Account[] = [
   {
     id: 'acc-singh', name: 'Dr. Amaka Obi', channel: 'HCP', tier: 'A',
     territory: 'Lekki Cluster', address: 'Lakeshore Specialist Hospital, Paediatrics', phone: '+234 806 789 0123',
-    email: 'a.obi@lakeshore.ng', lastVisitDays: 2, lifetimeValue: '—', openCommitments: 1,
+    email: 'a.obi@lakeshore.ng', lastVisitDays: 2, lifetimeValue: ' · ', openCommitments: 1,
     people: [{ name: 'Lakeshore Specialist', role: 'Affiliated Institution' }],
     timeline: [
       { kind: 'commitment', date: 'Today', title: 'Open: paediatric data pack', detail: 'Considering switch from competitor for ENT ward' },
@@ -156,7 +156,7 @@ export default function CustomersView({ extraAccounts = [] }: CustomersViewProps
         <p className="text-sm text-navy-500 mt-1">Single view per account · full visit, order &amp; intel history · coverage at a glance</p>
       </div>
 
-      {/* Coverage strip — answers territory & coverage */}
+      {/* Coverage strip · answers territory & coverage */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
           { l: 'Total Accounts', v: String(allAccounts.length), d: 'allocated · no overlaps', c: 'navy' },
@@ -254,7 +254,7 @@ export default function CustomersView({ extraAccounts = [] }: CustomersViewProps
             </div>
           </div>
 
-          {/* Timeline — the 360 history */}
+          {/* Timeline · the 360 history */}
           <div className="rounded-2xl bg-white border border-navy-100 p-5 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-display font-bold text-ink">Account History</h4>

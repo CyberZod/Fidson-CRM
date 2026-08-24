@@ -1,6 +1,6 @@
 // Known Lagos call points with real coordinates, so route optimization works on
 // actual geography. Reps pick from this list (datalist) when planning visits.
-// ponytail: static list — fine for the demo/pilot territory. Wire a geocoding
+// ponytail: static list · fine for the demo/pilot territory. Wire a geocoding
 // API only when reps start visiting locations outside this set.
 
 export interface CallPoint {

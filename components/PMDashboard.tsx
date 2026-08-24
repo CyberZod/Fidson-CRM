@@ -153,7 +153,7 @@ export default function PMDashboard({
               {latestSignal?.marketIntel ? (
                 <>
                   <h3 className="font-display text-lg font-bold leading-tight">
-                    {latestSignal.marketIntel.competitor || 'Competitor activity'}{latestSignal.marketIntel.promo ? ` — ${latestSignal.marketIntel.promo}` : ''}
+                    {latestSignal.marketIntel.competitor || 'Competitor activity'}{latestSignal.marketIntel.promo ? ` · ${latestSignal.marketIntel.promo}` : ''}
                   </h3>
                   <p className="text-sm text-white/80 mt-2">
                     {signals.length} rep report{signals.length === 1 ? '' : 's'} from the field.
@@ -236,7 +236,7 @@ export default function PMDashboard({
                     <div key={a.id} className="p-3 rounded-xl bg-paper border border-navy-100 text-xs">
                       <div className="flex items-center justify-between gap-2">
                         <p className="font-bold text-ink truncate">{a.rep}</p>
-                        <span className="font-mono font-bold text-rose-700 text-[11px]">{m.requestedDiscount || a.discountPct || '—'}</span>
+                        <span className="font-mono font-bold text-rose-700 text-[11px]">{m.requestedDiscount || a.discountPct || ' · '}</span>
                       </div>
                       <p className="text-navy-500 mt-0.5 truncate">{a.detail}</p>
                       <div className="flex items-center justify-between mt-1">

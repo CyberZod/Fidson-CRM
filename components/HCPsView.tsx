@@ -22,8 +22,8 @@ export default function HCPsView({ searchQuery }: HCPsViewProps) {
     { n: 'Lakeshore Specialist Hospital', t: 'Hospital · Institutional', loc: 'Victoria Island', tier: 'A+', last: '10:04 AM', value: '₦18.4M', rep: 'Adaeze O.' },
     { n: 'Reddington Hospital', t: 'Hospital · Private', loc: 'Ikoyi', tier: 'A', last: 'Yesterday', value: '₦12.2M', rep: 'Chinedu E.' },
     { n: 'St. Nicholas Hospital', t: 'Hospital · Private', loc: 'Lagos Island', tier: 'A', last: '2 days ago', value: '₦9.8M', rep: 'Adaeze O.' },
-    { n: 'HealthPlus — Surulere', t: 'Pharmacy · Chain', loc: 'Surulere', tier: 'B+', last: 'Today', value: '₦4.5M', rep: 'Tope A.' },
-    { n: 'MedPlus Pharmacy — Yaba', t: 'Pharmacy · Chain', loc: 'Yaba', tier: 'B', last: '5 days ago', value: '₦3.2M', rep: 'Adaeze O.' },
+    { n: 'HealthPlus · Surulere', t: 'Pharmacy · Chain', loc: 'Surulere', tier: 'B+', last: 'Today', value: '₦4.5M', rep: 'Tope A.' },
+    { n: 'MedPlus Pharmacy · Yaba', t: 'Pharmacy · Chain', loc: 'Yaba', tier: 'B', last: '5 days ago', value: '₦3.2M', rep: 'Adaeze O.' },
     { n: 'Lagoon Hospital VI', t: 'Hospital · Private', loc: 'Victoria Island', tier: 'A', last: 'Today', value: '₦11.1M', rep: 'Tope A.' },
     { n: 'EHA Clinic', t: 'Clinic · Specialist', loc: 'Lekki', tier: 'B+', last: '1 week ago', value: '₦2.8M', rep: 'Kola A.' },
   ];

@@ -47,8 +47,8 @@ export default function FieldActivityView({ searchQuery, visitLogs = [] }: Field
     { n: 'Tope Adeola', z: 'Surulere', s: 'live', visits: '4/9', loc: 'En route', last: '10:12 AM', value: '₦520k', percent: 91 },
     { n: 'Kola Adeniyi', z: 'Apapa', s: 'live', visits: '2/6', loc: 'MedPlus Apapa', last: '10:02 AM', value: '₦180k', percent: 68 },
     { n: 'Fatima Bello', z: 'Ojuelegba', s: 'idle', visits: '1/5', loc: 'On break', last: '9:30 AM', value: '₦45k', percent: 45 },
-    { n: 'Joseph Nwafor', z: 'Yaba', s: 'offline', visits: '0/6', loc: 'On leave', last: '—', value: '—', percent: 0 },
-    { n: 'Olamide Martins', z: 'Festac', s: 'offline', visits: '0/4', loc: 'Late', last: '—', value: '—', percent: 0 },
+    { n: 'Joseph Nwafor', z: 'Yaba', s: 'offline', visits: '0/6', loc: 'On leave', last: ' · ', value: ' · ', percent: 0 },
+    { n: 'Olamide Martins', z: 'Festac', s: 'offline', visits: '0/4', loc: 'Late', last: ' · ', value: ' · ', percent: 0 },
   ];
 
   const filteredReps = useMemo(() => {
@@ -159,7 +159,7 @@ export default function FieldActivityView({ searchQuery, visitLogs = [] }: Field
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 fade-up stagger-1">
             {[
               { l: 'Planned', v: '62', c: 'navy' }, { l: 'Completed', v: '28', c: 'leaf' },
-              { l: 'In Progress', v: '4', c: 'amber' }, { l: 'Missed', v: '2', c: 'rose' },
+              { l: 'In Progress', v: '4', c: 'amber' }, { l: 'Missed · auto-flagged', v: '2', c: 'rose' },
             ].map(s => (
               <div key={s.l} className="p-4 rounded-xl bg-white border border-navy-100">
                 <p className="stat-label text-navy-400">{s.l}</p>
@@ -186,7 +186,7 @@ export default function FieldActivityView({ searchQuery, visitLogs = [] }: Field
                     <div className="font-mono text-[10px] text-navy-500 font-bold w-12 flex-shrink-0 pt-0.5">{fmtTime(l.timestamp)}</div>
                     <div className="flex-1 min-w-0">
                       <p className="font-display font-semibold text-xs text-ink truncate">{l.hcpName} · {l.institution}</p>
-                      <p className="text-[10px] text-navy-500 truncate">{l.repName} · {l.productsDiscussed.join(', ') || 'No products'}</p>
+                      <p className="text-[10px] text-navy-500 truncate">{l.repName} · {l.productsDiscussed.join(', ') || 'No products'}{l.timeOnSiteMins ? ` · ${l.timeOnSiteMins} min on site` : ''}{typeof l.evidencedPct === 'number' ? ` · ${l.evidencedPct}% GPS-evidenced` : ''}</p>
                     </div>
                   </div>
                 ))}

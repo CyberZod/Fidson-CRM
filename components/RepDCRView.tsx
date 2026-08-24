@@ -35,7 +35,7 @@ export default function RepDCRView({ visitsCompleted, ordersToday, visitLogs = [
     : [
         { t: '08:42', n: 'Day Started', loc: 'Yaba · GPS verified · Itinerary approved' },
         { t: '10:04', n: 'Lakeshore Specialist Hospital', loc: 'Dr. T. Adebayo · Coflin Forte detailed · ₦438k order placed' },
-        { t: '11:32', n: 'MedPlus — Yaba', loc: 'Mrs. F. Eze · 50 packs Tuxil-N ordered' },
+        { t: '11:32', n: 'MedPlus · Yaba', loc: 'Mrs. F. Eze · 50 packs Tuxil-N ordered' },
         { t: '13:18', n: 'St. Nicholas Hospital', loc: 'Dr. C. Okonkwo · Astrazon detailed · Sample left' },
       ];
 

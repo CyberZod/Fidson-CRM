@@ -11,7 +11,7 @@ interface PerformanceViewProps {
 }
 
 // ponytail: read-only target-vs-achieved. Target *setting* (cascade down the hierarchy,
-// periods, approval, lock) is deferred — add when the org confirms the target workflow.
+// periods, approval, lock) is deferred · add when the org confirms the target workflow.
 const DEFAULT_ROWS: PerfRow[] = [
   { name: 'Adaeze Okafor', unit: 'Lekki Cluster', target: 12.0, achieved: 11.3 },
   { name: 'Tope Adeola', unit: 'Surulere', target: 10.0, achieved: 9.1 },

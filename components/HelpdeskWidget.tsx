@@ -19,7 +19,7 @@ interface AutoReply {
 const AUTO_REPLIES: AutoReply[] = [
   {
     triggers: ['hi', 'hello', 'hey', 'good', 'hiya'],
-    reply: "Hi there! 👋 You're chatting with the FieldForce Help Desk. Tell me what you need — try starting with words like “order”, “login”, “sync”, “GPS”, “approval”, or “report”.",
+    reply: "Hi there! 👋 You're chatting with the FieldForce Help Desk. Tell me what you need · try starting with words like “order”, “login”, “sync”, “GPS”, “approval”, or “report”.",
   },
   {
     triggers: ['order', 'orders', 'booklet', 'soa'],
@@ -27,15 +27,15 @@ const AUTO_REPLIES: AutoReply[] = [
   },
   {
     triggers: ['login', 'log', 'password', 'signin', 'sign', 'access', 'locked'],
-    reply: 'Trouble signing in? You sign in with your Fidson Microsoft 365 account, so there is no app password to reset. If Microsoft rejects you, your account may not be in the FieldForce security group yet. I can raise a ticket to Fidson IT to check your access — just reply “ticket”.',
+    reply: 'Trouble signing in? You sign in with your Fidson Microsoft 365 account, so there is no app password to reset. If Microsoft rejects you, your account may not be in the FieldForce security group yet. I can raise a ticket to Fidson IT to check your access · just reply “ticket”.',
   },
   {
     triggers: ['sync', 'syncing', 'offline', 'data', 'erp'],
-    reply: 'Sync issues are usually network-related. Pull down to refresh and check your signal — anything you logged offline will push automatically once you’re back online. Still stuck after 10 minutes? Reply “ticket” and I’ll escalate to support.',
+    reply: 'Sync issues are usually network-related. Pull down to refresh and check your signal · anything you logged offline will push automatically once you’re back online. Still stuck after 10 minutes? Reply “ticket” and I’ll escalate to support.',
   },
   {
     triggers: ['gps', 'location', 'checkin', 'check-in', 'map', 'route'],
-    reply: 'GPS check-in needs location permission enabled for FieldForce. If check-in is greyed out, your itinerary may not be approved yet — your RSM unlocks the GPS gate once the week is signed off.',
+    reply: 'GPS check-in needs location permission enabled for FieldForce. If check-in is greyed out, your itinerary may not be approved yet · your RSM unlocks the GPS gate once the week is signed off.',
   },
   {
     triggers: ['approval', 'approve', 'discount', 'pending', 'reject', 'rejected'],
@@ -43,11 +43,11 @@ const AUTO_REPLIES: AutoReply[] = [
   },
   {
     triggers: ['report', 'reports', 'dcr', 'target', 'targets', 'sales'],
-    reply: 'Reports & DCRs live under the Reports screen. Your DCR auto-generates from completed visits — just review and submit at end of day. Need a specific figure pulled? Tell me which report.',
+    reply: 'Reports & DCRs live under the Reports screen. Your DCR auto-generates from completed visits · just review and submit at end of day. Need a specific figure pulled? Tell me which report.',
   },
   {
     triggers: ['ticket', 'escalate', 'urgent', 'help', 'support', 'agent', 'human'],
-    reply: 'Got it — I’ve logged a ticket and a human support agent from the Tales Consulting team will reach out shortly. Reference: #FDS-' + 'SUP. Anything else in the meantime?',
+    reply: 'Got it · I’ve logged a ticket and a human support agent from the Tales Consulting team will reach out shortly. Reference: #FDS-' + 'SUP. Anything else in the meantime?',
   },
   {
     triggers: ['thanks', 'thank', 'cheers', 'great', 'ok', 'okay', 'cool'],
@@ -132,7 +132,7 @@ export default function HelpdeskWidget() {
 
   return (
     <>
-      {/* Floating launcher — sits bottom-left, clear of toasts (bottom-right) and the mobile bottom nav */}
+      {/* Floating launcher · sits bottom-left, clear of toasts (bottom-right) and the mobile bottom nav */}
       {!open && (
         <button
           onClick={() => setOpen(true)}

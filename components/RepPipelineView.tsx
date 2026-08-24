@@ -81,7 +81,7 @@ export default function RepPipelineView({ leads, onEnrich, onConsent, onSend, on
         <p className="text-sm text-navy-500 mt-1">From first meeting to customer · every contact you met, moving through the funnel</p>
       </div>
 
-      {/* Funnel strip — also the quick stage filter */}
+      {/* Funnel strip · also the quick stage filter */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {LEAD_STAGES.map((s, i) => {
           const col = STAGE_COLOR[s.color];
@@ -103,7 +103,7 @@ export default function RepPipelineView({ leads, onEnrich, onConsent, onSend, on
         })}
       </div>
 
-      {/* Toolbar — dropdown filter */}
+      {/* Toolbar · dropdown filter */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <label className="text-xs font-semibold text-navy-500">Showing</label>
@@ -239,7 +239,7 @@ export default function RepPipelineView({ leads, onEnrich, onConsent, onSend, on
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="p-3 rounded-xl bg-paper"><p className="stat-label text-navy-400">Channel</p><p className="text-navy-700 mt-0.5">{selected.channel}</p></div>
                 <div className="p-3 rounded-xl bg-paper"><p className="stat-label text-navy-400">Territory</p><p className="text-navy-700 mt-0.5">{selected.territory}</p></div>
-                <div className="p-3 rounded-xl bg-paper"><p className="stat-label text-navy-400">Phone</p><p className="text-navy-700 mt-0.5">{selected.phone || '—'}</p></div>
+                <div className="p-3 rounded-xl bg-paper"><p className="stat-label text-navy-400">Phone</p><p className="text-navy-700 mt-0.5">{selected.phone || ' · '}</p></div>
                 <div className="p-3 rounded-xl bg-paper"><p className="stat-label text-navy-400">Email</p><p className="text-navy-700 mt-0.5 truncate">{selected.email || 'Not captured yet'}</p></div>
               </div>
               <div className="p-3 rounded-xl bg-sky-50 border border-sky-100">

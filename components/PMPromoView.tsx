@@ -40,7 +40,7 @@ export default function PMPromoView({ promoRequests, onApprove, onReject, onLaun
         <Icon name="sparkles" size={20} className="text-violet-700 mt-0.5 flex-shrink-0" />
         <div>
           <p className="font-display font-bold text-ink">Promo Requests · PM Tier</p>
-          <p className="text-xs text-navy-700 mt-1">Larger promotional campaigns submitted by the field. Sign off here and (optionally) launch as a tracked Campaign — that's when the ROI clock starts and material dispatch kicks off.</p>
+          <p className="text-xs text-navy-700 mt-1">Larger promotional campaigns submitted by the field. Sign off here and (optionally) launch as a tracked Campaign · that's when the ROI clock starts and material dispatch kicks off.</p>
         </div>
       </div>
 

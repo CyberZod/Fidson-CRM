@@ -45,7 +45,7 @@ export default function DMEscalatedView({ approvals = [], onOpenApproval, onAppr
         src: 'Discount · routed from rep',
         cust: a.customer || customerFromDetail(a.detail),
         value: a.amount,
-        disc: modal.requestedDiscount || a.discountPct || '—',
+        disc: modal.requestedDiscount || a.discountPct || ' · ',
         urgent: a.urgent,
         ai: a.urgent ? 'recommend-review' : 'recommend-approve',
         raw: a,

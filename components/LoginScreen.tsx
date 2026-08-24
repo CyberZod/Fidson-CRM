@@ -57,7 +57,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
             Every order.
           </h1>
           <p className="mt-4 text-sm sm:text-base text-navy-200 leading-relaxed fade-up stagger-3 max-w-md">
-            Sales Force Automation built for Fidson — institutional, trade, and frontline channels across all 6 Nigerian regions, with AI forecasting, GPS-verified visits, and SOA-integrated ordering.
+            Sales Force Automation built for Fidson · institutional, trade, and frontline channels across all 6 Nigerian regions, with AI forecasting, GPS-verified visits, and SOA-integrated ordering.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-2 fade-up stagger-4">
@@ -122,7 +122,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
                   <span className="px-1.5 py-0.5 rounded bg-leaf-500 text-white text-[9px] font-bold tracking-wider">8 ROLES</span>
                 </div>
                 <p className="text-xs text-leaf-700 mt-1.5 leading-relaxed">
-                  Sign in once and switch between <strong>Rep</strong>, <strong>ASM</strong>, <strong>RSM</strong>, <strong>FSM</strong>, <strong>PM</strong>, <strong>MM</strong>, <strong>DM</strong>, and <strong>NSM</strong> — Fidson's full org chart across Nigeria.
+                  Sign in once and switch between <strong>Rep</strong>, <strong>ASM</strong>, <strong>RSM</strong>, <strong>FSM</strong>, <strong>PM</strong>, <strong>MM</strong>, <strong>DM</strong>, and <strong>NSM</strong> · Fidson's full org chart across Nigeria.
                 </p>
               </div>
             </div>

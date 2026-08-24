@@ -3,6 +3,7 @@ import { PERSONAS } from './assets/personas';
 import Sidebar from './components/Sidebar';
 import RepSidebar from './components/RepSidebar';
 import RepTeamView from './components/RepTeamView';
+import SyncQueueView from './components/SyncQueueView';
 import RoleSidebar from './components/RoleSidebar';
 import TopBar from './components/TopBar';
 import BottomNav from './components/BottomNav';
@@ -144,7 +145,7 @@ function seedDcrs(): SubmittedDCR[] {
   return [{
     id: 'dcr-seed-chinedu', rep: 'Chinedu Eze', submittedAt: '4:55 PM',
     visitsCompleted: logs.length, ordersToday: 2, logs, samples: 28,
-    aiSummary: 'Solid institutional day across the Ikeja cluster — 4 A-tier calls with consistent Coflin focus and strong pharmacy pull-through at HealthPlus. 2 orders booked. Recommend follow-up on the Eko Hospital paediatrics lead next cycle.',
+    aiSummary: 'Solid institutional day across the Ikeja cluster · 4 A-tier calls with consistent Coflin focus and strong pharmacy pull-through at HealthPlus. 2 orders booked. Recommend follow-up on the Eko Hospital paediatrics lead next cycle.',
   }];
 }
 
@@ -166,7 +167,7 @@ export default function App() {
   const [leads, setLeads] = useState<Lead[]>(SEED_LEADS);
   const [convertedCustomers, setConvertedCustomers] = useState<Account[]>([]);
   const [dcrs, setDcrs] = useState<SubmittedDCR[]>(seedDcrs);
-  // Adaeze's own daily-adjustment records — drives the rep's adjustment cap and
+  // Adaeze's own daily-adjustment records · drives the rep's adjustment cap and
   // round-trips status (pending → approved/rejected) when the RSM decides.
   const [repAdjustments, setRepAdjustments] = useState<RepAdjustment[]>([]);
 
@@ -175,7 +176,7 @@ export default function App() {
     { id: 101, day: 'mon', name: 'Reddington Hospital', contact: 'Dr. Akin Bello', role: 'Internal Med', time: '09:30', dist: '2.4', priority: 'high', status: 'done', address: '12 Idowu Martins, V.I.' },
     { id: 102, day: 'mon', name: 'St. Nicholas Hospital', contact: 'Dr. C. Okonkwo', role: 'Paediatrics', time: '11:00', dist: '4.1', priority: 'med', status: 'done', address: '57 Campbell Street, Lagos Island' },
     { id: 103, day: 'mon', name: 'HealthPlus Ikoyi', contact: 'Mrs. R. Doherty', role: 'Pharmacist', time: '14:00', dist: '5.8', priority: 'med', status: 'done', address: 'Awolowo Road, Ikoyi' },
-    // Tuesday May 13 — TODAY (fresh day, AI-optimized route, nothing completed yet)
+    // Tuesday May 13 · TODAY (fresh day, AI-optimized route, nothing completed yet)
     { id: 1, day: 'tue', name: 'Reddington Hospital VI', contact: 'Dr. Akin Bello', role: 'Internal Medicine', time: '09:30', fixedTime: true, dist: '2.4', priority: 'high', status: 'next', address: '12 Idowu Martins, Victoria Island', plannedProducts: ['Coflin Forte 600mg'] },
     { id: 2, day: 'tue', name: 'MedPlus Lekki Phase 1', contact: 'Mrs. Funke Eze', role: 'Pharmacist', time: '10:25', dist: '5.9', priority: 'med', status: 'pending', address: 'Admiralty Way, Lekki Phase 1' },
     { id: 3, day: 'tue', name: 'Lakeshore Specialist Hospital', contact: 'Dr. T. Adebayo', role: 'Internal Medicine', time: '11:05', dist: '0.6', priority: 'high', status: 'pending', address: 'Plot 14, Adeola Odeku, Victoria Island' },
@@ -226,7 +227,7 @@ export default function App() {
   const [itinerariesPending, setItinerariesPending] = useState<ItineraryPending[]>([
     { id: 'it-1', rep: 'Chinedu Eze', area: 'Ikeja Cluster', week: weekRangeShort(1), visits: 32, submittedAt: 'Today 14:20', focus: 'Coflin push · Institutional', highlights: '5 A-tier targets · 2 new HCPs', escalationStatus: 'escalated' },
     { id: 'it-2', rep: 'Tope Adeola', area: 'Lekki Phase 1', week: weekRangeShort(1), visits: 36, submittedAt: 'Today 13:45', focus: 'Antibiotics · Q2 close', highlights: 'Tope is 91% to target', escalationStatus: 'imminent' },
-    { id: 'it-3', rep: 'Bayo Salami', area: 'Lekki Phase 2', week: weekRangeShort(1), visits: 28, submittedAt: 'Today 11:10', focus: 'Mixed portfolio', highlights: 'Needs review — 4 fewer visits than W20', escalationStatus: null },
+    { id: 'it-3', rep: 'Bayo Salami', area: 'Lekki Phase 2', week: weekRangeShort(1), visits: 28, submittedAt: 'Today 11:10', focus: 'Mixed portfolio', highlights: 'Needs review · 4 fewer visits than W20', escalationStatus: null },
     { id: 'it-4', rep: 'Yetunde Cole', area: 'V.I. West', week: weekRangeShort(1), visits: 24, submittedAt: 'Yesterday 16:50', focus: 'Pharmacy + retail', highlights: 'Coaching needed · low coverage', escalationStatus: 'escalated' },
   ]);
 
@@ -245,13 +246,13 @@ export default function App() {
   ]);
 
   const [promoRequests, setPromoRequests] = useState<PromoRequest[]>([
-    { id: 'pr-1', rep: 'Adaeze Okafor', title: 'Coflin Bulk Trade Promo · Q3', product: 'Coflin Forte 600mg', channel: 'trade', scope: '12 Lagos distributors · 6 weeks', estimatedReach: 240, budget: 1_800_000, rationale: 'Augmentin counter-detail — Lagos trade distributors signaling demand swing if we run a 12% incentive band.', date: 'May 13, 2026', status: 'pending' },
+    { id: 'pr-1', rep: 'Adaeze Okafor', title: 'Coflin Bulk Trade Promo · Q3', product: 'Coflin Forte 600mg', channel: 'trade', scope: '12 Lagos distributors · 6 weeks', estimatedReach: 240, budget: 1_800_000, rationale: 'Augmentin counter-detail · Lagos trade distributors signaling demand swing if we run a 12% incentive band.', date: 'May 13, 2026', status: 'pending' },
     { id: 'pr-2', rep: 'Tope Adeola', title: 'Tuxil-N Retail Sampling · SW', product: 'Tuxil-N Syrup 100ml', channel: 'mobile-frontline', scope: '8 community pharmacies', estimatedReach: 90, budget: 420_000, rationale: 'OTC pull-through ahead of cough season. Sampling + posters.', date: 'May 12, 2026', status: 'pm-approved' },
     { id: 'pr-3', rep: 'Chinedu Eze', title: 'Astrazon Hospital Bundle', product: 'Astrazon 10mg', channel: 'institution', scope: '4 teaching hospitals', estimatedReach: 60, budget: 2_400_000, rationale: 'Co-prescription with Coflin for paediatric ENT clinics.', date: 'May 10, 2026', status: 'launched' },
   ]);
 
   const [jointCalls, setJointCalls] = useState<JointCall[]>([
-    { id: 'jc-1', rep: 'Adaeze Okafor', pm: 'Dr. Femi Akande', division: 'South', region: 'SW', territory: 'Lekki / V.I.', customer: 'Lakeshore Specialist Hospital', product: 'Coflin Forte 600mg', scheduledFor: 'May 22, 2026 · 10:00', rationale: 'Coflin uptake below target in Apapa zone — observe paediatric detailing.', status: 'scheduled' },
+    { id: 'jc-1', rep: 'Adaeze Okafor', pm: 'Dr. Femi Akande', division: 'South', region: 'SW', territory: 'Lekki / V.I.', customer: 'Lakeshore Specialist Hospital', product: 'Coflin Forte 600mg', scheduledFor: 'May 22, 2026 · 10:00', rationale: 'Coflin uptake below target in Apapa zone · observe paediatric detailing.', status: 'scheduled' },
     { id: 'jc-2', rep: 'Tope Adeola', pm: 'Dr. Femi Akande', division: 'South', region: 'SW', territory: 'Surulere', customer: 'HealthPlus Surulere', product: 'Tuxil-N Syrup 100ml', scheduledFor: 'May 27, 2026 · 14:30', rationale: 'Tuxil OTC conversion lagging at retail outlets.', status: 'scheduled' },
   ]);
 
@@ -376,8 +377,8 @@ export default function App() {
   ]);
 
   const [contentApprovals, setContentApprovals] = useState<ContentApprovalRow[]>([
-    { id: 'ca-1', pm: 'Dr. Femi Akande', material: 'Coflin Paediatric Dosing Guide v2.1', cat: 'Clinical', format: 'PDF · 4 pages', target: '89 Med Reps', budget: '—', submitted: '2 hours ago', status: 'pending', urgent: false, note: 'Updated to include new WHO paediatric dosing thresholds. Cleared by Medical Affairs.' },
-    { id: 'ca-2', pm: 'Dr. Femi Akande', material: 'Augmentin Counter-Detail Brief', cat: 'Competitive', format: 'PDF · 6 pages', target: '142 reps (all channels)', budget: '—', submitted: '45 min ago', status: 'pending', urgent: true, note: 'In response to GSK 15% Augmentin promo detected in 5 regions. Time-sensitive.' },
+    { id: 'ca-1', pm: 'Dr. Femi Akande', material: 'Coflin Paediatric Dosing Guide v2.1', cat: 'Clinical', format: 'PDF · 4 pages', target: '89 Med Reps', budget: ' · ', submitted: '2 hours ago', status: 'pending', urgent: false, note: 'Updated to include new WHO paediatric dosing thresholds. Cleared by Medical Affairs.' },
+    { id: 'ca-2', pm: 'Dr. Femi Akande', material: 'Augmentin Counter-Detail Brief', cat: 'Competitive', format: 'PDF · 6 pages', target: '142 reps (all channels)', budget: ' · ', submitted: '45 min ago', status: 'pending', urgent: true, note: 'In response to GSK 15% Augmentin promo detected in 5 regions. Time-sensitive.' },
     { id: 'ca-3', pm: 'Dr. Ngozi Eze', material: 'Cardio Q3 Detailing Deck v1.0', cat: 'Detailing', format: 'PPT · 28 slides', target: 'Cardio reps · 32 reps', budget: '₦680k production', submitted: 'Yesterday', status: 'pending', urgent: false, note: 'Q3 launch deck for the cardio portfolio refresh.' },
     { id: 'ca-4', pm: 'Dr. Femi Akande', material: 'Coflin Forte Q2 Brochure', cat: 'Marketing', format: 'PDF · 8 pages', target: 'Institutional accounts', budget: '₦420k print', submitted: '3 days ago', status: 'approved', urgent: false },
   ]);
@@ -472,8 +473,8 @@ export default function App() {
     tier: 'B',
     territory: l.territory,
     address: l.org,
-    phone: l.phone ?? '—',
-    email: l.email ?? '—',
+    phone: l.phone ?? ' · ',
+    email: l.email ?? ' · ',
     lastVisitDays: 0,
     lifetimeValue: 'New',
     openCommitments: 0,
@@ -530,7 +531,7 @@ export default function App() {
       ordersToday: orders.filter(o => o.rep === 'Adaeze O.').length,
       logs: fullLogs,
       samples: fullLogs.length * 6,
-      aiSummary: `Full day across ${fullLogs.length} calls in the V.I.–Lekki corridor with strong Coflin focus — ${todaysLogs.length} detailed live, the rest auto-compiled from her plan. Tracking 87% target attainment for the day.`,
+      aiSummary: `Full day across ${fullLogs.length} calls in the V.I.–Lekki corridor with strong Coflin focus · ${todaysLogs.length} detailed live, the rest auto-compiled from her plan. Tracking 87% target attainment for the day.`,
     };
     setDcrs(prev => [dcr, ...prev]);
     addToast({ type: 'success', title: 'DCR submitted to RSM', msg: `Tunde Bakare (RSM) will see your ${fullLogs.length}-visit report` });
@@ -1119,6 +1120,7 @@ export default function App() {
     'rep-day': { t: 'My Day', s: `${repStats.completed}/${repStats.planned} visits · Lagos region` },
     'rep-plan': { t: "Today's Plan", s: '8 stops · AI-optimized · GPS active' },
     'rep-team': { t: 'My Team', s: 'Lekki/V.I. Cluster · ASM Funmi Adeola' },
+    'sync-queue': { t: 'Sync Queue', s: 'Offline conflicts held for review · nothing is silently lost' },
     'rep-visit': { t: activeVisit ? `Visit: ${activeVisit.name}` : 'Active Visit', s: activeVisit ? `Visit ${activeVisit.id} of 8${activeVisit.contact ? ` · ${activeVisit.contact}` : ''}` : 'No active visit' },
     'rep-order': { t: 'Place Order', s: 'SOA-integrated · Real-time pricing' },
     'rep-coach': { t: 'AI Coach', s: 'Personalized insights & recommendations' },
@@ -1348,6 +1350,7 @@ export default function App() {
         case 'performance': return <PerformanceView title="Trade Rep Performance" subtitle="Target vs Achieved · Q2 · your trade reps" />;
         case 'fsm-distributors': return <FSMDistributorsView />;
         case 'activity': return <FieldActivityView searchQuery={searchQuery} visitLogs={visitLogs} />;
+        case 'sync-queue': return <SyncQueueView />;
         case 'orders': return <OrdersView orders={orders} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <FSMDashboard onNavigate={setView} approvals={approvals} onEscalateToNSM={handleEscalateToNSM} />;
@@ -1396,7 +1399,7 @@ export default function App() {
               <p className="text-sm text-navy-500 mt-1 mb-5">Weekly division summary · Auto-includes 3 regions' KPIs</p>
               <textarea
                 rows={8}
-                defaultValue="Week 19 — South Division: Pipeline up 18% MoM to ₦128M. SW leading at 92% attainment, SE under-indexing on Coflin (recommend PM Akande engagement). 2 escalated discounts approved this week. Distributor stockout risk in Onitsha resolved via priority push."
+                defaultValue="Week 19 · South Division: Pipeline up 18% MoM to ₦128M. SW leading at 92% attainment, SE under-indexing on Coflin (recommend PM Akande engagement). 2 escalated discounts approved this week. Distributor stockout risk in Onitsha resolved via priority push."
                 className="input-field w-full p-3 rounded-xl bg-paper border border-navy-200 text-sm resize-none"
               />
               <div className="mt-4 flex gap-2">
@@ -1499,6 +1502,7 @@ export default function App() {
     switch (view) {
       case 'dashboard': return <DashboardView approvals={approvals} onOpenApproval={setApprovalModalItem as (item: ApprovalItem) => void} onApprove={approveItem} onReject={rejectItem} dashboardStats={dashboardStats} />;
       case 'activity': return <FieldActivityView searchQuery={searchQuery} visitLogs={visitLogs} />;
+        case 'sync-queue': return <SyncQueueView />;
       case 'orders': return <OrdersView orders={orders} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
       case 'hcps': return <HCPsView searchQuery={searchQuery} />;
       case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;

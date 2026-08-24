@@ -31,7 +31,7 @@ export default function ASMDashboard({ onNavigate }: ASMDashboardProps) {
               <span className="text-xs text-navy-500">Lekki / V.I. Cluster</span>
             </div>
             <h2 className="mt-2 font-display text-2xl sm:text-3xl font-bold text-ink">
-              Hi <span style={{ background: 'linear-gradient(135deg, #142A5A 0%, #0EA5E9 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Funmi</span> — your cluster is humming
+              Hi <span style={{ background: 'linear-gradient(135deg, #142A5A 0%, #0EA5E9 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Funmi</span> · your cluster is humming
             </h2>
             <p className="text-sm text-navy-500 mt-1">3 of 4 reps active in the field · You report up to BM Cestra</p>
           </div>

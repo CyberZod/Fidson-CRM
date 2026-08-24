@@ -77,7 +77,7 @@ export default function FSMDashboard({ onNavigate, approvals = [], onEscalateToN
               <div className="px-5 py-4 border-b border-indigo-100 bg-indigo-50/50 flex items-center justify-between flex-wrap gap-2">
                 <div>
                   <h3 className="font-display font-bold text-ink flex items-center gap-2"><Icon name="alert" size={16} className="text-indigo-700" /> Escalate to NSM Trade</h3>
-                  <p className="text-xs text-navy-500 mt-0.5">Trade exceptions above your sign-off — distributor schemes &amp; discounts routed to national</p>
+                  <p className="text-xs text-navy-500 mt-0.5">Trade exceptions above your sign-off · distributor schemes &amp; discounts routed to national</p>
                 </div>
                 <span className="px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">FSM TIER</span>
               </div>
@@ -209,7 +209,7 @@ export default function FSMDashboard({ onNavigate, approvals = [], onEscalateToN
             <h3 className="font-display font-bold text-ink text-sm mb-3 flex items-center gap-2"><Icon name="sparkles" size={14} className="text-leaf-700" /> AI Alerts</h3>
             <div className="space-y-2">
               {[
-                { t: 'Region behind target', d: 'SW Trade 88% to Q2 — Ibadan zone lagging', c: 'amber' },
+                { t: 'Region behind target', d: 'SW Trade 88% to Q2 · Ibadan zone lagging', c: 'amber' },
                 { t: 'Distributor stock low', d: 'PHC Pharmacy 6 days cover · reorder flagged', c: 'rose' },
                 { t: 'Conversion alert', d: 'WestEnd order cycle slowing vs W20', c: 'amber' },
               ].map((al, i) => (

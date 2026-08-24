@@ -72,7 +72,7 @@ export default function RepDashboard({
                 Next up: <span className="text-leaf-300">{nextVisit?.name}</span>
               </h3>
               <p className="text-sm text-white/80 mt-2">
-                Lead with Coflin Forte 600mg for productive cough — the higher dose means faster mucus clearance and fewer doses a day than standard mucolytics. If cost comes up, point to the shorter treatment course. Aim to secure a restock before month-end.
+                Lead with Coflin Forte 600mg for productive cough · the higher dose means faster mucus clearance and fewer doses a day than standard mucolytics. If cost comes up, point to the shorter treatment course. Aim to secure a restock before month-end.
               </p>
               {coachSource && (
                 <div className="mt-3 flex items-start gap-2 p-2.5 rounded-lg bg-white/5 border border-white/10">
@@ -173,7 +173,7 @@ export default function RepDashboard({
               <div className="w-9 h-9 rounded-full bg-navy-700 flex items-center justify-center text-white font-display font-bold text-xs flex-shrink-0">TB</div>
               <div className="flex-1">
                 <p className="text-xs font-semibold text-ink">Tunde Bakare</p>
-                <p className="text-[11px] text-navy-500 mt-0.5">"Strong start this week. Push for institutional close on Lakeshore — they're top tier for Q2."</p>
+                <p className="text-[11px] text-navy-500 mt-0.5">"Strong start this week. Push for institutional close on Lakeshore · they're top tier for Q2."</p>
                 <p className="text-[10px] text-navy-400 mt-1.5">15 min ago</p>
               </div>
             </div>

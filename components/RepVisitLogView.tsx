@@ -24,7 +24,7 @@ interface RepVisitLogViewProps {
 
 type VoicePhase = 'recording' | 'transcribing' | 'structuring';
 
-// What the rep "said" — the scripted transcript the demo plays back.
+// What the rep "said" · the scripted transcript the demo plays back.
 const VOICE_TRANSCRIPT =
   "saw dr adebayo at the paediatric ward, detailed coflin forte and tuxil-n, he'll take a trial if pricing works, gsk pushing augmentin at fifteen percent trade discount, also met dr ngozi okeke the consultant paediatrician, drop samples next week";
 
@@ -71,6 +71,7 @@ export default function RepVisitLogView({
 }: RepVisitLogViewProps) {
   const [checkedIn, setCheckedIn] = useState(false);
   const [checkInLabel, setCheckInLabel] = useState<string>('');
+  const [checkInAt, setCheckInAt] = useState<number | null>(null);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [manualLocation, setManualLocation] = useState(false);
   const [loadingLoc, setLoadingLoc] = useState(false);
@@ -160,6 +161,7 @@ export default function RepVisitLogView({
     setOtherGroups([]);
     setHcpType('Doctor');
     setCheckedIn(!!activeVisit.checkedIn);
+    if (activeVisit.checkedIn) setCheckInAt(prev => prev ?? Date.now());
     setLocation(null);
     setManualLocation(false);
     setHcpSuggestOpen(false);
@@ -345,6 +347,12 @@ export default function RepVisitLogView({
       summary,
       nextSteps,
       reminderDate: reminderDate ? new Date(reminderDate).toISOString() : undefined,
+      checkOut: location
+        ? { timestamp: new Date().toISOString(), latitude: location.lat, longitude: location.lng }
+        : { timestamp: new Date().toISOString(), latitude: 0, longitude: 0, isManual: true },
+      timeOnSiteMins: checkInAt ? Math.max(1, Math.round((Date.now() - checkInAt) / 60000)) : 34,
+      // ponytail: scripted evidence share; the real engine computes it from sampled pings
+      evidencedPct: manualLocation ? 0 : 92,
       marketIntel: (competitorBrand.trim() || competitorPromo.trim() || competitorPricing.trim())
         ? { competitor: competitorBrand.trim(), promo: competitorPromo.trim(), pricing: competitorPricing.trim() }
         : undefined,
@@ -376,6 +384,7 @@ export default function RepVisitLogView({
                 {checkedIn ? `Checked In · ${checkInLabel || 'now'}` : 'Awaiting Check-in'}
               </p>
               {checkedIn && <div className="w-1.5 h-1.5 rounded-full bg-leaf-500 pulse-dot" />}
+              {checkedIn && <span className="text-[9px] font-bold tracking-wider uppercase text-navy-400">Screen awake · GPS sampling</span>}
             </div>
             <h2 className="font-display text-xl font-bold text-ink">{activeVisit.name}</h2>
             <p className="text-xs text-navy-500 font-mono">{checkInStatusLine}</p>
@@ -444,7 +453,7 @@ export default function RepVisitLogView({
                 <div>
                   <p className="text-[10px] font-bold text-navy-400 tracking-wider uppercase">Location Verification</p>
                   {manualLocation ? (
-                    <p className="text-sm text-amber-700 font-semibold mt-1">Manual / offline entry — location unverified</p>
+                    <p className="text-sm text-amber-700 font-semibold mt-1">Manual / offline entry · location unverified</p>
                   ) : location ? (
                     <p className="text-sm text-ink font-mono mt-1">{location.lat.toFixed(5)}, {location.lng.toFixed(5)}</p>
                   ) : (
@@ -529,7 +538,7 @@ export default function RepVisitLogView({
                   onChange={e => { setHcpName(e.target.value); setHcpSuggestOpen(true); }}
                   onFocus={() => setHcpSuggestOpen(true)}
                   onBlur={() => setTimeout(() => setHcpSuggestOpen(false), 120)}
-                  placeholder={hcpDirectory.length > 0 ? 'Start typing — past HCPs will appear' : 'e.g. Dr. T. Adebayo'}
+                  placeholder={hcpDirectory.length > 0 ? 'Start typing · past HCPs will appear' : 'e.g. Dr. T. Adebayo'}
                   autoComplete="off"
                   className="input-field w-full mt-1 px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink"
                 />
@@ -556,7 +565,7 @@ export default function RepVisitLogView({
                             <p className="font-display font-semibold text-sm text-ink truncate">{s.name}</p>
                             <span className="px-1.5 py-0.5 rounded bg-navy-50 text-navy-700 text-[9px] font-bold flex-shrink-0">{s.hcpType.toUpperCase()}</span>
                           </div>
-                          <p className="text-[10px] text-navy-500 truncate">{s.specialty || '—'}{s.institution ? ` · ${s.institution}` : ''}</p>
+                          <p className="text-[10px] text-navy-500 truncate">{s.specialty || ' · '}{s.institution ? ` · ${s.institution}` : ''}</p>
                         </button>
                       ))}
                     </div>
@@ -578,7 +587,7 @@ export default function RepVisitLogView({
                   title="Locked to this visit's call point"
                   className="w-full mt-1 px-3 py-2 rounded-lg bg-navy-50 border border-navy-100 text-sm text-ink flex items-center justify-between gap-2 cursor-not-allowed"
                 >
-                  <span className="truncate font-medium">{institution || '—'}</span>
+                  <span className="truncate font-medium">{institution || ' · '}</span>
                   <span className="flex items-center gap-1 text-[10px] text-navy-400 flex-shrink-0 uppercase tracking-wider font-bold">
                     <Icon name="lock" size={11} /> Fixed
                   </span>
@@ -616,7 +625,7 @@ export default function RepVisitLogView({
             <p className="text-[11px] text-navy-500 mb-3">
               {plannedProducts.length > 0
                 ? 'Pre-filled from your visit plan. Add or remove from the dropdown.'
-                : 'No products were planned for this visit — pick what you actually detailed.'}
+                : 'No products were planned for this visit · pick what you actually detailed.'}
             </p>
 
             <div className="relative">
@@ -628,7 +637,7 @@ export default function RepVisitLogView({
                   onChange={e => { setProductQuery(e.target.value); setProductsOpen(true); }}
                   onFocus={() => setProductsOpen(true)}
                   onBlur={() => setTimeout(() => setProductsOpen(false), 120)}
-                  placeholder="Search products — type a name or category"
+                  placeholder="Search products · type a name or category"
                   autoComplete="off"
                   className="flex-1 min-w-0 bg-transparent text-sm text-ink placeholder-navy-400 focus:outline-none"
                 />
@@ -732,7 +741,7 @@ export default function RepVisitLogView({
             </div>
           </div>
 
-          {/* Market intel — optional competitor signal, routes to PM */}
+          {/* Market intel · optional competitor signal, routes to PM */}
           <div className="rounded-2xl bg-white border border-navy-100 p-5 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -741,7 +750,7 @@ export default function RepVisitLogView({
               </div>
               <span className="text-[10px] text-navy-500 font-mono">Optional · routes to PM</span>
             </div>
-            <p className="text-[11px] text-navy-500 -mt-1">Spotted a competitor scheme, promo or price? Capture it — your PM sees it as a Competitor Signal.</p>
+            <p className="text-[11px] text-navy-500 -mt-1">Spotted a competitor scheme, promo or price? Capture it · your PM sees it as a Competitor Signal.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="text-[10px] font-bold text-navy-400 tracking-wider uppercase">Competitor Brand Seen</label>
@@ -770,7 +779,7 @@ export default function RepVisitLogView({
                 rows={2}
                 value={competitorPricing}
                 onChange={e => setCompetitorPricing(e.target.value)}
-                placeholder="e.g. Augmentin 625mg at ₦950/strip — 8% under our list price."
+                placeholder="e.g. Augmentin 625mg at ₦950/strip · 8% under our list price."
                 className="input-field w-full mt-1 px-3 py-2 rounded-lg bg-paper border border-navy-100 text-sm text-ink resize-none"
               />
             </div>
@@ -824,13 +833,13 @@ export default function RepVisitLogView({
               })}
             </div>
 
-            {/* Other attendees — named groups replace the old "Others" counter */}
+            {/* Other attendees · named groups replace the old "Others" counter */}
             <div className="mt-4 pt-4 border-t border-navy-100">
               <div className="flex items-center justify-between gap-2 mb-1">
                 <p className="text-[10px] font-bold text-navy-400 tracking-wider uppercase">Other Attendees</p>
                 <span className="text-[10px] text-navy-500 font-mono flex-shrink-0">{othersThisVisit} total</span>
               </div>
-              <p className="text-[11px] text-navy-500 mb-3">Anyone who isn't a doctor, pharmacist or nurse — name the role and how many.</p>
+              <p className="text-[11px] text-navy-500 mb-3">Anyone who isn't a doctor, pharmacist or nurse · name the role and how many.</p>
               {otherGroups.length > 0 && (
                 <div className="space-y-2 mb-2">
                   {otherGroups.map((g, idx) => (
@@ -979,7 +988,7 @@ export default function RepVisitLogView({
             }`}
           >
             <Icon name="check" size={18} strokeWidth={3} />
-            Save Visit & Complete
+            Check Out & Save Visit
           </button>
           {!canSubmit && (
             <p className="text-[11px] text-navy-500 text-center -mt-2">

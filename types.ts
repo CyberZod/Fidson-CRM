@@ -591,6 +591,11 @@ export interface VisitLog {
   // Optional competitor/market intel captured during the call. Omitted when the
   // rep left all three fields blank.
   marketIntel?: { competitor: string; promo: string; pricing: string };
+  // Check-out capture (AC 2.6): location and time on leaving; time on site is the interval.
+  checkOut?: { timestamp: string; latitude: number; longitude: number; isManual?: boolean };
+  timeOnSiteMins?: number;
+  // Share of the open-visit duration evidenced by periodic location sampling (AC 2.5).
+  evidencedPct?: number;
 }
 
 export interface SubmittedDCR {

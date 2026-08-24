@@ -45,6 +45,7 @@ export default function Sidebar({
     { k: 'insights', i: 'sparkles', l: 'AI Insights' },
     { k: 'clinical', i: 'flask', l: 'Clinical Meetings' },
     { k: 'reports', i: 'file', l: 'Reports & DCRs' },
+    { k: 'sync-queue', i: 'refresh', l: 'Sync Queue', badge: 3 },
   ];
 
   const widthCls = isMobile

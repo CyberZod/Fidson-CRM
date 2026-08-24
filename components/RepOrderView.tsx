@@ -93,7 +93,7 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
                 <Icon name="send" size={14} className="text-sky-700" />
                 <p className="text-[10px] font-bold text-sky-700 tracking-wider uppercase font-display">Sent to Sales Admin</p>
               </div>
-              <p className="text-xs text-sky-800">No discount requested. Routed straight to Sales Admin queue for SOA processing — no manager approval needed.</p>
+              <p className="text-xs text-sky-800">No discount requested. Routed straight to Sales Admin queue for SOA processing · no manager approval needed.</p>
             </div>
           )}
 
@@ -216,7 +216,7 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
               <p className="stat-label text-navy-400 mb-2">Justification for RSM</p>
               <textarea
                 rows={3}
-                placeholder="Explain why this discount is justified — order volume, competitor pressure, account value…"
+                placeholder="Explain why this discount is justified · order volume, competitor pressure, account value…"
                 className="input-field w-full p-3 rounded-xl bg-paper border border-navy-100 text-sm text-ink resize-none"
               />
             </div>

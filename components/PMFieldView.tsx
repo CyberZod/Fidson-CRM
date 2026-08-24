@@ -196,7 +196,7 @@ export default function PMFieldView({ accompaniments = [], onSaveAccompaniment, 
               rows={3}
               value={jcForm.rationale}
               onChange={e => setJcForm({ ...jcForm, rationale: e.target.value })}
-              placeholder="e.g. Coflin uptake below target in Apapa zone — want to observe paediatric detailing approach."
+              placeholder="e.g. Coflin uptake below target in Apapa zone · want to observe paediatric detailing approach."
               className="input-field w-full mt-1.5 p-3 rounded-xl bg-paper border border-navy-200 text-sm resize-none text-ink"
             />
           </div>

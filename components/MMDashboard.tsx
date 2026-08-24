@@ -21,7 +21,7 @@ export default function MMDashboard({ onNavigate, contentApprovals, clinicalMeet
               <span className="text-xs text-navy-500">Institution · Nationwide</span>
             </div>
             <h2 className="mt-2 font-display text-2xl sm:text-3xl font-bold text-ink">
-              Hello <span style={{ background: 'linear-gradient(135deg, #142A5A 0%, #D946EF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Tola</span> — brand health is strong
+              Hello <span style={{ background: 'linear-gradient(135deg, #142A5A 0%, #D946EF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Tola</span> · brand health is strong
             </h2>
             <p className="text-sm text-navy-500 mt-1">{pendingContentCount} content approvals pending · {pendingHighImpactCMs} high-impact CMs queued for HoM sign-off (you preview as MM) · You report to HoM</p>
           </div>

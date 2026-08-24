@@ -26,7 +26,7 @@ const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h
 const toTime = (mins: number) => `${String(Math.floor(mins / 60) % 24).padStart(2, '0')}:${String(Math.round(mins) % 60).padStart(2, '0')}`;
 const routeKm = (arr: RepVisit[]) => arr.reduce((s, v, i) => i ? s + legKm(v.name, arr[i - 1].name) : 0, 0);
 
-// All orderings of arr (n! — only called for small day plans).
+// All orderings of arr (n! · only called for small day plans).
 const permute = <T,>(arr: T[]): T[][] =>
   arr.length <= 1 ? [arr] : arr.flatMap((x, i) => permute([...arr.slice(0, i), ...arr.slice(i + 1)]).map(p => [x, ...p]));
 
@@ -187,7 +187,7 @@ export default function RepPlanView({
 
   // AI route optimization: reorder flexible visits along the shortest path while
   // keeping fixed-time (HCP-given) slots anchored. A candidate route is only valid
-  // if the schedule is time-feasible — you must never arrive late to a fixed slot.
+  // if the schedule is time-feasible · you must never arrive late to a fixed slot.
   const DWELL_MIN = 30;
   const START_MIN = 9 * 60;
 
@@ -203,7 +203,7 @@ export default function RepPlanView({
       if (i > 0) clock += DWELL_MIN + Math.max(10, Math.round(leg * 4)); // travel + dwell
       km += leg;
       if (v.fixedTime && v.time) {
-        if (clock > toMin(v.time) + 1) return null; // would arrive late — reject
+        if (clock > toMin(v.time) + 1) return null; // would arrive late · reject
         clock = toMin(v.time); // arrive early and wait
         visits.push({ ...v, dist: leg.toFixed(1) });
       } else {
@@ -303,7 +303,7 @@ export default function RepPlanView({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-display font-bold text-ink">Plan your week — {effectiveItinerary.weekLabel}</p>
+                  <p className="font-display font-bold text-ink">Plan your week · {effectiveItinerary.weekLabel}</p>
                   <span className="px-2 py-0.5 rounded-full bg-leaf-100 text-leaf-700 text-[10px] font-bold tracking-wider uppercase">Draft</span>
                 </div>
                 <p className="text-xs text-navy-500 mt-0.5">No itinerary submitted yet. Add visits day by day, then send to your RSM for sign-off.</p>
@@ -361,7 +361,7 @@ export default function RepPlanView({
                   <p className="font-display font-bold text-ink text-sm sm:text-base">{effectiveItinerary.weekLabel}</p>
                   <p className="text-xs text-navy-500 mt-0.5">
                     {effectiveItinerary.escalationStatus === 'escalated' ? (
-                      <span className="text-rose-600 font-bold">Escalated to DM Kemi Adeyemi — RSM unavailable</span>
+                      <span className="text-rose-600 font-bold">Escalated to DM Kemi Adeyemi · RSM unavailable</span>
                     ) : effectiveItinerary.escalationStatus === 'imminent' ? (
                       <span className="text-amber-600 font-bold">Escalation Imminent · Auto-escalates to DM in 4 hrs</span>
                     ) : (
@@ -480,7 +480,7 @@ export default function RepPlanView({
 
             {dayVisits.length === 0 ? (
               <div className="py-12 text-center text-sm text-navy-500">
-                {isDraft ? `No visits added for ${selectedDayLabel?.label} yet — tap Add visit to plan one.` : 'No visits planned for this day'}
+                {isDraft ? `No visits added for ${selectedDayLabel?.label} yet · tap Add visit to plan one.` : 'No visits planned for this day'}
               </div>
             ) : (
               <div className="divide-y divide-navy-50">
@@ -576,7 +576,7 @@ export default function RepPlanView({
                     list="callpoints"
                     value={draftForm.name}
                     onChange={e => updateDraftForm({ name: e.target.value })}
-                    placeholder="Start typing — e.g. Lakeshore Specialist Hospital"
+                    placeholder="Start typing · e.g. Lakeshore Specialist Hospital"
                     className="input-field w-full mt-1.5 px-3 py-2 rounded-lg bg-paper border border-navy-200 text-sm text-ink"
                   />
                   <datalist id="callpoints">
@@ -611,7 +611,7 @@ export default function RepPlanView({
                         Flexible
                       </button>
                     </div>
-                    <p className="text-[10px] text-navy-500 mt-1">{draftForm.fixedTime ? 'HCP gave this slot — AI keeps it locked.' : 'AI can move this to optimize the route.'}</p>
+                    <p className="text-[10px] text-navy-500 mt-1">{draftForm.fixedTime ? 'HCP gave this slot · AI keeps it locked.' : 'AI can move this to optimize the route.'}</p>
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Priority</label>
@@ -693,7 +693,7 @@ export default function RepPlanView({
                   <Icon name="trending" size={16} className="text-violet-700 flex-shrink-0" />
                   <p className="text-[11px] text-violet-800">
                     {proposal.savedKm > 0
-                      ? <>Reordered around your fixed slots — saves <span className="font-bold">~{proposal.savedKm.toFixed(1)} km</span> and <span className="font-bold">~{proposal.savedMin} min</span> of driving.</>
+                      ? <>Reordered around your fixed slots · saves <span className="font-bold">~{proposal.savedKm.toFixed(1)} km</span> and <span className="font-bold">~{proposal.savedMin} min</span> of driving.</>
                       : <>Your order is already efficient. Flexible times re-timed around the fixed slots.</>}
                   </p>
                 </div>
@@ -785,8 +785,8 @@ export default function RepPlanView({
                     value={adjReason}
                     onChange={e => setAdjReason(e.target.value)}
                     placeholder={adjustForm.type === 'add'
-                      ? 'e.g. Walk-in opportunity at Vedic Lifecare — Dr. Singh free at 15:00.'
-                      : 'e.g. Dr. Adebayo cancelled — Reddington requested an urgent Coflin paediatric brief.'}
+                      ? 'e.g. Walk-in opportunity at Vedic Lifecare · Dr. Singh free at 15:00.'
+                      : 'e.g. Dr. Adebayo cancelled · Reddington requested an urgent Coflin paediatric brief.'}
                     className="input-field w-full mt-1.5 p-3 rounded-xl bg-paper border border-navy-200 text-sm resize-none"
                   />
                 </div>

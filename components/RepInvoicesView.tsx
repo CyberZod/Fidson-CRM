@@ -7,7 +7,7 @@ interface RepInvoicesViewProps {
 
 // An invoice exists once an order clears the approval gate. Business Central is the
 // real generator in production; here we surface the rep-facing copy off order status.
-// ponytail: derived from orders, no parallel state — discount-approval flips status and the invoice appears.
+// ponytail: derived from orders, no parallel state · discount-approval flips status and the invoice appears.
 const INVOICED = new Set(['approved', 'synced', 'sent-to-sales-admin']);
 
 const stage = (s: OrderRow['status']) =>
@@ -29,7 +29,7 @@ export default function RepInvoicesView({ orders = [] }: RepInvoicesViewProps) {
       {pending.length > 0 && (
         <div className="fade-up p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center gap-3">
           <Icon name="alert" size={18} className="text-amber-700 flex-shrink-0" />
-          <p className="text-xs text-navy-700">{pending.length} order{pending.length > 1 ? 's' : ''} awaiting discount approval — an invoice generates automatically once approved.</p>
+          <p className="text-xs text-navy-700">{pending.length} order{pending.length > 1 ? 's' : ''} awaiting discount approval · an invoice generates automatically once approved.</p>
         </div>
       )}
 
