@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import FidsonLogo from './FidsonLogo';
 import Icon from './Icon';
 import type { SignedInUser } from '../types';
@@ -8,42 +8,14 @@ interface LoginScreenProps {
 }
 
 export default function LoginScreen({ onLogin }: LoginScreenProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  const fillDemo = () => {
-    setEmail('demo@fidson.com');
-    setPassword('demo2026');
-    setError('');
-  };
-
-  const handleSubmit = (e?: FormEvent) => {
-    if (e) e.preventDefault();
-    setError('');
-    if (!email || !password) {
-      setError('Please enter both email and password');
-      return;
-    }
-    if (!email.includes('@')) {
-      setError('Enter a valid email address');
-      return;
-    }
+  // Simulates the Microsoft 365 redirect. Real auth is Entra ID; there is no app password (AC 1.1).
+  const handleMicrosoftSignIn = () => {
     setLoading(true);
     setTimeout(() => {
-      if ((email === 'demo@fidson.com' && password === 'demo2026') ||
-          (email.endsWith('@fidson.com') && password.length >= 6)) {
-        onLogin({
-          email,
-          signedInEmail: email,
-        });
-      } else {
-        setError('Invalid credentials. Try the demo account.');
-        setLoading(false);
-      }
-    }, 900);
+      onLogin({ email: 'demo@fidson.com', signedInEmail: 'demo@fidson.com' });
+    }, 1100);
   };
 
   return (
@@ -108,82 +80,36 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
           <h2 className="font-display text-2xl sm:text-3xl font-bold text-ink">Welcome back</h2>
           <p className="text-sm text-navy-500 mt-1">Sign in to access your dashboard</p>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-            <div>
-              <label className="text-xs font-bold text-navy-700 tracking-wider uppercase">Work Email</label>
-              <div className="relative mt-1.5">
-                <Icon name="mail" size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-navy-400" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@fidson.com"
-                  className="input-field w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-navy-200 text-sm font-medium text-ink transition-all"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-navy-700 tracking-wider uppercase">Password</label>
-              <div className="relative mt-1.5">
-                <Icon name="lock" size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-navy-400" />
-                <input
-                  type={showPw ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="input-field w-full pl-10 pr-12 py-3 rounded-xl bg-white border border-navy-200 text-sm font-medium text-ink transition-all"
-                />
-                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-navy-400 hover:text-navy-700">
-                  <Icon name={showPw ? 'eyeOff' : 'eye'} size={16} />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-navy-300 accent-leaf-500" defaultChecked />
-                <span className="text-xs text-navy-600">Keep me signed in</span>
-              </label>
-              <button type="button" className="text-xs font-semibold text-leaf-700 hover:text-leaf-800">Forgot password?</button>
-            </div>
-
-            {error && (
-              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 fade-up">
-                <p className="text-xs text-rose-700 font-semibold flex items-center gap-1.5">
-                  <Icon name="alert" size={14} /> {error}
-                </p>
-              </div>
-            )}
-
+          <div className="mt-8 space-y-4">
             <button
-              type="submit"
+              type="button"
+              onClick={handleMicrosoftSignIn}
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-navy-700 text-white font-display font-semibold text-sm btn-press hover:bg-navy-800 disabled:opacity-70 flex items-center justify-center gap-2 transition-colors"
+              className="w-full py-3.5 rounded-xl bg-navy-700 text-white font-display font-semibold text-sm btn-press hover:bg-navy-800 disabled:opacity-70 flex items-center justify-center gap-2.5 transition-colors"
             >
               {loading ? (
                 <>
                   <Icon name="refresh" size={16} className="spin" />
-                  Authenticating...
+                  Signing you in with Microsoft...
                 </>
               ) : (
-                <>Sign in <Icon name="arrowRight" size={16} /></>
+                <>
+                  <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                    <rect x="0" y="0" width="7.4" height="7.4" fill="#F25022" />
+                    <rect x="8.6" y="0" width="7.4" height="7.4" fill="#7FBA00" />
+                    <rect x="0" y="8.6" width="7.4" height="7.4" fill="#00A4EF" />
+                    <rect x="8.6" y="8.6" width="7.4" height="7.4" fill="#FFB900" />
+                  </svg>
+                  Sign in with Microsoft 365
+                </>
               )}
             </button>
 
-            <div className="relative py-1">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-navy-100" /></div>
-              <div className="relative flex justify-center"><span className="px-3 bg-paper text-[10px] font-bold text-navy-400 tracking-wider">OR</span></div>
-            </div>
-
-            <button
-              type="button"
-              className="w-full py-3 rounded-xl bg-white border border-navy-200 text-sm font-semibold text-navy-700 btn-press hover:bg-navy-50 flex items-center justify-center gap-2"
-            >
-              <Icon name="fingerprint" size={16} className="text-leaf-600" />
-              Sign in with SSO (Microsoft 365)
-            </button>
-          </form>
+            <p className="text-xs text-navy-500 leading-relaxed text-center px-2">
+              Use your existing Fidson Microsoft 365 account. There is no separate password:
+              access is granted and removed by Fidson IT through security groups.
+            </p>
+          </div>
 
           <div className="mt-6 p-4 rounded-xl border-2 border-dashed border-leaf-300 bg-leaf-50">
             <div className="flex items-start gap-3">
@@ -198,13 +124,6 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
                 <p className="text-xs text-leaf-700 mt-1.5 leading-relaxed">
                   Sign in once and switch between <strong>Rep</strong>, <strong>ASM</strong>, <strong>RSM</strong>, <strong>FSM</strong>, <strong>PM</strong>, <strong>MM</strong>, <strong>DM</strong>, and <strong>NSM</strong> — Fidson's full org chart across Nigeria.
                 </p>
-                <div className="mt-3 space-y-1 font-mono text-[11px] text-navy-700">
-                  <p><span className="text-navy-500">Email:</span> demo@fidson.com</p>
-                  <p><span className="text-navy-500">Password:</span> demo2026</p>
-                </div>
-                <button onClick={fillDemo} type="button" className="mt-3 px-3 py-1.5 rounded-lg bg-leaf-500 text-white text-[11px] font-bold flex items-center gap-1 btn-press hover:bg-leaf-600">
-                  Auto-fill demo credentials <Icon name="arrowRight" size={11} />
-                </button>
               </div>
             </div>
           </div>

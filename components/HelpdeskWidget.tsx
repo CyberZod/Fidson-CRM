@@ -27,7 +27,7 @@ const AUTO_REPLIES: AutoReply[] = [
   },
   {
     triggers: ['login', 'log', 'password', 'signin', 'sign', 'access', 'locked'],
-    reply: 'Trouble signing in? Make sure you’re using your Fidson email. Use “Forgot password” on the login screen to reset, or I can raise a ticket to IT to unlock your account — just reply “ticket”.',
+    reply: 'Trouble signing in? You sign in with your Fidson Microsoft 365 account, so there is no app password to reset. If Microsoft rejects you, your account may not be in the FieldForce security group yet. I can raise a ticket to Fidson IT to check your access — just reply “ticket”.',
   },
   {
     triggers: ['sync', 'syncing', 'offline', 'data', 'erp'],

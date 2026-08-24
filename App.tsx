@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { PERSONAS } from './assets/personas';
 import Sidebar from './components/Sidebar';
 import RepSidebar from './components/RepSidebar';
+import RepTeamView from './components/RepTeamView';
 import RoleSidebar from './components/RoleSidebar';
 import TopBar from './components/TopBar';
 import BottomNav from './components/BottomNav';
@@ -1117,6 +1118,7 @@ export default function App() {
     itineraries: { t: 'Itinerary Governance', s: `${itinerariesPending.length} weekly · ${adjustmentsPending.length} daily adjustments pending` },
     'rep-day': { t: 'My Day', s: `${repStats.completed}/${repStats.planned} visits · Lagos region` },
     'rep-plan': { t: "Today's Plan", s: '8 stops · AI-optimized · GPS active' },
+    'rep-team': { t: 'My Team', s: 'Lekki/V.I. Cluster · ASM Funmi Adeola' },
     'rep-visit': { t: activeVisit ? `Visit: ${activeVisit.name}` : 'Active Visit', s: activeVisit ? `Visit ${activeVisit.id} of 8${activeVisit.contact ? ` · ${activeVisit.contact}` : ''}` : 'No active visit' },
     'rep-order': { t: 'Place Order', s: 'SOA-integrated · Real-time pricing' },
     'rep-coach': { t: 'AI Coach', s: 'Personalized insights & recommendations' },
@@ -1299,6 +1301,7 @@ export default function App() {
         case 'rep-dcr': return <RepDCRView visitsCompleted={repStats.completed} ordersToday={orders.filter(o => o.rep === 'Adaeze O.').length} visitLogs={visitLogs} onSubmit={handleSubmitDCR} />;
         case 'rep-clinical': return <RepClinicalView onSubmitCM={handleSubmitCM} prefillHcp={cmPrefillHcp} onConsumePrefill={() => setCmPrefillHcp('')} />;
         case 'rep-orders': return <OrdersView orders={orders.filter(o => o.rep === 'Adaeze O.')} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
+        case 'rep-team': return <RepTeamView />;
         case 'rep-customers': return <CustomersView extraAccounts={convertedCustomers} />;
         case 'rep-pipeline': return <RepPipelineView leads={leads.filter(l => l.repName === REP_OWNER)} onEnrich={handleEnrichLead} onConsent={handleConsentLead} onSend={handleSendLead} onConvert={handleConvertLead} onNavigate={setView} />;
         case 'rep-invoices': return <RepInvoicesView orders={orders.filter(o => o.rep === 'Adaeze O.')} />;
