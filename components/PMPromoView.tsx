@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
 import Icon from './Icon';
+import { useNotice } from './useNotice';
 import { formatNaira } from '../assets/campaigns';
-import type { PromoRequest, PromoStatus } from '../types';
+import { useMarketing } from '../stores/marketing';
+import type { PromoStatus, ToastInput } from '../types';
 
 interface PMPromoViewProps {
-  promoRequests: PromoRequest[];
-  onApprove: (id: string) => void;
-  onReject: (id: string) => void;
-  onLaunch: (id: string) => void;
+  onToast?: (t: ToastInput) => void;
+  onNavigate?: (view: string) => void;
 }
 
 type FilterKey = 'pending' | 'approved' | 'all';
@@ -25,8 +25,25 @@ const statusChip: Record<PromoStatus, { bg: string; label: string }> = {
   launched: { bg: 'bg-leaf-100 text-leaf-700', label: 'LAUNCHED' },
 };
 
-export default function PMPromoView({ promoRequests, onApprove, onReject, onLaunch }: PMPromoViewProps) {
+export default function PMPromoView({ onToast, onNavigate }: PMPromoViewProps) {
+  const { promoRequests, approvePromo, rejectPromo, launchPromo } = useMarketing();
+  const { notify, node } = useNotice(onToast);
   const [filter, setFilter] = useState<FilterKey>('pending');
+
+  const onApprove = (id: string) => {
+    const p = promoRequests.find(x => x.id === id);
+    approvePromo(id);
+    notify({ type: 'success', title: 'Promo approved', msg: `${p?.title} · ${p?.rep} notified · ready to launch as a tracked campaign` });
+  };
+  const onReject = (id: string) => {
+    const p = promoRequests.find(x => x.id === id);
+    rejectPromo(id);
+    notify({ type: 'error', title: 'Promo rejected', msg: `${p?.rep} notified · ${p?.title}` });
+  };
+  const onLaunch = (id: string) => {
+    const c = launchPromo(id);
+    notify({ type: 'success', title: 'Campaign launched', msg: `${c?.name} · now in Campaigns & ROI · 60-day attribution started` });
+  };
 
   const filtered = useMemo(() => {
     if (filter === 'pending') return promoRequests.filter(p => p.status === 'pending');
@@ -99,9 +116,15 @@ export default function PMPromoView({ promoRequests, onApprove, onReject, onLaun
                       </button>
                     )}
                     {p.status === 'launched' && (
-                      <span className="px-2 py-1 rounded-full bg-leaf-50 text-leaf-700 border border-leaf-200 text-[10px] font-bold flex items-center gap-1">
-                        <Icon name="check" size={10} strokeWidth={3} /> Tracking ROI
-                      </span>
+                      onNavigate ? (
+                        <button onClick={() => onNavigate('campaigns')} className="px-2 py-1 rounded-full bg-leaf-50 text-leaf-700 border border-leaf-200 text-[10px] font-bold flex items-center gap-1 hover:bg-leaf-100">
+                          <Icon name="check" size={10} strokeWidth={3} /> Tracking ROI · view
+                        </button>
+                      ) : (
+                        <span className="px-2 py-1 rounded-full bg-leaf-50 text-leaf-700 border border-leaf-200 text-[10px] font-bold flex items-center gap-1">
+                          <Icon name="check" size={10} strokeWidth={3} /> Tracking ROI in Campaigns
+                        </span>
+                      )
                     )}
                   </div>
                 </div>
@@ -110,6 +133,7 @@ export default function PMPromoView({ promoRequests, onApprove, onReject, onLaun
           })}
         </div>
       </div>
+      {node}
     </div>
   );
 }

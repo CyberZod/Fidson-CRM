@@ -27,6 +27,7 @@
     "types.ts",
     "components/**/*",
     "services/**/*",
+    "stores/**/*",
     "assets/**/*.ts",
     "vite-env.d.ts"
   ]

@@ -1,11 +1,15 @@
 import { useState, type FormEvent } from 'react';
 import Icon from './Icon';
-import type { DirectiveForm, DirectiveRow } from '../types';
+import AudiencePicker from './AudiencePicker';
+import DirectiveTracker from './DirectiveTracker';
+import { useNotice } from './useNotice';
+import { EMPTY_AUDIENCE, resolveAudience, useMarketing, type Audience } from '../stores/marketing';
+import type { DirectiveForm, ToastInput } from '../types';
 
 interface PMDirectivesViewProps {
-  directives?: DirectiveRow[];
-  onPushDirective: (form: DirectiveForm) => void;
   onBack?: () => void;
+  onToast?: (t: ToastInput) => void;
+  sender?: string;
 }
 
 const EMPTY_FORM: DirectiveForm = {
@@ -16,15 +20,28 @@ const EMPTY_FORM: DirectiveForm = {
   kind: 'directive',
 };
 
-export default function PMDirectivesView({ directives = [], onPushDirective, onBack }: PMDirectivesViewProps) {
+const PM_AUDIENCE: Audience = { ...EMPTY_AUDIENCE, channels: ['institution'] };
+
+export default function PMDirectivesView({ onBack, onToast, sender = 'Dr. Femi Akande' }: PMDirectivesViewProps) {
+  const { directives: all, pushDirective } = useMarketing();
+  const { notify, node } = useNotice(onToast);
   const [form, setForm] = useState<DirectiveForm>(EMPTY_FORM);
+  const [audience, setAudience] = useState<Audience>(PM_AUDIENCE);
   const [showForm, setShowForm] = useState(false);
+  const directives = all.filter(d => d.fromRole === 'PM');
+  const reach = resolveAudience(audience).length;
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!form.title || !form.message) return;
-    onPushDirective(form);
+    if (!form.title || !form.message || reach === 0) return;
+    const d = pushDirective({ ...form, kind: form.kind ?? 'directive', audience, from: sender, fromRole: 'PM', includeReps: true });
+    notify({
+      type: 'success',
+      title: form.kind === 'new-product' ? 'New product notification sent' : 'Directive pushed',
+      msg: `${d.title} · ${d.recipientNames.length} reps notified in My Day · acknowledgement tracked`,
+    });
     setForm(EMPTY_FORM);
+    setAudience(PM_AUDIENCE);
     setShowForm(false);
   };
 
@@ -106,6 +123,12 @@ export default function PMDirectivesView({ directives = [], onPushDirective, onB
             </div>
           </div>
           <div>
+            <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Audience</label>
+            <div className="mt-1.5 p-3 rounded-xl border border-navy-100">
+              <AudiencePicker value={audience} onChange={setAudience} />
+            </div>
+          </div>
+          <div>
             <label className="text-[10px] font-bold text-navy-700 tracking-wider uppercase">Directive Message</label>
             <textarea
               rows={4}
@@ -118,9 +141,10 @@ export default function PMDirectivesView({ directives = [], onPushDirective, onB
           </div>
           <button
             type="submit"
-            className={`w-full py-3 rounded-xl text-white font-display font-semibold text-sm btn-press ${form.kind === 'new-product' ? 'bg-leaf-600 hover:bg-leaf-700' : 'bg-violet-600 hover:bg-violet-700'}`}
+            disabled={reach === 0}
+            className={`w-full py-3 rounded-xl text-white font-display font-semibold text-sm btn-press disabled:opacity-50 ${form.kind === 'new-product' ? 'bg-leaf-600 hover:bg-leaf-700' : 'bg-violet-600 hover:bg-violet-700'}`}
           >
-            {form.kind === 'new-product' ? 'Send New Product Notification' : 'Push Directive to Field'}
+            {form.kind === 'new-product' ? `Send New Product Notification to ${reach} reps` : `Push Directive to ${reach} reps`}
           </button>
         </form>
       )}
@@ -147,18 +171,15 @@ export default function PMDirectivesView({ directives = [], onPushDirective, onB
               <p className={`text-[11px] font-semibold uppercase tracking-wider mb-2 ${isNewProduct ? 'text-leaf-700' : 'text-violet-700'}`}>Target: {d.targetProduct}</p>
               <p className="text-xs text-navy-600 leading-relaxed bg-navy-50 p-3 rounded-xl">{d.message}</p>
             </div>
-            <div className="mt-4 pt-3 border-t border-navy-100 flex items-center justify-between">
+            <div className="mt-4 pt-3 border-t border-navy-100 space-y-3">
               <p className="text-[10px] text-navy-500">Created by: <strong>{d.pm}</strong></p>
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                d.acknowledged ? 'bg-leaf-50 text-leaf-700 border border-leaf-200' : 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
-              }`}>
-                {d.acknowledged ? 'Acknowledged' : 'Pending Acknowledgment'}
-              </span>
+              <DirectiveTracker directive={d} notify={notify} />
             </div>
           </div>
           );
         })}
       </div>
+      {node}
     </div>
   );
 }

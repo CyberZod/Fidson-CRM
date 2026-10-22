@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import Icon from './Icon';
-import { CHAT_PROFILES, answerFromChatLibrary } from '../assets/aiChat';
+import { getChatProfile, answerWithScope } from '../assets/aiChat';
 import type { PersonaKey } from '../types';
 
 interface AIInsightsChatProps {
@@ -12,12 +12,13 @@ interface ChatMessage {
   from: 'user' | 'assistant';
   text: string;
   pending?: boolean;
+  refused?: boolean;
 }
 
 type NewsTab = 'good' | 'bad';
 
 export default function AIInsightsChat({ role }: AIInsightsChatProps) {
-  const profile = useMemo(() => CHAT_PROFILES[role] ?? CHAT_PROFILES.manager, [role]);
+  const profile = useMemo(() => getChatProfile(role), [role]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [newsTab, setNewsTab] = useState<NewsTab>('good');
@@ -43,8 +44,8 @@ export default function AIInsightsChat({ role }: AIInsightsChatProps) {
     setDraft('');
 
     setTimeout(() => {
-      const reply = answerFromChatLibrary(role, trimmed);
-      setMessages(prev => prev.map(m => m.id === pendingId ? { ...m, text: reply, pending: false } : m));
+      const reply = answerWithScope(role, trimmed);
+      setMessages(prev => prev.map(m => m.id === pendingId ? { ...m, text: reply.text, refused: reply.refused, pending: false } : m));
     }, 550);
   };
 
@@ -72,6 +73,13 @@ export default function AIInsightsChat({ role }: AIInsightsChatProps) {
           <span className="px-2 py-0.5 rounded-full bg-white/10 text-white text-[9px] font-bold border border-white/10">DEMO</span>
         </div>
       </div>
+
+      {profile.scopeBanner && (
+        <div className="fade-up px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2">
+          <Icon name="lock" size={13} className="text-amber-700 flex-shrink-0" />
+          <p className="text-[11px] text-amber-900 min-w-0"><span className="font-bold">Scope: {profile.scopeBanner}</span><span className="hidden sm:inline"> · answers use only data your role can see</span></p>
+        </div>
+      )}
 
       <div className="fade-up stagger-1 rounded-2xl bg-white border border-navy-100 overflow-hidden">
         <div className="flex items-stretch border-b border-navy-100">
@@ -123,6 +131,16 @@ export default function AIInsightsChat({ role }: AIInsightsChatProps) {
               {s}
             </button>
           ))}
+          {profile.scopeProbes?.map(s => (
+            <button
+              key={s}
+              onClick={() => sendQuestion(s)}
+              title="Outside your scope · shows how the assistant refuses"
+              className="px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-[10px] font-semibold text-amber-800 hover:bg-amber-100 transition-colors btn-press flex items-center gap-1"
+            >
+              <Icon name="lock" size={9} /> {s}
+            </button>
+          ))}
         </div>
 
         {hasMessages && (
@@ -132,12 +150,14 @@ export default function AIInsightsChat({ role }: AIInsightsChatProps) {
                 <div className={`max-w-[88%] rounded-2xl px-3 py-2 ${
                   m.from === 'user'
                     ? 'bg-navy-700 text-white rounded-br-md'
-                    : 'bg-white border border-navy-100 text-ink rounded-bl-md'
+                    : m.refused
+                      ? 'bg-amber-50 border border-amber-200 text-ink rounded-bl-md'
+                      : 'bg-white border border-navy-100 text-ink rounded-bl-md'
                 }`}>
                   {m.from === 'assistant' && (
                     <div className="flex items-center gap-1.5 mb-1">
-                      <Icon name="sparkles" size={10} className="text-leaf-600" />
-                      <p className="text-[9px] font-bold text-leaf-700 tracking-wider uppercase">Fidson AI</p>
+                      <Icon name={m.refused ? 'lock' : 'sparkles'} size={10} className={m.refused ? 'text-amber-700' : 'text-leaf-600'} />
+                      <p className={`text-[9px] font-bold tracking-wider uppercase ${m.refused ? 'text-amber-700' : 'text-leaf-700'}`}>{m.refused ? 'Fidson AI · outside your scope' : 'Fidson AI'}</p>
                     </div>
                   )}
                   <p className={`text-xs leading-relaxed ${m.pending ? 'italic opacity-70' : ''}`}>{m.text}</p>

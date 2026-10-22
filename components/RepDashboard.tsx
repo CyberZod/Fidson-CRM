@@ -1,4 +1,7 @@
 import Icon from './Icon';
+import { RepInbox } from './MessagesView';
+import { RepTrainingCard } from './TrainingTasksView';
+import { RepFocusCard } from './FocusProductsView';
 import { todayLong } from '../utils/dates';
 import type { RepVisit, RepDashboardStats, DirectiveRow, CustomerInventoryItem } from '../types';
 
@@ -140,43 +143,16 @@ export default function RepDashboard({
             </div>
           </div>
 
-          <div className="fade-up stagger-3 rounded-2xl bg-white border border-navy-100 p-5">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-display font-bold text-ink text-sm">My Products of Focus</h3>
-              <span className="px-2 py-0.5 rounded-full bg-leaf-50 text-leaf-700 text-[9px] font-bold">Q2</span>
-            </div>
-            <div className="space-y-2">
-              {[
-                { n: 'Coflin Forte 600mg', t: 'Mucolytic · RX', focus: true, v: '47/80' },
-                { n: 'Astrazon 10mg', t: 'Antihistamine', focus: false, v: '22/50' },
-                { n: 'Tuxil-N Syrup', t: 'OTC · Cough', focus: false, v: '18/30' },
-              ].map((p, i) => (
-                <div key={i} className={`p-2.5 rounded-lg ${p.focus ? 'bg-leaf-50 border border-leaf-200' : 'bg-paper'}`}>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-lg ${p.focus ? 'bg-leaf-500' : 'bg-navy-100'} flex items-center justify-center flex-shrink-0`}>
-                      <Icon name="pill" size={14} className={p.focus ? 'text-white' : 'text-navy-700'} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-display font-semibold text-xs text-ink truncate">{p.n}</p>
-                      <p className="text-[10px] text-navy-500">{p.t}</p>
-                    </div>
-                    <p className="font-mono text-[10px] font-bold text-navy-700">{p.v}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="fade-up stagger-3">
+            <RepInbox />
           </div>
 
-          <div className="fade-up stagger-4 rounded-2xl bg-white border border-navy-100 p-5">
-            <h3 className="font-display font-bold text-ink text-sm mb-3">From Your RSM</h3>
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-full bg-navy-700 flex items-center justify-center text-white font-display font-bold text-xs flex-shrink-0">TB</div>
-              <div className="flex-1">
-                <p className="text-xs font-semibold text-ink">Tunde Bakare</p>
-                <p className="text-[11px] text-navy-500 mt-0.5">"Strong start this week. Push for institutional close on Lakeshore · they're top tier for Q2."</p>
-                <p className="text-[10px] text-navy-400 mt-1.5">15 min ago</p>
-              </div>
-            </div>
+          <div className="fade-up stagger-3">
+            <RepTrainingCard />
+          </div>
+
+          <div className="fade-up stagger-4">
+            <RepFocusCard />
           </div>
 
           {directives.length > 0 && (

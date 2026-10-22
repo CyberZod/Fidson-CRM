@@ -16,6 +16,8 @@ export const PERSONAS: Record<PersonaKey, Persona> = {
   nsm_trade: { email: 'musa.lawal@fidson.com', name: 'Musa Lawal', role: 'NSM · Trade', roleType: 'nsm_trade', initials: 'ML', tag: 'NSM-T', tagColor: 'amber', desc: 'NSM Trade · reports to ADC · 6 FSMs · 38 reps', category: 'Leadership' },
   adc: { email: 'remi.adeoye@fidson.com', name: 'Remi Adeoye', role: 'ADC · Associate Commercial Director', roleType: 'adc', initials: 'RA', tag: 'ADC', tagColor: 'rose', desc: 'ADC · oversees NSM Trade + NSM Mobile & Frontline', category: 'Leadership' },
   cd: { email: 'tunji.balogun@fidson.com', name: 'Tunji Balogun', role: 'CD · Commercial Director', roleType: 'cd', initials: 'TB2', tag: 'CD', tagColor: 'indigo', desc: 'Commercial Director · all channels · 142 reps · ₦2.4TN FY26', category: 'Leadership' },
+  admin: { email: 'ngozi.ibe@fidson.com', name: 'Ngozi Ibe', role: 'Platform Admin · Fidson IT', roleType: 'admin', initials: 'NI', tag: 'ADMIN', tagColor: 'navy', desc: 'Platform admin · people, config, rules, go-live', category: 'Platform & Support' },
+  support: { email: 'grace.okon@fidson.com', name: 'Grace Okon', role: 'Support Desk · Fidson IT', roleType: 'support', initials: 'GO', tag: 'SUPPORT', tagColor: 'teal', desc: 'Help desk lead · tickets, agent lessons, hypercare', category: 'Platform & Support' },
 };
 
 export const PERSONA_COLOR_MAP: Record<ColorKey, ColorPalette> = {

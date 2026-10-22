@@ -1,5 +1,9 @@
+import { useState } from 'react';
 import Icon from './Icon';
 import ProductLens from './ProductLens';
+import DrillDown from './DrillDown';
+import ChurnRisk, { HighPotentialMarkets } from './ChurnRisk';
+import { findPath, type SalesChannel } from '../assets/drillData';
 import type { ApprovalModalItem, SubmittedDCR, ClinicalMeetingRow } from '../types';
 
 interface CDDashboardProps {
@@ -12,6 +16,9 @@ interface CDDashboardProps {
 export default function CDDashboard({ onNavigate, approvals = [], dcrs = [], clinicalMeetings = [] }: CDDashboardProps) {
   const nsmEscalations = approvals.filter(a => a.escalatedToNSM);
   const cmRequests = clinicalMeetings.filter(c => c.s === 'pm-review' || c.s === 'hom-review').length;
+  const [drill, setDrill] = useState<{ path: string[]; channel?: SalesChannel } | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const openDrill = (match: string, channel?: SalesChannel) => setDrill({ path: findPath(match) ?? ['national'], channel });
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto">
       <div className="fade-up">
@@ -26,7 +33,10 @@ export default function CDDashboard({ onNavigate, approvals = [], dcrs = [], cli
             </h2>
             <p className="text-sm text-navy-500 mt-1">All channels · 142 reps national · ₦2.4TN FY26 target</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button onClick={() => openDrill('national')} className="px-3 py-2 rounded-lg border border-navy-200 bg-white text-navy-700 text-xs font-semibold flex items-center gap-1.5 btn-press hover:bg-paper">
+              <Icon name="layers" size={14} /> Drill down
+            </button>
             <button onClick={() => onNavigate('cd-directive')} className="px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-semibold flex items-center gap-1.5 btn-press hover:bg-indigo-700">
               <Icon name="send" size={14} /> Push National Directive
             </button>
@@ -148,7 +158,9 @@ export default function CDDashboard({ onNavigate, approvals = [], dcrs = [], cli
                     </div>
                     <div className="pt-2 border-t border-navy-100 flex items-center justify-between">
                       <span className="text-[11px] text-navy-500">{d.reps} reps</span>
-                      <span className="text-[10px] font-bold text-navy-400">CHANNEL</span>
+                      <button onClick={() => openDrill('national', d.ch as SalesChannel)} className="text-[11px] font-bold text-indigo-700 hover:text-indigo-800 flex items-center gap-1">
+                        Drill in <Icon name="arrowRight" size={11} />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -167,7 +179,7 @@ export default function CDDashboard({ onNavigate, approvals = [], dcrs = [], cli
                 { r: 'North-West', pct: 62, vol: '₦18M' },
                 { r: 'North-East', pct: 48, vol: '₦16M' },
               ].map(t => (
-                <div key={t.r}>
+                <button key={t.r} onClick={() => openDrill(t.r)} className="w-full text-left block rounded-lg hover:bg-paper -mx-1 px-1 py-0.5">
                   <div className="flex items-baseline justify-between mb-1">
                     <span className="text-xs font-medium text-navy-700">{t.r}</span>
                     <span className="font-mono text-xs"><span className="text-navy-500">{t.pct}%</span> · <span className="font-bold text-indigo-700">{t.vol}</span></span>
@@ -175,8 +187,17 @@ export default function CDDashboard({ onNavigate, approvals = [], dcrs = [], cli
                   <div className="h-2 rounded-full bg-navy-100 overflow-hidden">
                     <div className="h-full rounded-full bg-indigo-500" style={{ width: `${t.pct}%` }} />
                   </div>
-                </div>
+                </button>
               ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <div className="fade-up stagger-2">
+              <HighPotentialMarkets onSelectRegion={code => openDrill(code)} />
+            </div>
+            <div className="fade-up stagger-2">
+              <ChurnRisk />
             </div>
           </div>
         </div>
@@ -240,7 +261,7 @@ export default function CDDashboard({ onNavigate, approvals = [], dcrs = [], cli
                 { n: 'Segun Adebanjo', r: 'NSM Institution', team: '2 DMs · 6 RSMs · 62 reps', accent: 'indigo' },
                 { n: 'Remi Adeoye', r: 'ADC', team: 'NSM Trade + NSM M&F · 80 reps', accent: 'rose' },
               ].map((dr, i) => (
-                <div key={i} className="px-4 py-3 flex items-center gap-3 hover:bg-paper">
+                <button key={i} onClick={() => openDrill('national', i === 0 ? 'Institution' : 'Trade')} className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-paper">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-display font-bold text-xs flex-shrink-0 ${
                     dr.accent === 'indigo' ? 'bg-indigo-100 text-indigo-700' : 'bg-rose-100 text-rose-700'
                   }`}>
@@ -251,7 +272,7 @@ export default function CDDashboard({ onNavigate, approvals = [], dcrs = [], cli
                     <p className="text-[10px] text-navy-500 truncate">{dr.r} · {dr.team}</p>
                   </div>
                   <Icon name="chevronRight" size={12} className="text-navy-300" />
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -267,19 +288,21 @@ export default function CDDashboard({ onNavigate, approvals = [], dcrs = [], cli
                 { l: '₦2.4TN Tracker · Weekly', t: 'Every Monday' },
                 { l: 'Board Commercial Pack', t: 'Quarterly · Q2 ready' },
               ].map(r => (
-                <div key={r.l} className="flex items-center gap-2 p-2 rounded-lg hover:bg-paper">
+                <button key={r.l} onClick={() => setNote(`${r.l} sent to tunji.balogun@fidson.com`)} className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-paper text-left">
                   <Icon name="file" size={14} className="text-indigo-700" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-ink truncate">{r.l}</p>
                     <p className="text-[10px] text-navy-500">{r.t}</p>
                   </div>
                   <Icon name="download" size={12} className="text-navy-400" />
-                </div>
+                </button>
               ))}
             </div>
+            {note && <p className="mt-2 text-[11px] text-leaf-700 font-semibold">{note}</p>}
           </div>
         </div>
       </div>
+      {drill && <DrillDown path={drill.path} initialChannel={drill.channel} onClose={() => setDrill(null)} />}
     </div>
   );
 }

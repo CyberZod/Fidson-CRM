@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import Icon from './Icon';
+import DrillDown from './DrillDown';
+import { findPath } from '../assets/drillData';
 import type { VisitLog } from '../types';
 
 interface FieldActivityViewProps {
@@ -22,6 +24,7 @@ interface Rep {
 
 export default function FieldActivityView({ searchQuery, visitLogs = [] }: FieldActivityViewProps) {
   const [filter, setFilter] = useState<FilterKey>('all');
+  const [drillPath, setDrillPath] = useState<string[] | null>(null);
 
   // Today's real logs, newest first (visitLogs is already prepended newest-first).
   const todaysLogs = useMemo(() => {
@@ -203,7 +206,7 @@ export default function FieldActivityView({ searchQuery, visitLogs = [] }: Field
                 <p className="text-sm text-navy-500">No reps match this filter</p>
               </div>
             ) : filteredReps.map((r, i) => (
-              <button key={i} className="w-full p-3 rounded-lg hover:bg-paper transition-colors text-left flex items-center gap-3">
+              <button key={i} onClick={() => setDrillPath(findPath(r.n) ?? ['national', 'south', 'sw'])} className="w-full p-3 rounded-lg hover:bg-paper transition-colors text-left flex items-center gap-3">
                 <div className="relative flex-shrink-0">
                   <div className={`w-10 h-10 rounded-full font-display font-bold text-xs flex items-center justify-center ${
                     r.s === 'live' ? 'bg-leaf-100 text-leaf-700' :
@@ -226,6 +229,7 @@ export default function FieldActivityView({ searchQuery, visitLogs = [] }: Field
           </div>
         </div>
       </div>
+      {drillPath && <DrillDown path={drillPath} rootId="sw" onClose={() => setDrillPath(null)} />}
     </div>
   );
 }

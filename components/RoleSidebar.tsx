@@ -36,6 +36,8 @@ const ACCENT_MAP: Partial<Record<PersonaKey, AccentSpec>> = {
   nsm_trade: { bg: 'bg-amber-500', text: 'text-amber-300', card: 'bg-amber-500/15 border-amber-500/30' },
   adc: { bg: 'bg-rose-500', text: 'text-rose-300', card: 'bg-rose-500/15 border-rose-500/30' },
   cd: { bg: 'bg-indigo-500', text: 'text-indigo-300', card: 'bg-indigo-500/15 border-indigo-500/30' },
+  admin: { bg: 'bg-sky-500', text: 'text-sky-300', card: 'bg-sky-500/15 border-sky-500/30' },
+  support: { bg: 'bg-teal-500', text: 'text-teal-300', card: 'bg-teal-500/15 border-teal-500/30' },
 };
 
 const DEFAULT_ACCENT: AccentSpec = { bg: 'bg-leaf-500', text: 'text-leaf-300', card: 'bg-leaf-500/15 border-leaf-500/30' };

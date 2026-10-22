@@ -1,17 +1,34 @@
 import { useMemo, useState } from 'react';
 import Icon from './Icon';
-import type { ContentApprovalRow } from '../types';
+import { MaterialViewer } from './RepMaterialsView';
+import { useNotice } from './useNotice';
+import { useMarketing } from '../stores/marketing';
+import type { ToastInput } from '../types';
 
 interface MMContentApprovalsViewProps {
-  contentApprovals: ContentApprovalRow[];
-  onApproveContent: (id: string) => void;
-  onRejectContent: (id: string) => void;
+  onToast?: (t: ToastInput) => void;
+  approver?: string;
 }
 
 type FilterKey = 'pending' | 'approved' | 'all';
 
-export default function MMContentApprovalsView({ contentApprovals, onApproveContent, onRejectContent }: MMContentApprovalsViewProps) {
+export default function MMContentApprovalsView({ onToast, approver = 'Tola Adekunle' }: MMContentApprovalsViewProps) {
+  const { contentApprovals, materials, approveMaterial, rejectMaterial } = useMarketing();
+  const { notify, node } = useNotice(onToast);
   const [filter, setFilter] = useState<FilterKey>('pending');
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const preview = materials.find(m => m.id === previewId);
+
+  const onApproveContent = (id: string) => {
+    const c = contentApprovals.find(x => x.id === id);
+    approveMaterial(id, approver);
+    notify({ type: 'success', title: 'Content approved', msg: `${c?.material} · now in rep Materials libraries · ${c?.target}` });
+  };
+  const onRejectContent = (id: string) => {
+    const c = contentApprovals.find(x => x.id === id);
+    rejectMaterial(id, approver);
+    notify({ type: 'error', title: 'Content sent back', msg: `${c?.pm} notified to revise · ${c?.material}` });
+  };
 
   const filtered = useMemo(() => {
     if (filter === 'all') return contentApprovals;
@@ -77,7 +94,8 @@ export default function MMContentApprovalsView({ contentApprovals, onApproveCont
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-display font-semibold text-sm text-ink">{c.material}</p>
                     {c.urgent && <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-bold">URGENT</span>}
-                    {c.status === 'approved' && <span className="px-1.5 py-0.5 rounded bg-leaf-100 text-leaf-700 text-[9px] font-bold">APPROVED</span>}
+                    {c.status === 'approved' && <span className="px-1.5 py-0.5 rounded bg-leaf-100 text-leaf-700 text-[9px] font-bold">APPROVED · IN REP LIBRARY</span>}
+                    {c.status === 'rejected' && <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-bold">SENT BACK</span>}
                   </div>
                   <p className="text-[11px] text-navy-500 mt-0.5">Submitted by {c.pm} · {c.cat} · {c.format}</p>
                   {c.note && <p className="text-xs text-navy-700 mt-2 p-2 rounded-lg bg-paper">{c.note}</p>}
@@ -90,6 +108,7 @@ export default function MMContentApprovalsView({ contentApprovals, onApproveCont
                 </div>
                 {c.status === 'pending' && (
                   <div className="flex items-center gap-1.5 flex-shrink-0 w-full sm:w-auto">
+                    <button onClick={() => setPreviewId(c.id)} className="px-2.5 py-2 sm:py-1.5 rounded-lg border border-navy-200 text-navy-700 hover:bg-navy-50 btn-press" aria-label="Preview"><Icon name="eye" size={14} /></button>
                     <button onClick={() => onRejectContent(c.id)} className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
                     <button onClick={() => onApproveContent(c.id)} className="flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg bg-fuchsia-500 text-white text-xs font-bold hover:bg-fuchsia-600 btn-press">Approve & Distribute</button>
                   </div>
@@ -99,6 +118,8 @@ export default function MMContentApprovalsView({ contentApprovals, onApproveCont
           ))}
         </div>
       </div>
+      {preview && <MaterialViewer material={preview} offline onClose={() => setPreviewId(null)} footer="Review copy · not visible to reps until approved" />}
+      {node}
     </div>
   );
 }

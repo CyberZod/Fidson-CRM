@@ -1,4 +1,5 @@
 import Icon from './Icon';
+import { useTeam, untilLabel } from '../stores/team';
 
 interface ASMDashboardProps {
   onNavigate: (view: string) => void;
@@ -14,6 +15,9 @@ interface AreaRep {
 }
 
 export default function ASMDashboard({ onNavigate }: ASMDashboardProps) {
+  const { activity, delegation, messages } = useTeam();
+  const coveringForRsm = delegation?.to.startsWith('Funmi Adeola');
+  const unreadFromReps = messages.filter(m => m.manager === 'asm' && m.from === 'rep' && !m.read).length;
   const areaReps: AreaRep[] = [
     { n: 'Adaeze Okafor', z: 'V.I. East', s: 'live', visits: '3/8', target: 87, lastCheckIn: '10:04 AM' },
     { n: 'Tope Adeola', z: 'Lekki Phase 1', s: 'live', visits: '4/9', target: 91, lastCheckIn: '10:12 AM' },
@@ -40,6 +44,24 @@ export default function ASMDashboard({ onNavigate }: ASMDashboardProps) {
           </button>
         </div>
       </div>
+
+      {(coveringForRsm || unreadFromReps > 0) && (
+        <div className="fade-up flex flex-col sm:flex-row gap-2">
+          {coveringForRsm && delegation && (
+            <div className="flex-1 p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2">
+              <Icon name="users" size={16} className="text-amber-700 flex-shrink-0" />
+              <p className="text-xs font-semibold text-amber-800">You are covering Tunde Bakare's (RSM) approvals until {untilLabel(delegation.until)} · {delegation.reason}</p>
+            </div>
+          )}
+          {unreadFromReps > 0 && (
+            <button onClick={() => onNavigate('messages')} className="flex-1 p-3 rounded-xl bg-sky-50 border border-sky-200 flex items-center gap-2 text-left btn-press">
+              <Icon name="mail" size={16} className="text-sky-700 flex-shrink-0" />
+              <p className="text-xs font-semibold text-sky-800 flex-1">{unreadFromReps} unread message{unreadFromReps === 1 ? '' : 's'} from your reps</p>
+              <Icon name="arrowRight" size={12} className="text-sky-700" />
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
@@ -118,7 +140,7 @@ export default function ASMDashboard({ onNavigate }: ASMDashboardProps) {
                   </div>
                   <div className="text-right">
                     <p className="text-xs font-mono font-bold text-ink">{r.visits}</p>
-                    <button className="text-[10px] text-sky-700 font-bold mt-1">View detail →</button>
+                    <button onClick={() => onNavigate('asm-team')} className="text-[10px] text-sky-700 font-bold mt-1">View detail →</button>
                   </div>
                 </div>
               ))}
@@ -159,12 +181,8 @@ export default function ASMDashboard({ onNavigate }: ASMDashboardProps) {
             </div>
             <p className="text-[10px] text-navy-400 mb-3">Visible to BM Cestra</p>
             <div className="space-y-2">
-              {[
-                { t: '09:40', n: '1:1 with Bayo Salami', d: 'Lekki Phase 2 strategy review' },
-                { t: '09:00', n: 'Pushed itinerary changes', d: 'Re-assigned 2 visits to Tope' },
-                { t: '08:30', n: 'Daily team huddle', d: '4 reps · 8 min · Coflin focus' },
-              ].map((a, i) => (
-                <div key={i} className="flex gap-2 text-xs">
+              {activity.filter(a => a.by === 'asm').slice(0, 4).map(a => (
+                <div key={a.id} className="flex gap-2 text-xs">
                   <span className="font-mono text-navy-400 w-10 flex-shrink-0">{a.t}</span>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-ink">{a.n}</p>

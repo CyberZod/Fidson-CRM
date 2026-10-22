@@ -1,6 +1,16 @@
 import { useState } from 'react';
 import Icon from './Icon';
+import SignaturePad from './SignaturePad';
+import { useFieldCall, type CapturedSignature } from '../stores/fieldCall';
 import type { RepActiveVisit, RepOrderItem, RepOrderSubmission } from '../types';
+
+// Extra products the rep can add to the cart beyond the defaults.
+const MORE_PRODUCTS: RepOrderItem[] = [
+  { id: 'ciprotab', n: 'Ciprotab 500mg', q: 20, p: 950, pack: 'pack', stockStatus: 'in-stock', stock: 300 },
+  { id: 'provision', n: 'Provision-X 250mg', q: 10, p: 2100, pack: 'pack', stockStatus: 'in-stock', stock: 80 },
+];
+
+export type SignedOrderSubmission = RepOrderSubmission & { signature?: CapturedSignature };
 
 interface RepOrderViewProps {
   activeVisit: RepActiveVisit | null;
@@ -18,8 +28,13 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
   ]);
   const [discount, setDiscount] = useState(18);
   const [step, setStep] = useState<Step>('cart');
-  const [signed, setSigned] = useState(false);
+  const fc = useFieldCall();
+  const visitKey = activeVisit ? String(activeVisit.id) : '';
+  const visitSignature = visitKey ? fc.drafts[visitKey]?.signature ?? null : null;
+  const [signature, setSignature] = useState<CapturedSignature | null>(visitSignature);
+  const signed = !!signature;
   const [lpoFileName, setLpoFileName] = useState<string>('');
+  const [orderNo] = useState(() => `FDS-${Math.floor(Math.random() * 9000) + 1000}`);
 
   const subtotal = items.reduce((s, i) => s + i.q * i.p, 0);
   const discountAmt = subtotal * (discount / 100);
@@ -35,7 +50,7 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
   };
 
   const handleSubmit = () => {
-    onSubmitOrder({
+    const submission: SignedOrderSubmission = {
       visit: activeVisit,
       items,
       discount,
@@ -44,7 +59,30 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
       requiresApproval,
       channel: hasOutOfStock ? 'booklet' : 'erp',
       lpoFileName: lpoFileName || undefined,
+      signature: signature ?? undefined,
+    };
+    fc.recordOrder({
+      id: orderNo,
+      visitId: visitKey || undefined,
+      repName: 'Adaeze Okafor',
+      customer: activeVisit?.name || 'Unknown',
+      total,
+      signedBy: signature?.signer,
+      at: new Date().toISOString(),
     });
+    onSubmitOrder(submission);
+  };
+
+  const nextExtra = MORE_PRODUCTS.find(p => !items.some(i => i.id === p.id));
+  const addProduct = () => {
+    if (nextExtra) setItems(prev => [...prev, nextExtra]);
+  };
+
+  // Signing here also signs the open visit when it has no signature yet.
+  const onSign = (sig: CapturedSignature | null) => {
+    setSignature(sig);
+    const draft = visitKey ? fc.drafts[visitKey] : undefined;
+    if (sig && draft && !draft.signature) fc.saveDraft(visitKey, { ...draft, signature: sig });
   };
 
   const handleLpoAttach = () => {
@@ -60,7 +98,12 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
             <Icon name="check" size={40} className="text-leaf-600" strokeWidth={3} />
           </div>
           <h2 className="font-display text-2xl font-bold text-ink">Order submitted</h2>
-          <p className="text-sm text-navy-500 mt-1">Order #FDS-{Math.floor(Math.random() * 9000) + 1000}</p>
+          <p className="text-sm text-navy-500 mt-1">Order #{orderNo}</p>
+          {signature && (
+            <p className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-leaf-50 border border-leaf-200 text-[11px] font-bold text-leaf-700">
+              <Icon name="edit" size={11} /> Signed by {signature.signer}
+            </p>
+          )}
 
           {hasOutOfStock ? (
             <div className="mt-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-left space-y-3">
@@ -159,8 +202,12 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
                 </div>
               ))}
             </div>
-            <button className="w-full py-3 border-t border-navy-100 text-sm font-bold text-leaf-700 hover:bg-paper flex items-center justify-center gap-1">
-              <Icon name="plus" size={14} /> Add another product
+            <button
+              onClick={addProduct}
+              disabled={!nextExtra}
+              className="w-full py-3 border-t border-navy-100 text-sm font-bold text-leaf-700 hover:bg-paper flex items-center justify-center gap-1 disabled:text-navy-400 disabled:hover:bg-transparent"
+            >
+              <Icon name="plus" size={14} /> {nextExtra ? `Add ${nextExtra.n}` : 'All listed products added'}
             </button>
           </div>
 
@@ -251,24 +298,18 @@ export default function RepOrderView({ activeVisit, onSubmitOrder, onBack }: Rep
           </div>
 
           <div className="rounded-2xl bg-white border border-navy-100 p-5">
-            <p className="stat-label text-navy-400 mb-2">Customer Signature</p>
-            <button
-              onClick={() => setSigned(!signed)}
-              className={`w-full h-24 rounded-xl border-2 border-dashed flex items-center justify-center transition-all ${
-                signed ? 'border-leaf-300 bg-leaf-50' : 'border-navy-200 bg-paper hover:border-navy-400'
-              }`}
-            >
-              {signed ? (
-                <div className="text-center">
-                  <svg viewBox="0 0 200 60" className="mx-auto" style={{ width: '140px', height: '40px' }}>
-                    <path d="M 20 40 Q 35 15 50 35 T 80 25 Q 100 40 120 20 T 170 35" stroke="#142A5A" strokeWidth="2" fill="none" strokeLinecap="round" />
-                  </svg>
-                  <p className="text-[10px] text-leaf-700 font-bold mt-1">Signed by Dr. T. Adebayo</p>
-                </div>
-              ) : (
-                <p className="text-sm text-navy-400 font-medium">Tap to capture signature</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="stat-label text-navy-400">Customer Signature</p>
+              {signature && visitSignature && signature.dataUrl === visitSignature.dataUrl && (
+                <span className="px-1.5 py-0.5 rounded bg-leaf-100 text-leaf-700 text-[9px] font-bold">FROM THIS VISIT</span>
               )}
-            </button>
+            </div>
+            <SignaturePad
+              value={signature}
+              onChange={onSign}
+              defaultSigner={activeVisit?.contact ?? ''}
+              consent="I confirm this order, its quantities and the discount shown, and authorise Fidson Healthcare Plc to invoice my account."
+            />
           </div>
         </div>
 

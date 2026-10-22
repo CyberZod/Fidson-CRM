@@ -13,6 +13,15 @@ export interface ChatProfile {
   suggestions: string[];
   // Keyword-matched canned responses. Order matters · first match wins.
   cannedResponses: { keywords: string[]; reply: string }[];
+  // What this role may see, shown as a banner, and questions it must refuse (checked first).
+  scopeBanner?: string;
+  outOfScope?: { keywords: string[]; reply: string }[];
+  scopeProbes?: string[];
+}
+
+export interface ChatAnswer {
+  text: string;
+  refused: boolean;
 }
 
 const sharedDefaultResponse = "I'm running on demo data for this prototype. The full model wires up to live Fidson data · order velocity, GPS, campaign attribution, stock · and answers in seconds. Try one of the suggestion chips above for sample answers.";
@@ -124,7 +133,7 @@ const NSM_PROFILE: ChatProfile = {
   ],
   cannedResponses: [
     { keywords: ['250', 'target', 'fy26', 'national'], reply: 'FY26 trajectory is at 92% of the ₦2.4TN target with 38% of the year complete. South division is the engine (SW + SE + SS combined at 96% of plan). North is the drag at 78% · NE region the worst.' },
-    { keywords: ['opportunity', 'untapped', 'growth'], reply: 'Three opportunities ranked: (1) Abuja FCT institutional pipeline · ₦24M detected, no FSM coverage. (2) Apabuja zone gap in SW · 21 days unvisited. (3) Lagoon Hospital VI showing 3x order velocity, ready for KAM elevation.' },
+    { keywords: ['opportunity', 'untapped', 'growth'], reply: 'Three opportunities ranked: (1) Abuja FCT institutional pipeline · ₦24M detected, no FSM coverage. (2) Apapa zone gap in SW · 21 days unvisited. (3) Lagoon Hospital VI showing 3x order velocity, ready for KAM elevation.' },
     { keywords: ['risk', 'division', 'failing', 'stalling'], reply: 'NE region is the priority risk: zero growth for 60 days. Recommend dispatching DM Kemi for an on-the-ground assessment. North division as a whole is 14 pts below South · structural issue worth a quarterly review.' },
     { keywords: ['roi', 'campaign'], reply: 'Active campaigns this quarter: Q3 Coflin Paediatric (+260% ROI), Antibiotic Stewardship (+124%), Tuxil-N Trade SW (+14%), Cardio Q3 paused (-44%). Aggregate ROI is +198%. Tell HoM to consider re-scoping the Cardio campaign.' },
   ],
@@ -215,7 +224,7 @@ const ASM_PROFILE: ChatProfile = {
   greeting: 'Hi Funmi',
   scope: 'Lekki / V.I. Cluster · 4 reps',
   wins: [
-    { title: 'Area on track at 89% of Q2 plan', detail: 'Adaeze + Tope are the leaders.' },
+    { title: 'Area on track at 89% of Q2 plan', detail: 'Adaeze and Yetunde are the leaders.' },
     { title: '3 of 4 reps live right now', detail: 'Clean coverage across V.I. and Lekki.' },
     { title: 'Coflin paediatric story landing', detail: 'Lakeshore + St Nicholas both showing uptake.' },
   ],
@@ -231,7 +240,7 @@ const ASM_PROFILE: ChatProfile = {
     'What\'s in my activity log to push up?',
   ],
   cannedResponses: [
-    { keywords: ['rep', 'today', 'live'], reply: '3 of 4 reps live: Adaeze (Lakeshore), Tope (Surulere), Kola (Apapa). Fatima not checked in. Adaeze hit 3 of 8 visits by 11am · pace is on target.' },
+    { keywords: ['rep', 'today', 'live'], reply: '3 of 4 reps live: Adaeze (Lakeshore), Yetunde (HealthPlus V.I.), Bayo Salami (Evercare Lekki). Fatima not checked in. Adaeze hit 3 of 8 visits by 11am · pace is on target.' },
     { keywords: ['coach', 'fatima', 'low'], reply: 'Fatima Bello · visit completion 45% vs team average 78%, no Friday visits in 3 weeks. Recommend a 1:1 this week and a PM joint call (Femi Akande available SW per his calendar).' },
     { keywords: ['churn', 'risk', 'unvisited'], reply: 'MedPlus Yaba (Adaeze\'s area) · 12 days unvisited, ₦80k recurring book of business at risk. Reddington follow-up missed twice. Push Adaeze to wrap MedPlus into today\'s plan.' },
     { keywords: ['push', 'report', 'bm'], reply: 'Auto-summary ready to push to BM Chioma Eze: 89% Q2 attainment, 3 active reps, 1 coaching need (Fatima), 1 churn risk (MedPlus Yaba). Hit Push to BM to send.' },
@@ -346,31 +355,193 @@ const GENERIC_LEADER_PROFILE: ChatProfile = {
   ],
 };
 
-export const CHAT_PROFILES: Record<PersonaKey, ChatProfile> = {
-  rep: REP_PROFILE,
-  manager: RSM_PROFILE,
-  asm: ASM_PROFILE,
-  fsm: FSM_PROFILE,
-  pm: PM_PROFILE,
-  mm: MM_PROFILE,
-  hom: HOM_PROFILE,
-  bm: BM_PROFILE,
-  bmd: GENERIC_LEADER_PROFILE,
-  dm: DM_PROFILE,
-  nsm: NSM_PROFILE,
-  nsm_inst: NSM_PROFILE,
-  nsm_trade: NSM_PROFILE,
-  adc: GENERIC_LEADER_PROFILE,
-  cd: CD_PROFILE,
+const ADMIN_PROFILE: ChatProfile = {
+  greeting: 'Hi Ngozi',
+  scope: 'Platform Admin · Fidson IT · usage, sync and configuration',
+  wins: [
+    { title: '128 of 142 reps active in the last 7 days', detail: '90% weekly adoption · up from 81% at go-live.' },
+    { title: 'Sync success 99.2% this week', detail: '4,812 offline records synced · 14 conflicts raised.' },
+    { title: 'Platform spend within budget', detail: '₦2.4M of ₦3.0M monthly budget used with 9 days left.' },
+  ],
+  concerns: [
+    { title: '14 sync conflicts open', detail: '9 are order edits made offline by two people · oldest 3 days.' },
+    { title: '6 reps not signed in for 14 days', detail: 'Mostly North-East · check devices and accounts.' },
+    { title: 'AI usage cost up 22% MoM', detail: 'Driven by visit-summary generation · still under cap.' },
+  ],
+  suggestions: [
+    'How is adoption across regions?',
+    'What sync conflicts are open?',
+    'How is platform spend tracking?',
+  ],
+  cannedResponses: [
+    { keywords: ['adoption', 'active', 'login', 'sign'], reply: 'Weekly active: 128 of 142 reps (90%). Lowest region: North-East at 71% (6 reps not signed in for 14 days). Highest: South-West at 97%. Managers: 31 of 33 used the dashboard this week.' },
+    { keywords: ['sync', 'conflict', 'offline'], reply: '14 open sync conflicts: 9 order edits made offline on two devices, 3 visit logs with duplicate check-ins, 2 customer record edits. Oldest is 3 days (Kano). They sit in the sync-conflict queue for the record owner to resolve.' },
+    { keywords: ['spend', 'cost', 'budget', 'licen'], reply: 'Platform spend this month: ₦2.4M of ₦3.0M. Hosting ₦1.3M, maps and SMS ₦0.6M, AI usage ₦0.5M (up 22% MoM from visit summaries). Forecast month-end ₦2.85M.' },
+  ],
 };
 
-export const answerFromChatLibrary = (role: PersonaKey, question: string): string => {
-  const profile = CHAT_PROFILES[role] ?? GENERIC_LEADER_PROFILE;
-  const q = question.toLowerCase();
-  for (const candidate of profile.cannedResponses) {
-    if (candidate.keywords.some(k => q.includes(k.toLowerCase()))) {
-      return candidate.reply;
-    }
-  }
-  return sharedDefaultResponse;
+const SUPPORT_PROFILE: ChatProfile = {
+  greeting: 'Hi Grace',
+  scope: 'Support Desk · Fidson IT · tickets, devices and sync status',
+  wins: [
+    { title: 'Median first response 18 min', detail: 'Inside the 30-minute target for field tickets.' },
+    { title: '42 tickets closed this week', detail: '88% resolved without escalation to IT.' },
+    { title: 'MFA reset time down to 6 min', detail: 'Self-service reset link now in the app.' },
+  ],
+  concerns: [
+    { title: '37 tickets open', detail: '5 past their response target, all GPS-related.' },
+    { title: 'GPS not locking indoors', detail: '11 tickets this week, mostly teaching hospitals.' },
+    { title: 'Offline orders stuck in queue', detail: '8 tickets · older Android devices.' },
+  ],
+  suggestions: [
+    'What is ticket volume this week?',
+    'What are the top issues?',
+    'Which tickets are past target?',
+  ],
+  cannedResponses: [
+    { keywords: ['volume', 'how many', 'ticket'], reply: '37 open tickets: 22 field reps, 9 managers, 6 marketing. 61 opened this week, 42 closed. Busiest day Monday (17 opened) after the weekend sync backlog.' },
+    { keywords: ['top', 'issue', 'common'], reply: 'Top issues this week: GPS not locking indoors (11), offline orders stuck in queue (8), password and MFA resets (7), photo upload failures on slow networks (5).' },
+    { keywords: ['past', 'overdue', 'sla', 'target'], reply: '5 tickets are past the 30-minute response target, all GPS-related from LUTH and UCTH Calabar. Suggested reply: enable Wi-Fi scanning and retry check-in near a window; the visit can be logged with a manual location flag.' },
+  ],
 };
+
+const HR_REFUSAL = {
+  keywords: ['salary', 'salaries', 'payroll', 'appraisal', 'disciplinary', 'home address', 'bank details', 'medical record'],
+  reply: 'Personnel records sit with HR and are outside what this assistant can read for any sales or marketing role. Ask HR.',
+};
+
+interface ScopeRules { scopeBanner: string; outOfScope: { keywords: string[]; reply: string }[]; scopeProbes: string[] }
+
+const SCOPES: Record<string, ScopeRules> = {
+  rep: {
+    scopeBanner: 'Lekki/V.I. · own accounts',
+    outOfScope: [
+      { keywords: ['national', 'nationwide', 'company revenue', 'region', 'division', 'tope', 'chinedu', 'kola', 'bayo salami', 'yetunde', 'fatima', 'other reps', "team's", 'leaderboard', 'salary'], reply: "That's outside what your role can see (your own territory and customers). Ask your RSM." },
+    ],
+    scopeProbes: ["What's the national revenue this quarter?", "Show me Tope's orders", 'How is the South-East region doing?'],
+  },
+  asm: {
+    scopeBanner: 'Lekki/V.I. cluster · 4 reps',
+    outOfScope: [
+      { keywords: ['national', 'nationwide', 'division', 'south-east', 'south-south', 'north', 'ikeja', 'surulere', 'ibadan', 'tope', 'chinedu', 'kola', 'other areas', 'other clusters'], reply: "That's outside what your role can see (the Lekki/V.I. cluster and its 4 reps). Ask your RSM." },
+      HR_REFUSAL,
+    ],
+    scopeProbes: ["What's Tope Adeola's attainment in Surulere?", 'How is the South-East region doing?', 'National revenue this quarter?'],
+  },
+  manager: {
+    scopeBanner: 'South-West region · 12 reps',
+    outOfScope: [
+      { keywords: ['south-east', 'south-south', 'north', 'kano', 'abuja', 'enugu', 'port harcourt', 'national', 'nationwide', 'division total', 'other regions'], reply: "That's outside what your role can see (the South-West region and its reps). Ask your DM." },
+      HR_REFUSAL,
+    ],
+    scopeProbes: ['How is South-East doing vs target?', "What's the national revenue?", 'Show me Kano distributor orders'],
+  },
+  dm: {
+    scopeBanner: 'South Division · SW, SE, SS',
+    outOfScope: [
+      { keywords: ['north', 'kano', 'abuja', 'kaduna', 'national revenue', 'national total', 'nationwide'], reply: "That's outside what your role can see (South Division: SW, SE and SS). Ask the NSM." },
+      HR_REFUSAL,
+    ],
+    scopeProbes: ['How is the North division doing?', "Show me Abuja's pipeline", "What is Tunde Bakare's salary?"],
+  },
+  fsm: {
+    scopeBanner: 'Trade South-West · 12 distributors · 8 reps',
+    outOfScope: [
+      { keywords: ['institution', 'hospital', 'national', 'nationwide', 'north', 'south-east', 'south-south'], reply: "That's outside what your role can see (Trade South-West: your distributors and trade reps). Ask the NSM Trade." },
+      HR_REFUSAL,
+    ],
+    scopeProbes: ['Which hospitals ordered Coflin this week?', 'National trade revenue this quarter?'],
+  },
+  pm: {
+    scopeBanner: 'Respiratory portfolio · Coflin, Tuxil-N · product level',
+    outOfScope: [
+      { keywords: ['cestra', 'provision', 'cardio portfolio', "'s orders", 'order value by rep'], reply: "That's outside what your role can see (the respiratory portfolio at product level). Ask the BMD." },
+      HR_REFUSAL,
+    ],
+    scopeProbes: ['How is Cestra selling this quarter?', "Show me Adaeze's orders"],
+  },
+  bm: {
+    scopeBanner: 'Cestra, Provision, Cardio portfolio',
+    outOfScope: [
+      { keywords: ['coflin', 'tuxil', 'astrazon'], reply: "That's outside what your role can see (the Cestra, Provision and Cardio portfolio). Ask the BMD." },
+      HR_REFUSAL,
+    ],
+    scopeProbes: ['How is Coflin selling nationwide?', "What is Adaeze's salary?"],
+  },
+  mm: {
+    scopeBanner: 'Marketing · campaigns and content · no individual rep data',
+    outOfScope: [
+      { keywords: ['where is', 'gps', 'location of', "'s orders"], reply: "Individual rep locations and order books are outside marketing's view. Ask the rep's RSM." },
+      HR_REFUSAL,
+    ],
+    scopeProbes: ['Where is Adaeze right now?', "What is Tope's salary?"],
+  },
+  hom: {
+    scopeBanner: 'Marketing · Institution + Trade · no individual rep data',
+    outOfScope: [
+      { keywords: ['where is', 'gps', 'location of', "'s orders"], reply: "Individual rep locations and order books are outside marketing's view. Ask the rep's RSM." },
+      HR_REFUSAL,
+    ],
+    scopeProbes: ['Where is Adaeze right now?', "What is Tope's salary?"],
+  },
+  admin: {
+    scopeBanner: 'Usage, sync and configuration · no commercial data',
+    outOfScope: [
+      { keywords: ['revenue', 'sales', 'order value', 'pipeline', 'discount', 'attainment', 'target', 'salary'], reply: "Commercial figures are outside the platform admin role. You can see usage, sync and configuration. Ask the Commercial Director's office." },
+    ],
+    scopeProbes: ["What's national revenue this quarter?", 'Show me pending discounts'],
+  },
+  support: {
+    scopeBanner: 'Tickets, devices and sync status · no commercial data',
+    outOfScope: [
+      { keywords: ['revenue', 'pipeline', 'attainment', 'discount', 'order value', 'salary'], reply: "Commercial figures are outside the support desk's view. You can see tickets, devices and sync status. Ask the rep's RSM." },
+    ],
+    scopeProbes: ['What is Lekki revenue this month?', 'Which discounts are pending?'],
+  },
+};
+
+const LEADER_SCOPE: ScopeRules = {
+  scopeBanner: 'National · all regions · no personnel records',
+  outOfScope: [HR_REFUSAL],
+  scopeProbes: ["What is Tunde Bakare's salary?", 'Show disciplinary records for SW reps'],
+};
+
+const withScope = (role: string, p: ChatProfile): ChatProfile => ({ ...p, ...(SCOPES[role] ?? LEADER_SCOPE) });
+
+export const CHAT_PROFILES: Record<PersonaKey, ChatProfile> = {
+  rep: withScope('rep', REP_PROFILE),
+  manager: withScope('manager', RSM_PROFILE),
+  asm: withScope('asm', ASM_PROFILE),
+  fsm: withScope('fsm', FSM_PROFILE),
+  pm: withScope('pm', PM_PROFILE),
+  mm: withScope('mm', MM_PROFILE),
+  hom: withScope('hom', HOM_PROFILE),
+  bm: withScope('bm', BM_PROFILE),
+  bmd: withScope('bmd', GENERIC_LEADER_PROFILE),
+  dm: withScope('dm', DM_PROFILE),
+  nsm: withScope('nsm', NSM_PROFILE),
+  nsm_inst: withScope('nsm_inst', NSM_PROFILE),
+  nsm_trade: withScope('nsm_trade', NSM_PROFILE),
+  adc: withScope('adc', GENERIC_LEADER_PROFILE),
+  cd: withScope('cd', CD_PROFILE),
+  admin: withScope('admin', ADMIN_PROFILE),
+  support: withScope('support', SUPPORT_PROFILE),
+};
+
+export const getChatProfile = (role: PersonaKey): ChatProfile =>
+  (CHAT_PROFILES as Partial<Record<PersonaKey, ChatProfile>>)[role] ?? withScope('', GENERIC_LEADER_PROFILE);
+
+// Scope rules run before any canned answer so a role never gets data it may not see.
+export const answerWithScope = (role: PersonaKey, question: string): ChatAnswer => {
+  const profile = getChatProfile(role);
+  const q = question.toLowerCase();
+  for (const rule of profile.outOfScope ?? []) {
+    if (rule.keywords.some(k => q.includes(k.toLowerCase()))) return { text: rule.reply, refused: true };
+  }
+  for (const candidate of profile.cannedResponses) {
+    if (candidate.keywords.some(k => q.includes(k.toLowerCase()))) return { text: candidate.reply, refused: false };
+  }
+  return { text: sharedDefaultResponse, refused: false };
+};
+
+export const answerFromChatLibrary = (role: PersonaKey, question: string): string => answerWithScope(role, question).text;

@@ -44,6 +44,11 @@ export default function RepSidebar({
     { k: 'rep-invoices', i: 'file', l: 'My Invoices' },
     { k: 'rep-coach', i: 'sparkles', l: 'AI Coach' },
     { k: 'rep-dcr', i: 'file', l: 'My DCR' },
+    { k: 'rep-materials', i: 'download', l: 'Materials' },
+    { k: 'rep-promo', i: 'trending', l: 'Request Promo' },
+    { k: 'rep-assistant', i: 'sparkles', l: 'AI Assistant' },
+    { k: 'rep-learn', i: 'target', l: 'Learn' },
+    { k: 'rep-feedback', i: 'flag', l: 'Pilot Feedback' },
   ];
 
   const widthCls = isMobile

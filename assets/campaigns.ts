@@ -83,3 +83,28 @@ export const computeRoi = (c: Campaign): CampaignROI => {
   const status: CampaignROI['status'] = roiPct >= 100 ? 'green' : roiPct >= 0 ? 'amber' : 'red';
   return { spend, revenue, roiPct, status };
 };
+
+// How far each seeded campaign is into its attribution window, and the product's
+// weekly units before launch (the baseline the uplift chart compares against).
+export const CAMPAIGN_TRACKING: Record<string, { daysElapsed: number; baselineWeeklyUnits: number }> = {
+  'cmp-1': { daysElapsed: 52, baselineWeeklyUnits: 410 },
+  'cmp-2': { daysElapsed: 45, baselineWeeklyUnits: 260 },
+  'cmp-3': { daysElapsed: 60, baselineWeeklyUnits: 180 },
+  'cmp-4': { daysElapsed: 38, baselineWeeklyUnits: 140 },
+};
+
+// 8 weeks before launch, then one bar per elapsed week. Deterministic so the chart is stable.
+export const upliftSeries = (c: Campaign & { daysElapsed: number; baselineWeeklyUnits: number; targetRevenue: number }) => {
+  const spend = c.materialsCost + c.budgetSpent;
+  const lift = Math.min(0.6, Math.max(0.06, (c.targetRevenue / Math.max(1, spend)) / 8));
+  const wobble = (i: number) => ((Math.sin((i + c.id.length) * 12.9898) * 43758.5453) % 1 + 1) % 1;
+  const before = Array.from({ length: 8 }, (_, i) => Math.round(c.baselineWeeklyUnits * (0.92 + 0.16 * wobble(i))));
+  const weeks = Math.min(9, Math.ceil(c.daysElapsed / 7));
+  const after = Array.from({ length: weeks }, (_, i) => {
+    const ramp = Math.min(1, (i + 1) / 3);
+    return Math.round(c.baselineWeeklyUnits * (1 + lift * ramp) * (0.94 + 0.12 * wobble(i + 20)));
+  });
+  const avg = (a: number[]) => a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0;
+  const upliftPct = after.length ? Math.round(((avg(after) - avg(before)) / avg(before)) * 100) : 0;
+  return { before, after, upliftPct };
+};
