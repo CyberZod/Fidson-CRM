@@ -11,6 +11,33 @@ import LoginScreen from './components/LoginScreen';
 import ToastContainer from './components/ToastContainer';
 import ApprovalModal from './components/ApprovalModal';
 import HelpdeskWidget from './components/HelpdeskWidget';
+import SupportDeskView, { type SupportTab } from './components/SupportDeskView';
+import AdminHome, { ADMIN_SECTIONS } from './components/admin/AdminHome';
+import PeopleRoles from './components/admin/PeopleRoles';
+import Territories from './components/admin/Territories';
+import AdminCustomers from './components/admin/Customers';
+import DuplicateMerge from './components/admin/DuplicateMerge';
+import Catalogue from './components/admin/Catalogue';
+import PermissionMatrix from './components/admin/PermissionMatrix';
+import FormBuilder from './components/admin/FormBuilder';
+import WorkflowBuilder from './components/admin/WorkflowBuilder';
+import RulesStudio from './components/admin/RulesStudio';
+import ModelCatalogue from './components/admin/ModelCatalogue';
+import DataImports from './components/admin/DataImports';
+import AuditLog from './components/admin/AuditLog';
+import GoLiveReadiness from './components/admin/GoLiveReadiness';
+import RolloutWaves from './components/admin/RolloutWaves';
+import PilotFeedback, { FeedbackForm } from './components/admin/PilotFeedback';
+import DocsPortal from './components/admin/DocsPortal';
+import LearnView from './components/LearnView';
+import ForecastView from './components/ForecastView';
+import RepMaterialsView from './components/RepMaterialsView';
+import RepPromoRequest from './components/RepPromoRequest';
+import { useMarketing } from './stores/marketing';
+import ManagerFieldLog from './components/ManagerFieldLog';
+import MessagesView from './components/MessagesView';
+import TrainingTasksView from './components/TrainingTasksView';
+import FocusProductsView from './components/FocusProductsView';
 import Icon from './components/Icon';
 
 import DashboardView from './components/DashboardView';
@@ -27,7 +54,9 @@ import RepPlanView from './components/RepPlanView';
 import RepVisitLogView from './components/RepVisitLogView';
 import RepOrderView from './components/RepOrderView';
 import RepCoachView from './components/RepCoachView';
-import RepDCRView from './components/RepDCRView';
+import RepDCRView, { type DcrSubmitSummary } from './components/RepDCRView';
+import { type SignedOrderSubmission } from './components/RepOrderView';
+import ComplaintsView from './components/ComplaintsView';
 import RepClinicalView from './components/RepClinicalView';
 import CustomersView from './components/CustomersView';
 import type { Account } from './components/CustomersView';
@@ -83,14 +112,10 @@ import type {
   ItineraryPending,
   AdjustmentPending,
   ClinicalMeetingRow,
-  ContentApprovalRow,
-  DirectiveRow,
-  DirectiveForm,
   AccompanimentRow,
   AccompanimentForm,
   JointCall,
   JointCallForm,
-  PromoRequest,
   CustomerInventoryItem,
   RepVisit,
   RepActiveVisit,
@@ -102,11 +127,9 @@ import type {
   VisitLog,
   SubmittedDCR,
   SignedInUser,
-  MaterialItem,
   NavItem,
   ColorKey,
 } from './types';
-import type { DirectiveForm as NSMDirectiveFormType } from './components/NSMDirectiveView';
 
 interface ViewMeta {
   t: string;
@@ -236,19 +259,12 @@ export default function App() {
     { id: 'adj-2', rep: 'Bayo Salami', visit: 'Add Vedic Lifecare 15:00', type: 'add', reason: 'Walk-in introduction opportunity from neighbor visit', submittedAt: '11:15', urgent: false, todayUsed: 1, escalationStatus: null },
   ]);
 
-  const [directives, setDirectives] = useState<DirectiveRow[]>([
-    { id: 'dir-1', pm: 'Dr. Femi Akande', title: 'Q3 Coflin Focus Initiative', message: 'Effective immediately, all reps to prioritize Coflin Forte 600mg detailing in institutional accounts. Push new pediatric dosing thresholds.', priority: 'high', targetProduct: 'Coflin Forte 600mg', date: 'Today, 10:15 AM', status: 'active', acknowledged: false },
-    { id: 'dir-2', pm: 'Dr. Ngozi Eze', title: 'Cardio Portfolio Refresh', message: 'Incorporate new data cards for Astrazon 10mg. Focus on cardiology specialist clinics.', priority: 'normal', targetProduct: 'Astrazon 10mg', date: 'Yesterday', status: 'active', acknowledged: true },
-  ]);
+  // Directives, promo requests and content approvals live in the marketing store.
+  const mk = useMarketing();
+  const { contentApprovals, promoRequests } = mk;
 
   const [accompaniments, setAccompaniments] = useState<AccompanimentRow[]>([
     { id: 'acc-1', pm: 'Dr. Femi Akande', rep: 'Adaeze Okafor', date: 'May 12, 2026', territory: 'Lekki Cluster', visitsShadowed: 4, notes: 'Adaeze handled detailing very professionally. Hospital pharmacist raised questions on Coflin pediatric packaging. Accompaniment complete.', status: 'synced' },
-  ]);
-
-  const [promoRequests, setPromoRequests] = useState<PromoRequest[]>([
-    { id: 'pr-1', rep: 'Adaeze Okafor', title: 'Coflin Bulk Trade Promo · Q3', product: 'Coflin Forte 600mg', channel: 'trade', scope: '12 Lagos distributors · 6 weeks', estimatedReach: 240, budget: 1_800_000, rationale: 'Augmentin counter-detail · Lagos trade distributors signaling demand swing if we run a 12% incentive band.', date: 'May 13, 2026', status: 'pending' },
-    { id: 'pr-2', rep: 'Tope Adeola', title: 'Tuxil-N Retail Sampling · SW', product: 'Tuxil-N Syrup 100ml', channel: 'mobile-frontline', scope: '8 community pharmacies', estimatedReach: 90, budget: 420_000, rationale: 'OTC pull-through ahead of cough season. Sampling + posters.', date: 'May 12, 2026', status: 'pm-approved' },
-    { id: 'pr-3', rep: 'Chinedu Eze', title: 'Astrazon Hospital Bundle', product: 'Astrazon 10mg', channel: 'institution', scope: '4 teaching hospitals', estimatedReach: 60, budget: 2_400_000, rationale: 'Co-prescription with Coflin for paediatric ENT clinics.', date: 'May 10, 2026', status: 'launched' },
   ]);
 
   const [jointCalls, setJointCalls] = useState<JointCall[]>([
@@ -376,13 +392,6 @@ export default function App() {
     },
   ]);
 
-  const [contentApprovals, setContentApprovals] = useState<ContentApprovalRow[]>([
-    { id: 'ca-1', pm: 'Dr. Femi Akande', material: 'Coflin Paediatric Dosing Guide v2.1', cat: 'Clinical', format: 'PDF · 4 pages', target: '89 Med Reps', budget: ' · ', submitted: '2 hours ago', status: 'pending', urgent: false, note: 'Updated to include new WHO paediatric dosing thresholds. Cleared by Medical Affairs.' },
-    { id: 'ca-2', pm: 'Dr. Femi Akande', material: 'Augmentin Counter-Detail Brief', cat: 'Competitive', format: 'PDF · 6 pages', target: '142 reps (all channels)', budget: ' · ', submitted: '45 min ago', status: 'pending', urgent: true, note: 'In response to GSK 15% Augmentin promo detected in 5 regions. Time-sensitive.' },
-    { id: 'ca-3', pm: 'Dr. Ngozi Eze', material: 'Cardio Q3 Detailing Deck v1.0', cat: 'Detailing', format: 'PPT · 28 slides', target: 'Cardio reps · 32 reps', budget: '₦680k production', submitted: 'Yesterday', status: 'pending', urgent: false, note: 'Q3 launch deck for the cardio portfolio refresh.' },
-    { id: 'ca-4', pm: 'Dr. Femi Akande', material: 'Coflin Forte Q2 Brochure', cat: 'Marketing', format: 'PDF · 8 pages', target: 'Institutional accounts', budget: '₦420k print', submitted: '3 days ago', status: 'approved', urgent: false },
-  ]);
-
   // ===== TOAST HELPERS =====
   const addToast = (toast: ToastInput) => {
     const id = Date.now() + Math.random();
@@ -501,7 +510,7 @@ export default function App() {
     addToast({ type: 'success', title: 'Added to pipeline', msg: `${lead.name} · ${lead.role}` });
   };
 
-  const handleSubmitDCR = () => {
+  const handleSubmitDCR = (summary?: DcrSubmitSummary) => {
     const today = new Date().toDateString();
     const todaysLogs = visitLogs.filter(l => new Date(l.timestamp).toDateString() === today);
     // Whatever Adaeze logged live shows as-is; auto-fill the rest of today's plan so the
@@ -530,7 +539,7 @@ export default function App() {
       visitsCompleted: fullLogs.length,
       ordersToday: orders.filter(o => o.rep === 'Adaeze O.').length,
       logs: fullLogs,
-      samples: fullLogs.length * 6,
+      samples: summary?.samples ?? 0,
       aiSummary: `Full day across ${fullLogs.length} calls in the V.I.–Lekki corridor with strong Coflin focus · ${todaysLogs.length} detailed live, the rest auto-compiled from her plan. Tracking 87% target attainment for the day.`,
     };
     setDcrs(prev => [dcr, ...prev]);
@@ -563,6 +572,7 @@ export default function App() {
       channel: orderData.channel,
       lpoAttached: !!orderData.lpoFileName,
       lpoFileName: orderData.lpoFileName,
+      signedBy: (orderData as SignedOrderSubmission).signature?.signer,
     };
     setOrders(prev => [newOrder, ...prev]);
 
@@ -885,6 +895,8 @@ export default function App() {
       bmd: 'bmd-dashboard',
       adc: 'adc-dashboard',
       cd: 'cd-dashboard',
+      admin: 'admin-home',
+      support: 'support-inbox',
       manager: 'dashboard',
     };
     setView(landingView[newRoleKey]);
@@ -906,6 +918,8 @@ export default function App() {
       bmd: 'Brand Management Director · All marketing',
       adc: 'ADC · Trade + Mobile & Frontline',
       cd: 'Commercial Director · National',
+      admin: 'Platform Admin · Fidson IT',
+      support: 'Support Desk · tickets and agent lessons',
       manager: 'Regional Sales Manager · South-West',
     };
 
@@ -934,34 +948,13 @@ export default function App() {
   const isBMD = user?.roleType === 'bmd';
   const isADC = user?.roleType === 'adc';
   const isCD = user?.roleType === 'cd';
+  const isAdmin = user?.roleType === 'admin';
+  const isSupport = user?.roleType === 'support';
 
   // ===== PM / MM / NSM handlers =====
-  const handlePushMaterial = (material: MaterialItem) => {
-    addToast({ type: 'success', title: 'Material pushed to reps', msg: `${material.n} · 89 reps notified · Training task triggered` });
-  };
-
-  const handleSendDirective = (form: NSMDirectiveFormType) => {
-    addToast({ type: 'success', title: 'National directive dispatched', msg: `${form.title} · Broadcast to entire org` });
-  };
-
-  const handleApproveContent = (id: string) => {
-    const item = contentApprovals.find(c => c.id === id);
-    if (!item) return;
-    setContentApprovals(prev => prev.map(c => c.id === id ? { ...c, dismissing: true } : c));
-    setTimeout(() => {
-      setContentApprovals(prev => prev.map(c => c.id === id ? { ...c, status: 'approved', dismissing: false } : c));
-    }, 400);
-    addToast({ type: 'success', title: 'Content approved', msg: `${item.material} · Auto-distributing to ${item.target}` });
-  };
-
-  const handleRejectContent = (id: string) => {
-    const item = contentApprovals.find(c => c.id === id);
-    if (!item) return;
-    setContentApprovals(prev => prev.map(c => c.id === id ? { ...c, dismissing: true } : c));
-    setTimeout(() => {
-      setContentApprovals(prev => prev.filter(c => c.id !== id));
-    }, 400);
-    addToast({ type: 'error', title: 'Content rejected', msg: `${item.pm} notified · Sent back for revision` });
+  const handleAcknowledgeDirective = (id: string) => {
+    mk.acknowledgeDirective(id);
+    addToast({ type: 'success', title: 'Directive acknowledged', msg: 'Your PM sees it on the acknowledgement list' });
   };
 
   const handleMMApproveCM = (id: string) => {
@@ -1023,57 +1016,6 @@ export default function App() {
     addToast({ type: 'success', title: 'Customer stock synced', msg: `${customerName} stock updated · AI recommendation refreshed.` });
   };
 
-  const handlePushDirective = (form: DirectiveForm) => {
-    const kind = form.kind ?? 'directive';
-    const newDir: DirectiveRow = {
-      id: `dir-${Date.now()}`,
-      pm: 'Dr. Femi Akande',
-      title: form.title,
-      message: form.message,
-      priority: form.priority,
-      targetProduct: form.targetProduct,
-      date: 'Today, ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      status: 'active',
-      acknowledged: false,
-      kind,
-    };
-    setDirectives(prev => [newDir, ...prev]);
-    addToast({
-      type: 'success',
-      title: kind === 'new-product' ? 'New product notification sent' : 'Directive pushed',
-      msg: kind === 'new-product'
-        ? `${form.targetProduct} broadcast to 89 active field reps as "Update from PM"`
-        : 'Directive shared with 89 active field representatives.',
-    });
-  };
-
-  const handleAcknowledgeDirective = (id: string) => {
-    setDirectives(prev => prev.map(d => d.id === id ? { ...d, acknowledged: true } : d));
-    addToast({ type: 'success', title: 'Directive Acknowledged', msg: 'Confirmation logged & shared with PM.' });
-  };
-
-  const handleApprovePromo = (id: string) => {
-    const p = promoRequests.find(x => x.id === id);
-    if (!p) return;
-    setPromoRequests(prev => prev.map(x => x.id === id ? { ...x, status: 'pm-approved' } : x));
-    addToast({ type: 'success', title: 'Promo approved', msg: `${p.title} · ready to launch as a tracked Campaign` });
-  };
-
-  const handleRejectPromo = (id: string) => {
-    const p = promoRequests.find(x => x.id === id);
-    if (!p) return;
-    setPromoRequests(prev => prev.map(x => x.id === id ? { ...x, status: 'rejected', dismissing: true } : x));
-    setTimeout(() => setPromoRequests(prev => prev.filter(x => x.id !== id)), 400);
-    addToast({ type: 'error', title: 'Promo rejected', msg: `${p.rep} notified · ${p.title}` });
-  };
-
-  const handleLaunchPromo = (id: string) => {
-    const p = promoRequests.find(x => x.id === id);
-    if (!p) return;
-    setPromoRequests(prev => prev.map(x => x.id === id ? { ...x, status: 'launched' } : x));
-    addToast({ type: 'success', title: 'Campaign launched', msg: `${p.title} · materials dispatching · ROI clock started` });
-  };
-
   const handleScheduleJointCall = (form: JointCallForm) => {
     const newCall: JointCall = {
       id: `jc-${Date.now()}`,
@@ -1127,6 +1069,17 @@ export default function App() {
     'rep-dcr': { t: 'My DCR', s: 'Daily Call Report · Auto-generated' },
     'rep-clinical': { t: 'Request CM', s: 'Submit clinical meeting request' },
     'rep-orders': { t: 'My Orders', s: 'Your order history · SOA synced' },
+    'rep-materials': { t: 'Materials', s: 'Approved detailing material · open offline' },
+    'rep-promo': { t: 'Request Promo', s: 'Ask your PM for a promo campaign' },
+    'rep-assistant': { t: 'AI Assistant', s: 'Answers from your own territory and customers only' },
+    'rep-learn': { t: 'Learn', s: 'Tutorials and manuals for your role' },
+    'rep-feedback': { t: 'Pilot Feedback', s: 'Tell us what works and what gets in the way' },
+    learn: { t: 'Learn', s: 'Tutorials and manuals for managers' },
+    messages: { t: 'Messages', s: 'Direct messages with your reps' },
+    training: { t: 'Training Tasks', s: 'Assign and track training per rep' },
+    focus: { t: 'Focus Products', s: 'Per territory, with per-rep overrides' },
+    'asm-field': { t: 'My Field Log', s: 'Your own visits, joint calls and accompaniment' },
+    complaints: { t: 'Complaints', s: 'Raised in the field · tracked to resolution' },
     'asm-area': { t: 'Area Overview', s: 'Lekki/V.I. Cluster · 4 reps' },
     'asm-team': { t: 'Team Coaching', s: '1:1 notes · Performance tracking' },
     'asm-log': { t: 'My Activity Log', s: 'Auto-captured · Visible to BM' },
@@ -1165,7 +1118,23 @@ export default function App() {
     'nsm_trade-dashboard': { t: 'NSM Trade', s: 'Trade channel · reports to ADC' },
     campaigns: { t: 'Campaigns & ROI', s: 'Material dispatch · 60-day attribution · cross-product' },
     'pm-promo': { t: 'Promo Requests', s: 'Field-submitted promo campaigns · approve & launch' },
+    'admin-home': { t: 'Platform Admin', s: 'Fidson IT · production · v1.8.2' },
+    ...Object.fromEntries(ADMIN_SECTIONS.map(sec => [sec.key, { t: sec.label, s: sec.desc }])),
+    'support-inbox': { t: 'Support Desk', s: 'Tickets the help desk agent handed to a person' },
+    'support-review': { t: 'Lessons to Review', s: 'Nothing enters the agent\'s memory without approval' },
+    'support-memory': { t: 'Agent Memory', s: 'Shared lessons, private notes, versions' },
+    'support-weekly': { t: 'Weekly Review', s: 'Patterns from last week\'s conversations' },
+    'support-hypercare': { t: 'Hypercare', s: 'Four weeks after national go-live' },
   };
+
+  const supportTab = (view.startsWith('support-') ? view.slice(8) : 'inbox') as SupportTab;
+  const supportNav: NavItem[] = [
+    { k: 'support-inbox', i: 'mail', l: 'Inbox' },
+    { k: 'support-review', i: 'checkCircle', l: 'Lessons to Review' },
+    { k: 'support-memory', i: 'layers', l: 'Agent Memory' },
+    { k: 'support-weekly', i: 'refresh', l: 'Weekly Review' },
+    { k: 'support-hypercare', i: 'activity', l: 'Hypercare' },
+  ];
 
   // ===== NAV CONFIGS =====
   const asmNav: NavItem[] = [
@@ -1174,6 +1143,12 @@ export default function App() {
     { k: 'asm-team', i: 'users', l: 'Team Coaching', badge: 1 },
     { k: 'pipeline', i: 'filter', l: 'Team Pipeline' },
     { k: 'asm-log', i: 'activity', l: 'My Activity Log' },
+    { k: 'asm-field', i: 'location', l: 'My Field Log' },
+    { k: 'messages', i: 'mail', l: 'Messages' },
+    { k: 'training', i: 'file', l: 'Training Tasks' },
+    { k: 'focus', i: 'pill', l: 'Focus Products' },
+    { k: 'insights', i: 'sparkles', l: 'AI Assistant' },
+    { k: 'learn', i: 'target', l: 'Learn' },
     { k: 'orders', i: 'cart', l: 'Area Orders', badge: approvals.filter(a => a.type === 'discount').length },
     { k: 'asm-pushup', i: 'send', l: 'Push to BM' },
   ];
@@ -1285,7 +1260,7 @@ export default function App() {
     const nsmScope = isNSMTrade ? 'Trade' : isNSMInst ? 'Institution' : 'Mobile & Frontline';
 
     if (view === 'campaigns') {
-      return <CampaignsView scope="All campaigns · Cross-product · 60-day attribution" />;
+      return <CampaignsView scope="All campaigns · Cross-product · 60-day attribution" onToast={addToast} />;
     }
 
     // Shared manager-side lead funnel (all non-rep roles reach it via 'pipeline').
@@ -1295,19 +1270,24 @@ export default function App() {
 
     if (isRep) {
       switch (view) {
-        case 'rep-day': return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} hcpsMet={hcpsMetToday} directives={directives} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
+        case 'rep-day': return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} hcpsMet={hcpsMetToday} directives={mk.directivesFor('Adaeze Okafor')} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
         case 'rep-plan': return <RepPlanView visits={repVisits} onStartVisit={handleStartVisit} weekItinerary={weekItinerary} repAdjustments={repAdjustments} onRequestAdjustment={handleRequestAdjustment} nextWeekVisits={nextWeekVisits} nextWeekItinerary={nextWeekItinerary} onAddPlannedVisit={handleAddPlannedVisit} onRemovePlannedVisit={handleRemovePlannedVisit} onApplyOptimizedRoute={handleApplyOptimizedRoute} onSubmitItinerary={handleSubmitItinerary} />;
-        case 'rep-visit': return <RepVisitLogView activeVisit={activeVisit} visitLogs={visitLogs} currentUserId={user?.email || 'rep'} currentUserName={user?.name || 'Rep'} onLogVisit={handleLogVisit} onCompleteVisit={handleCompleteVisit} onPlaceOrder={handlePlaceOrder} onNavigate={setView} onAddLead={handleAddLead} />;
+        case 'rep-visit': return <RepVisitLogView activeVisit={activeVisit} visitLogs={visitLogs} currentUserId={user?.email || 'rep'} currentUserName={user?.name || 'Rep'} onLogVisit={handleLogVisit} onCompleteVisit={handleCompleteVisit} onPlaceOrder={handlePlaceOrder} onNavigate={setView} onAddLead={handleAddLead} leads={leads} />;
         case 'rep-order': return <RepOrderView activeVisit={activeVisit} onSubmitOrder={handleSubmitOrder} onBack={() => setView('rep-visit')} />;
         case 'rep-coach': return <RepCoachView customerInventory={customerInventory} onNavigate={setView} />;
-        case 'rep-dcr': return <RepDCRView visitsCompleted={repStats.completed} ordersToday={orders.filter(o => o.rep === 'Adaeze O.').length} visitLogs={visitLogs} onSubmit={handleSubmitDCR} />;
+        case 'rep-dcr': return <RepDCRView visitsCompleted={repStats.completed} ordersToday={orders.filter(o => o.rep === 'Adaeze O.').length} visitLogs={visitLogs} onSubmit={handleSubmitDCR} repName={user?.name} />;
         case 'rep-clinical': return <RepClinicalView onSubmitCM={handleSubmitCM} prefillHcp={cmPrefillHcp} onConsumePrefill={() => setCmPrefillHcp('')} />;
-        case 'rep-orders': return <OrdersView orders={orders.filter(o => o.rep === 'Adaeze O.')} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
+        case 'rep-orders': return <OrdersView orders={orders.filter(o => o.rep === 'Adaeze O.')} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} onToast={addToast} />;
         case 'rep-team': return <RepTeamView />;
         case 'rep-customers': return <CustomersView extraAccounts={convertedCustomers} />;
-        case 'rep-pipeline': return <RepPipelineView leads={leads.filter(l => l.repName === REP_OWNER)} onEnrich={handleEnrichLead} onConsent={handleConsentLead} onSend={handleSendLead} onConvert={handleConvertLead} onNavigate={setView} />;
-        case 'rep-invoices': return <RepInvoicesView orders={orders.filter(o => o.rep === 'Adaeze O.')} />;
-        default: return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} hcpsMet={hcpsMetToday} directives={directives} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
+        case 'rep-pipeline': return <RepPipelineView leads={leads.filter(l => l.repName === REP_OWNER)} onEnrich={handleEnrichLead} onConsent={handleConsentLead} onSend={handleSendLead} onConvert={handleConvertLead} onNavigate={setView} onAddLead={handleAddLead} />;
+        case 'rep-assistant': return <AIInsightsChat role="rep" />;
+        case 'rep-learn': return <LearnView role="rep" onToast={addToast} />;
+        case 'rep-feedback': return <div className="p-4 md:p-8 max-w-xl mx-auto"><FeedbackForm onToast={addToast} name={user?.name} /></div>;
+        case 'rep-invoices': return <RepInvoicesView orders={orders.filter(o => o.rep === 'Adaeze O.')} onToast={addToast} />;
+        case 'rep-materials': return <RepMaterialsView onToast={addToast} />;
+        case 'rep-promo': return <RepPromoRequest onToast={addToast} />;
+        default: return <RepDashboard visits={repVisits} onNavigate={setView} onStartVisit={handleStartVisit} repStats={repStats} hcpsMet={hcpsMetToday} directives={mk.directivesFor('Adaeze Okafor')} onAcknowledgeDirective={handleAcknowledgeDirective} customerInventory={customerInventory} />;
       }
     }
 
@@ -1315,9 +1295,15 @@ export default function App() {
       switch (view) {
         case 'asm-area': return <ASMDashboard onNavigate={setView} />;
         case 'performance': return <PerformanceView subtitle="Target vs Achieved · Q2 · your area reps" />;
-        case 'asm-team': return <ASMTeamView />;
+        case 'asm-team': return <ASMTeamView onToast={addToast} />;
         case 'asm-log': return <ASMActivityLogView />;
-        case 'orders': return <OrdersView orders={orders.filter(o => ['Adaeze O.', 'Tope A.'].includes(o.rep))} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
+        case 'asm-field': return <ManagerFieldLog manager="asm" onToast={addToast} />;
+        case 'messages': return <MessagesView manager="asm" onToast={addToast} />;
+        case 'training': return <TrainingTasksView manager="asm" onToast={addToast} />;
+        case 'focus': return <FocusProductsView manager="asm" onToast={addToast} />;
+        case 'insights': return <AIInsightsChat role="asm" />;
+        case 'learn': return <LearnView role="manager" onToast={addToast} />;
+        case 'orders': return <OrdersView orders={orders.filter(o => ['Adaeze O.', 'Tope A.'].includes(o.rep))} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} onToast={addToast} />;
         case 'asm-pushup': return (
           <div className="p-8 max-w-2xl mx-auto">
             <div className="rounded-2xl bg-white border border-navy-100 p-6 fade-up">
@@ -1346,26 +1332,26 @@ export default function App() {
 
     if (isFSM) {
       switch (view) {
-        case 'fsm-trade': return <FSMDashboard onNavigate={setView} approvals={approvals} onEscalateToNSM={handleEscalateToNSM} />;
+        case 'fsm-trade': return <FSMDashboard onNavigate={setView} approvals={approvals} onEscalateToNSM={handleEscalateToNSM} onToast={addToast} />;
         case 'performance': return <PerformanceView title="Trade Rep Performance" subtitle="Target vs Achieved · Q2 · your trade reps" />;
-        case 'fsm-distributors': return <FSMDistributorsView />;
+        case 'fsm-distributors': return <FSMDistributorsView onToast={addToast} />;
         case 'activity': return <FieldActivityView searchQuery={searchQuery} visitLogs={visitLogs} />;
         case 'sync-queue': return <SyncQueueView />;
-        case 'orders': return <OrdersView orders={orders} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
+        case 'orders': return <OrdersView orders={orders} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} onToast={addToast} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
-        default: return <FSMDashboard onNavigate={setView} approvals={approvals} onEscalateToNSM={handleEscalateToNSM} />;
+        default: return <FSMDashboard onNavigate={setView} approvals={approvals} onEscalateToNSM={handleEscalateToNSM} onToast={addToast} />;
       }
     }
 
     if (isPM) {
       switch (view) {
         case 'pm-portfolio': return <PMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} customerInventory={customerInventory} accompaniments={accompaniments} approvals={approvals} visitLogs={visitLogs} />;
-        case 'pm-materials': return <PMMaterialsView onPushMaterial={handlePushMaterial} />;
+        case 'pm-materials': return <PMMaterialsView onToast={addToast} />;
         case 'pm-clinical': return <PMClinicalView clinicalMeetings={clinicalMeetings} onApproveCM={handlePMApproveCM} onRejectCM={rejectCM} />;
         case 'pm-inventory': return <CustomerInventoryView customerInventory={customerInventory} onBack={() => setView('pm-portfolio')} isPM />;
-        case 'pm-directives': return <PMDirectivesView directives={directives} onPushDirective={handlePushDirective} onBack={() => setView('pm-portfolio')} />;
+        case 'pm-directives': return <PMDirectivesView onToast={addToast} onBack={() => setView('pm-portfolio')} />;
         case 'pm-field': return <PMFieldView accompaniments={accompaniments} onSaveAccompaniment={handleSaveAccompaniment} jointCalls={jointCalls} onScheduleJointCall={handleScheduleJointCall} onBack={() => setView('pm-portfolio')} />;
-        case 'pm-promo': return <PMPromoView promoRequests={promoRequests} onApprove={handleApprovePromo} onReject={handleRejectPromo} onLaunch={handleLaunchPromo} />;
+        case 'pm-promo': return <PMPromoView onToast={addToast} onNavigate={setView} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <PMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} customerInventory={customerInventory} accompaniments={accompaniments} approvals={approvals} visitLogs={visitLogs} />;
       }
@@ -1374,7 +1360,7 @@ export default function App() {
     if (isMM) {
       switch (view) {
         case 'mm-marketing': return <MMDashboard onNavigate={setView} contentApprovals={contentApprovals} clinicalMeetings={clinicalMeetings} />;
-        case 'mm-content': return <MMContentApprovalsView contentApprovals={contentApprovals} onApproveContent={handleApproveContent} onRejectContent={handleRejectContent} />;
+        case 'mm-content': return <MMContentApprovalsView approver={user?.name} onToast={addToast} />;
         case 'mm-cme': return <MMCmeView clinicalMeetings={clinicalMeetings} onApprove={handleMMApproveCM} onReject={rejectCM} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <MMDashboard onNavigate={setView} contentApprovals={contentApprovals} clinicalMeetings={clinicalMeetings} />;
@@ -1383,12 +1369,12 @@ export default function App() {
 
     if (isDM) {
       switch (view) {
-        case 'dm-division': return <DMDashboard onNavigate={setView} approvals={approvals} />;
-        case 'dm-regions': return <DMDashboard onNavigate={setView} approvals={approvals} />;
+        case 'dm-division': return <DMDashboard onNavigate={setView} approvals={approvals} visitLogs={visitLogs} />;
+        case 'dm-regions': return <DMDashboard onNavigate={setView} approvals={approvals} visitLogs={visitLogs} />;
         case 'performance': return <PerformanceView title="Regional Performance" subtitle="Target vs Achieved · Q2 · regions reporting to you" rows={[
-          { name: 'South-West Region', unit: 'RSM · A. Bello', target: 48, achieved: 44.2 },
-          { name: 'South-East Region', unit: 'RSM · N. Eze', target: 40, achieved: 41.5 },
-          { name: 'South-South Region', unit: 'RSM · P. Etim', target: 36, achieved: 28.9 },
+          { name: 'South-West Region', unit: 'RSM · Tunde Bakare', target: 48, achieved: 44.2 },
+          { name: 'South-East Region', unit: 'RSM · Ngozi Achebe', target: 40, achieved: 41.5 },
+          { name: 'South-South Region', unit: 'RSM · Emeka Okoro', target: 36, achieved: 28.9 },
         ]} />;
         case 'dm-escalated': return <DMEscalatedView approvals={approvals} onOpenApproval={setApprovalModalItem as (item: ApprovalItem) => void} onApprove={approveItem} onReject={rejectItem} onEscalateToNSM={handleEscalateToNSM} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
@@ -1414,48 +1400,48 @@ export default function App() {
             </div>
           </div>
         );
-        default: return <DMDashboard onNavigate={setView} approvals={approvals} />;
+        default: return <DMDashboard onNavigate={setView} approvals={approvals} visitLogs={visitLogs} />;
       }
     }
 
     if (isNSM) {
       switch (view) {
-        case 'nsm-national': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
-        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
-        case 'nsm-forecast': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
-        case 'nsm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'nsm-national': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} visitLogs={visitLogs} />;
+        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} visitLogs={visitLogs} />;
+        case 'nsm-forecast': return <ForecastView scope={nsmScope} />;
+        case 'nsm-directive': return <NSMDirectiveView sender={user?.name} senderRole={user?.tag} onToast={addToast} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
-        default: return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
+        default: return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} visitLogs={visitLogs} />;
       }
     }
 
     if (isNSMInst) {
       switch (view) {
-        case 'nsm_inst-dashboard': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
-        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
-        case 'nsm-forecast': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
-        case 'nsm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'nsm_inst-dashboard': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} visitLogs={visitLogs} />;
+        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} visitLogs={visitLogs} />;
+        case 'nsm-forecast': return <ForecastView scope={nsmScope} />;
+        case 'nsm-directive': return <NSMDirectiveView sender={user?.name} senderRole={user?.tag} onToast={addToast} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
-        default: return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
+        default: return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} visitLogs={visitLogs} />;
       }
     }
 
     if (isNSMTrade) {
       switch (view) {
-        case 'nsm_trade-dashboard': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
-        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
-        case 'nsm-forecast': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
-        case 'nsm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'nsm_trade-dashboard': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} visitLogs={visitLogs} />;
+        case 'nsm-divisions': return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} visitLogs={visitLogs} />;
+        case 'nsm-forecast': return <ForecastView scope={nsmScope} />;
+        case 'nsm-directive': return <NSMDirectiveView sender={user?.name} senderRole={user?.tag} onToast={addToast} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
-        default: return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} />;
+        default: return <NSMDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} scope={nsmScope} visitLogs={visitLogs} />;
       }
     }
 
     if (isHoM) {
       switch (view) {
         case 'hom-dashboard': return <HoMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} contentApprovals={contentApprovals} />;
-        case 'hom-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
-        case 'mm-content': return <MMContentApprovalsView contentApprovals={contentApprovals} onApproveContent={handleApproveContent} onRejectContent={handleRejectContent} />;
+        case 'hom-directive': return <NSMDirectiveView sender={user?.name} senderRole={user?.tag} onToast={addToast} />;
+        case 'mm-content': return <MMContentApprovalsView approver={user?.name} onToast={addToast} />;
         case 'mm-cme': return <MMCmeView clinicalMeetings={clinicalMeetings} onApprove={handleMMApproveCM} onReject={rejectCM} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <HoMDashboard onNavigate={setView} clinicalMeetings={clinicalMeetings} contentApprovals={contentApprovals} />;
@@ -1465,7 +1451,7 @@ export default function App() {
     if (isBM) {
       switch (view) {
         case 'bm-portfolio': return <BMDashboard onNavigate={setView} />;
-        case 'bm-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'bm-directive': return <NSMDirectiveView sender={user?.name} senderRole={user?.tag} onToast={addToast} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <BMDashboard onNavigate={setView} />;
       }
@@ -1474,7 +1460,7 @@ export default function App() {
     if (isBMD) {
       switch (view) {
         case 'bmd-dashboard': return <BMDDashboard onNavigate={setView} />;
-        case 'bmd-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'bmd-directive': return <NSMDirectiveView sender={user?.name} senderRole={user?.tag} onToast={addToast} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <BMDDashboard onNavigate={setView} />;
       }
@@ -1483,16 +1469,45 @@ export default function App() {
     if (isADC) {
       switch (view) {
         case 'adc-dashboard': return <ADCDashboard onNavigate={setView} />;
-        case 'adc-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'adc-directive': return <NSMDirectiveView sender={user?.name} senderRole={user?.tag} onToast={addToast} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <ADCDashboard onNavigate={setView} />;
+      }
+    }
+
+    if (isSupport) {
+      return <SupportDeskView tab={supportTab} onTab={t => setView(`support-${t}`)} agentName={user?.name ?? 'Support Desk'} onToast={addToast} />;
+    }
+
+    if (isAdmin) {
+      const t = { onToast: addToast };
+      switch (view) {
+        case 'admin-people': return <PeopleRoles {...t} />;
+        case 'admin-territories': return <Territories {...t} />;
+        case 'admin-customers': return <AdminCustomers {...t} />;
+        case 'admin-duplicates': return <DuplicateMerge {...t} />;
+        case 'admin-catalogue': return <Catalogue {...t} />;
+        case 'admin-permissions': return <PermissionMatrix {...t} />;
+        case 'admin-forms': return <FormBuilder {...t} />;
+        case 'admin-workflows': return <WorkflowBuilder {...t} />;
+        case 'admin-rules': return <RulesStudio {...t} />;
+        case 'admin-models': return <ModelCatalogue {...t} />;
+        case 'admin-sync': return <SyncQueueView />;
+        case 'admin-imports': return <DataImports {...t} />;
+        case 'admin-audit': return <AuditLog {...t} />;
+        case 'admin-golive': return <GoLiveReadiness {...t} />;
+        case 'admin-rollout': return <RolloutWaves {...t} />;
+        case 'admin-feedback': return <PilotFeedback {...t} />;
+        case 'admin-docs': return <DocsPortal {...t} />;
+        case 'admin-learn': return <LearnView role="admin" {...t} />;
+        default: return <AdminHome onNavigate={setView} />;
       }
     }
 
     if (isCD) {
       switch (view) {
         case 'cd-dashboard': return <CDDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} />;
-        case 'cd-directive': return <NSMDirectiveView onSendDirective={handleSendDirective} />;
+        case 'cd-directive': return <NSMDirectiveView sender={user?.name} senderRole={user?.tag} onToast={addToast} />;
         case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
         default: return <CDDashboard onNavigate={setView} approvals={approvals} dcrs={dcrs} clinicalMeetings={clinicalMeetings} />;
       }
@@ -1500,16 +1515,24 @@ export default function App() {
 
     // MANAGER (RSM) ROUTES
     switch (view) {
-      case 'dashboard': return <DashboardView approvals={approvals} onOpenApproval={setApprovalModalItem as (item: ApprovalItem) => void} onApprove={approveItem} onReject={rejectItem} dashboardStats={dashboardStats} />;
+      case 'dashboard': return <DashboardView approvals={approvals} onOpenApproval={setApprovalModalItem as (item: ApprovalItem) => void} onApprove={approveItem} onReject={rejectItem} dashboardStats={dashboardStats} onToast={addToast} />;
       case 'activity': return <FieldActivityView searchQuery={searchQuery} visitLogs={visitLogs} />;
-        case 'sync-queue': return <SyncQueueView />;
-      case 'orders': return <OrdersView orders={orders} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} />;
-      case 'hcps': return <HCPsView searchQuery={searchQuery} />;
+      case 'sync-queue': return <SyncQueueView />;
+      case 'learn': return <LearnView role="manager" onToast={addToast} />;
+      case 'complaints': return <ComplaintsView currentUserName={user?.name} onToast={addToast} />;
+      case 'asm-log': return <ASMActivityLogView manager="manager" />;
+      case 'asm-field': return <ManagerFieldLog manager="manager" onToast={addToast} />;
+      case 'messages': return <MessagesView manager="manager" onToast={addToast} />;
+      case 'training': return <TrainingTasksView manager="manager" onToast={addToast} />;
+      case 'focus': return <FocusProductsView manager="manager" onToast={addToast} />;
+      case 'orders': return <OrdersView orders={orders} onOpenApproval={openOrderApproval} onApprove={approveItem} searchQuery={searchQuery} onToast={addToast} />;
+      case 'hcps': return <HCPsView searchQuery={searchQuery} leads={leads} />;
       case 'insights': return <AIInsightsChat role={user?.roleType ?? 'manager'} />;
       case 'clinical': return <ClinicalView clinicalMeetings={clinicalMeetings} onApproveCM={approveCM} onRejectCM={rejectCM} />;
       case 'reports': return <ReportsView dcrs={dcrs} />;
       case 'itineraries': return (
         <RSMItinerariesView
+          onToast={addToast}
           itinerariesPending={itinerariesPending}
           adjustmentsPending={adjustmentsPending}
           onApproveItinerary={handleApproveItinerary}
@@ -1518,7 +1541,7 @@ export default function App() {
           onRejectAdjustment={handleRejectAdjustment}
         />
       );
-      default: return <DashboardView approvals={approvals} onOpenApproval={setApprovalModalItem as (item: ApprovalItem) => void} onApprove={approveItem} onReject={rejectItem} dashboardStats={dashboardStats} />;
+      default: return <DashboardView approvals={approvals} onOpenApproval={setApprovalModalItem as (item: ApprovalItem) => void} onApprove={approveItem} onReject={rejectItem} dashboardStats={dashboardStats} onToast={addToast} />;
     }
   };
 
@@ -1625,6 +1648,13 @@ export default function App() {
       { k: 'insights', i: 'sparkles', l: 'AI' },
       { k: 'cd-directive', i: 'send', l: 'Push' },
     ], color: 'indigo' },
+    admin: { items: [
+      { k: 'admin-home', i: 'dashboard', l: 'Admin' },
+      { k: 'admin-people', i: 'users', l: 'People' },
+      { k: 'admin-golive', i: 'checkCircle', l: 'Go-live' },
+      { k: 'admin-audit', i: 'fingerprint', l: 'Audit' },
+    ], color: 'navy' },
+    support: { items: supportNav.slice(0, 4).map(n => ({ ...n, l: n.l.split(' ')[0] })), color: 'teal' },
   };
 
   const currentBottomNav = bottomNavMap[user?.roleType || 'manager'] || bottomNavMap.manager;
@@ -1656,6 +1686,8 @@ export default function App() {
     if (isBMD) return <RoleSidebar {...common} roleType="bmd" navItems={bmdNav} statusPill={{ label: 'Brand Management', detail: '8 brands · 5 direct reports' }} />;
     if (isADC) return <RoleSidebar {...common} roleType="adc" navItems={adcNav} statusPill={{ label: 'Trade + M&F', detail: '80 reps · 2 NSMs' }} />;
     if (isCD) return <RoleSidebar {...common} roleType="cd" navItems={cdNav} statusPill={{ label: 'Commercial', detail: '142 reps · ₦2.4TN FY26' }} />;
+    if (isSupport) return <RoleSidebar {...common} roleType="support" navItems={supportNav} statusPill={{ label: 'On shift', detail: 'Hypercare day 9 of 28' }} />;
+    if (isAdmin) return <RoleSidebar {...common} roleType="admin" navItems={[{ k: 'admin-home', i: 'dashboard', l: 'Overview' }, ...ADMIN_SECTIONS.map(s => ({ k: s.key, i: s.icon, l: s.label }))]} statusPill={{ label: 'Fidson IT', detail: 'Production · v1.8.2' }} />;
     return <Sidebar {...common} approvalsCount={approvals.length} itinerariesBadge={itinerariesPending.length + adjustmentsPending.length} />;
   };
 
@@ -1707,7 +1739,14 @@ export default function App() {
         />
       )}
 
-      <HelpdeskWidget />
+      <HelpdeskWidget
+        userName={user?.name ?? ''}
+        userEmail={user?.email ?? ''}
+        roleLabel={user?.role ?? ''}
+        isRep={isRep}
+        screen={viewMeta[view]?.t ?? 'FieldForce'}
+        hidden={isSupport}
+      />
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>

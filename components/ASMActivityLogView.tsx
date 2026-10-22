@@ -1,14 +1,7 @@
+import { useState } from 'react';
 import Icon from './Icon';
-
-type ActivityCategory = 'approval' | 'field' | 'coaching' | 'admin' | 'meeting' | 'system';
-
-interface ActivityEntry {
-  t: string;
-  n: string;
-  d: string;
-  cat: ActivityCategory;
-  who: string;
-}
+import { useTeam, MANAGERS, type ActivityCategory, type ManagerKey } from '../stores/team';
+import { todayLong } from '../utils/dates';
 
 const CAT_COLORS: Record<ActivityCategory, string> = {
   approval: 'bg-leaf-50 border-leaf-200 text-leaf-700',
@@ -17,18 +10,26 @@ const CAT_COLORS: Record<ActivityCategory, string> = {
   admin: 'bg-navy-50 border-navy-200 text-navy-700',
   meeting: 'bg-amber-50 border-amber-200 text-amber-700',
   system: 'bg-paper border-navy-100 text-navy-500',
+  message: 'bg-sky-50 border-sky-200 text-sky-700',
+  training: 'bg-leaf-50 border-leaf-200 text-leaf-700',
 };
 
-export default function ASMActivityLogView() {
-  const activities: ActivityEntry[] = [
-    { t: '10:30', n: 'Reviewed Adaeze\'s Lakeshore visit', d: 'Approved 18% discount request', cat: 'approval', who: 'Funmi → Adaeze' },
-    { t: '09:55', n: 'Field accompaniment with Bayo', d: 'Joined visit to MedPlus Lekki · 45 min', cat: 'field', who: 'Funmi + Bayo' },
-    { t: '09:40', n: '1:1 with Bayo Salami', d: 'Lekki Phase 2 strategy review · Coaching note logged', cat: 'coaching', who: 'Funmi + Bayo' },
-    { t: '09:00', n: 'Pushed itinerary changes', d: 'Re-assigned 2 visits from Yetunde to Tope', cat: 'admin', who: 'Funmi' },
-    { t: '08:30', n: 'Daily team huddle', d: '4 reps · 8 min · Coflin Q2 focus discussed', cat: 'meeting', who: 'Funmi + 4 reps' },
-    { t: '08:15', n: 'Reviewed yesterday\'s DCRs', d: '4 reports · All accepted · Auto-pushed to BM', cat: 'admin', who: 'Funmi' },
-    { t: '08:00', n: 'Day started · GPS active', d: 'Lekki office', cat: 'system', who: 'Funmi' },
-  ];
+const FILTERS: { k: 'all' | ActivityCategory; l: string }[] = [
+  { k: 'all', l: 'All' }, { k: 'field', l: 'Field' }, { k: 'coaching', l: 'Coaching' },
+  { k: 'message', l: 'Messages' }, { k: 'training', l: 'Training' }, { k: 'approval', l: 'Approvals' },
+];
+
+interface ASMActivityLogViewProps {
+  manager?: ManagerKey;
+}
+
+export default function ASMActivityLogView({ manager = 'asm' }: ASMActivityLogViewProps) {
+  const { activity } = useTeam();
+  const [filter, setFilter] = useState<'all' | ActivityCategory>('all');
+  const mine = activity.filter(a => a.by === manager);
+  const shown = filter === 'all' ? mine : mine.filter(a => a.cat === filter);
+  const count = (c: ActivityCategory) => mine.filter(a => a.cat === c).length;
+  const visibleTo = manager === 'asm' ? 'BM Cestra and RSM Tunde Bakare' : 'DM Kemi Adeyemi';
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto">
@@ -36,7 +37,7 @@ export default function ASMActivityLogView() {
         <div className="px-5 py-4 border-b border-navy-100 flex items-center justify-between flex-wrap gap-2">
           <div>
             <h3 className="font-display font-bold text-ink">Manager Activity Log</h3>
-            <p className="text-xs text-navy-500 mt-0.5">Your daily activities · Auto-captured · Visible to BM Cestra</p>
+            <p className="text-xs text-navy-500 mt-0.5">{MANAGERS[manager].name} · Auto-captured from your actions · Visible to {visibleTo}</p>
           </div>
           <span className="px-2 py-1 rounded-full bg-sky-50 text-sky-700 text-[10px] font-bold flex items-center gap-1">
             <div className="w-1.5 h-1.5 rounded-full bg-sky-500 pulse-dot" />RECORDING
@@ -48,10 +49,10 @@ export default function ASMActivityLogView() {
             <p className="text-[10px] font-bold text-navy-400 tracking-wider uppercase mb-1">Today's Summary</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { l: '1:1s Conducted', v: '2' },
-                { l: 'Field Visits', v: '1' },
-                { l: 'Approvals Given', v: '4' },
-                { l: 'Time on Platform', v: '4h 20m' },
+                { l: 'Coaching Entries', v: count('coaching') },
+                { l: 'Field Visits', v: count('field') },
+                { l: 'Messages Sent', v: count('message') },
+                { l: 'Approvals Given', v: count('approval') },
               ].map(s => (
                 <div key={s.l}>
                   <p className="stat-label text-navy-400">{s.l}</p>
@@ -61,13 +62,26 @@ export default function ASMActivityLogView() {
             </div>
           </div>
 
-          <p className="stat-label text-navy-400 mb-3">Timeline · Wednesday 13 May</p>
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+            <p className="stat-label text-navy-400">Timeline · {todayLong()}</p>
+            <div className="flex gap-1 flex-wrap">
+              {FILTERS.map(f => (
+                <button key={f.k} onClick={() => setFilter(f.k)} className={`px-2 py-1 rounded-md text-[10px] font-bold ${filter === f.k ? 'bg-navy-700 text-white' : 'bg-paper text-navy-600 hover:bg-navy-50'}`}>{f.l}</button>
+              ))}
+            </div>
+          </div>
           <div className="space-y-1">
-            {activities.map((a, i) => (
-              <div key={i} className="flex items-start gap-3 p-2 hover:bg-paper rounded-lg">
+            {shown.length === 0 && (
+              <div className="py-8 text-center text-sm text-navy-500 flex flex-col items-center gap-2">
+                <Icon name="activity" size={20} className="text-navy-300" />
+                Nothing in this category yet today.
+              </div>
+            )}
+            {shown.map((a, i) => (
+              <div key={a.id} className="flex items-start gap-3 p-2 hover:bg-paper rounded-lg">
                 <div className="font-mono text-[11px] text-navy-500 font-bold w-12 flex-shrink-0 pt-1">{a.t}</div>
                 <div className="w-2 h-2 rounded-full bg-sky-500 mt-2 flex-shrink-0 relative">
-                  {i < activities.length - 1 && <div className="absolute top-2 left-1/2 -translate-x-1/2 w-px h-8 bg-navy-200" />}
+                  {i < shown.length - 1 && <div className="absolute top-2 left-1/2 -translate-x-1/2 w-px h-8 bg-navy-200" />}
                 </div>
                 <div className="flex-1 min-w-0 pb-3">
                   <div className="flex items-center gap-2 flex-wrap">

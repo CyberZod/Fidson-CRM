@@ -24,7 +24,8 @@ export interface Toast {
 export type PersonaKey =
   | 'manager' | 'rep' | 'asm' | 'fsm' | 'pm' | 'mm' | 'dm' | 'nsm'
   | 'nsm_inst' | 'nsm_trade'
-  | 'hom' | 'bm' | 'bmd' | 'adc' | 'cd';
+  | 'hom' | 'bm' | 'bmd' | 'adc' | 'cd'
+  | 'admin' | 'support';
 
 export type ColorKey =
   | 'leaf' | 'sky' | 'navy' | 'amber' | 'violet' | 'rose' | 'indigo' | 'fuchsia'
@@ -127,6 +128,7 @@ export interface OrderRow {
   dismissing?: boolean;
   lpoAttached?: boolean;
   lpoFileName?: string;
+  signedBy?: string;
 }
 
 // ===== Promo Requests (PM-reviewed larger campaigns) =====

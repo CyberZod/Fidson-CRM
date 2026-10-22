@@ -1,3 +1,8 @@
+import { useState } from 'react';
+import Icon from './Icon';
+import DrillDown from './DrillDown';
+import { findPath } from '../assets/drillData';
+
 interface PerfRow {
   name: string;
   unit: string;
@@ -8,7 +13,10 @@ interface PerformanceViewProps {
   title?: string;
   subtitle?: string;
   rows?: PerfRow[];
+  drillRootId?: string; // highest level the viewer may climb to; defaults to the rows' common parent
 }
+
+const pathFor = (name: string) => findPath(name.replace(/ (Region|Division)$/i, ''));
 
 // ponytail: read-only target-vs-achieved. Target *setting* (cascade down the hierarchy,
 // periods, approval, lock) is deferred · add when the org confirms the target workflow.
@@ -29,7 +37,19 @@ export default function PerformanceView({
   title = 'Team Performance',
   subtitle = 'Target vs Achieved · Q2 · the people reporting to you',
   rows = DEFAULT_ROWS,
+  drillRootId,
 }: PerformanceViewProps) {
+  const [drillPath, setDrillPath] = useState<string[] | null>(null);
+  const paths = rows.map(r => pathFor(r.name));
+  const found = paths.filter((p): p is string[] => !!p);
+  let common: string[] = found[0] ? found[0].slice(0, -1) : ['national'];
+  for (const p of found) {
+    let k = 0;
+    while (k < common.length && k < p.length - 1 && common[k] === p[k]) k++;
+    common = common.slice(0, k);
+  }
+  const rootId = drillRootId ?? common[common.length - 1] ?? 'national';
+
   const totalTarget = rows.reduce((s, r) => s + r.target, 0);
   const totalAchieved = rows.reduce((s, r) => s + r.achieved, 0);
   const teamPct = Math.round((totalAchieved / totalTarget) * 100);
@@ -66,13 +86,20 @@ export default function PerformanceView({
       <div className="fade-up stagger-2 rounded-2xl bg-white border border-navy-100 overflow-hidden">
         <div className="px-5 py-4 border-b border-navy-100">
           <h3 className="font-display font-bold text-ink">Individual · Expected vs Achieved</h3>
+          {found.length > 0 && <p className="text-[11px] text-navy-500 mt-0.5">Select a row to drill into visits, orders and coverage</p>}
         </div>
         <div className="divide-y divide-navy-50">
           {rows.map((r, i) => {
             const pct = Math.round((r.achieved / r.target) * 100);
             const b = band(pct);
+            const path = paths[i];
             return (
-              <div key={i} className="px-5 py-4">
+              <button
+                key={i}
+                disabled={!path}
+                onClick={() => path && setDrillPath(path)}
+                className="w-full text-left block px-5 py-4 enabled:hover:bg-paper focus:bg-indigo-50 focus:outline-none"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-navy-100 text-navy-600 font-display font-bold text-[10px] flex items-center justify-center flex-shrink-0">
                     {r.name.split(' ').map(x => x[0]).join('')}
@@ -91,12 +118,14 @@ export default function PerformanceView({
                     <div className={`h-full rounded-full ${b.bar}`} style={{ width: `${Math.min(100, pct)}%` }} />
                   </div>
                   <span className="text-[10px] font-mono text-navy-500 flex-shrink-0">₦{r.achieved.toFixed(1)}M / ₦{r.target.toFixed(1)}M</span>
+                  {path && <Icon name="chevronRight" size={14} className="text-navy-300 flex-shrink-0" />}
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
       </div>
+      {drillPath && <DrillDown path={drillPath} rootId={rootId} onClose={() => setDrillPath(null)} />}
     </div>
   );
 }

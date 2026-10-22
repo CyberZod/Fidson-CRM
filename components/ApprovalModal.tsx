@@ -8,11 +8,73 @@ interface ApprovalModalProps {
   onApprove: (id: string) => void;
   onReject: (id: string, reason?: string) => void;
   readOnly?: boolean; // ponytail: RSM/PM view discounts but only DM signs off
+  actorName?: string;
 }
 
 type Step = 'review' | 'reject' | 'approving' | 'rejecting' | 'approved';
 
-export default function ApprovalModal({ item, onClose, onApprove, onReject, readOnly = false }: ApprovalModalProps) {
+interface TrailStep {
+  stage: string;
+  who: string;
+  when: string;
+  decision: string;
+  note?: string;
+  state: 'done' | 'current' | 'skipped' | 'waiting';
+}
+
+const STD_LIMIT = 15;
+const DM_LIMIT = 25;
+
+const hhmm = (minsAgo: number) => new Date(Date.now() - minsAgo * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+// Approval chain for a discount: rep → auto-check → RSM → DM → NSM.
+const buildTrail = (item: ApprovalModalItem, outcome: 'pending' | 'approved' | 'rejected', actor: string): TrailStep[] => {
+  const pctText = item.requestedDiscount || item.discountPct || '18%';
+  const pct = parseFloat(pctText) || 18;
+  if (item.type !== 'discount') {
+    return [
+      { stage: 'Submitted', who: item.rep, when: hhmm(190), decision: 'Submitted', note: item.detail, state: 'done' },
+      { stage: 'Review', who: actor, when: outcome === 'pending' ? 'now' : hhmm(0), decision: outcome === 'pending' ? 'Awaiting decision' : outcome === 'approved' ? 'Approved' : 'Rejected', state: outcome === 'pending' ? 'current' : 'done' },
+    ];
+  }
+  const nsm = !!item.escalatedToNSM || pct > DM_LIMIT;
+  const dmDecision = outcome === 'approved' ? 'Approved' : outcome === 'rejected' ? 'Rejected' : nsm ? 'Escalated to NSM' : 'Awaiting decision';
+  return [
+    { stage: 'Submitted by rep', who: item.rep, when: hhmm(190), decision: `Requested ${pctText} on ${item.amount}`, note: item.justification ? item.justification.slice(0, 90) : undefined, state: 'done' },
+    { stage: 'Auto-check against limit', who: 'System rule', when: hhmm(190), decision: pct > STD_LIMIT ? `Above ${STD_LIMIT}% standard limit · routed for sign-off` : `Within ${STD_LIMIT}% limit`, state: 'done' },
+    { stage: 'RSM', who: 'Tunde Bakare', when: hhmm(150), decision: 'Endorsed', note: 'Key institutional account, competitor at 17%', state: 'done' },
+    { stage: 'DM', who: actor, when: outcome === 'pending' && !nsm ? `SLA 4h · ${Math.max(0, 240 - 150)} min left` : hhmm(nsm && outcome === 'pending' ? 40 : 0), decision: dmDecision, state: outcome !== 'pending' || nsm ? 'done' : 'current' },
+    nsm
+      ? { stage: 'NSM', who: 'Bayo Ogunlana', when: outcome === 'pending' ? 'SLA 8h' : hhmm(0), decision: outcome === 'pending' ? 'Awaiting national decision' : dmDecision, state: outcome === 'pending' ? 'current' : 'done' }
+      : { stage: 'NSM', who: 'Bayo Ogunlana', when: '', decision: `Not required · DM can sign up to ${DM_LIMIT}%`, state: 'skipped' },
+  ];
+};
+
+function AuditTrail({ steps }: { steps: TrailStep[] }) {
+  return (
+    <div>
+      <p className="stat-label text-navy-400 mb-2">Audit trail</p>
+      <ol className="relative pl-5 space-y-3">
+        <span className="absolute left-[7px] top-1 bottom-1 w-px bg-navy-200" aria-hidden />
+        {steps.map((s, i) => (
+          <li key={i} className="relative">
+            <span className={`absolute -left-5 top-0.5 w-3.5 h-3.5 rounded-full border-2 ${
+              s.state === 'done' ? 'bg-leaf-500 border-leaf-500' : s.state === 'current' ? 'bg-white border-amber-500 pulse-dot' : 'bg-white border-navy-200'
+            }`} />
+            <div className="flex items-baseline justify-between gap-2">
+              <p className={`text-xs font-bold ${s.state === 'skipped' ? 'text-navy-400' : 'text-ink'}`}>{s.stage} · <span className="font-semibold text-navy-600">{s.who}</span></p>
+              {s.when && <span className={`font-mono text-[10px] flex-shrink-0 ${s.state === 'current' ? 'text-amber-700 font-bold' : 'text-navy-400'}`}>{s.when}</span>}
+            </div>
+            <p className={`text-[11px] ${s.state === 'current' ? 'text-amber-700 font-semibold' : s.state === 'skipped' ? 'text-navy-400' : 'text-navy-600'}`}>{s.decision}</p>
+            {s.note && <p className="text-[10px] text-navy-500 italic mt-0.5">"{s.note}"</p>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+export default function ApprovalModal({ item, onClose, onApprove, onReject, readOnly = false, actorName = 'Kemi Adeyemi' }: ApprovalModalProps) {
   const [step, setStep] = useState<Step>('review');
   const [rejectReason, setRejectReason] = useState('');
 
@@ -25,7 +87,7 @@ export default function ApprovalModal({ item, onClose, onApprove, onReject, read
       setTimeout(() => {
         onApprove(item.id);
         onClose();
-      }, 1400);
+      }, 2600);
     }, 800);
   };
 
@@ -123,6 +185,8 @@ export default function ApprovalModal({ item, onClose, onApprove, onReject, read
                 </div>
               </div>
 
+              <AuditTrail steps={buildTrail(item, 'pending', actorName)} />
+
               {item.type === 'discount' && (
                 <div className="p-4 rounded-xl bg-navy-900 text-white space-y-2">
                   <div className="flex justify-between text-xs"><span className="text-navy-200">Subtotal</span><span className="font-mono">₦330,500</span></div>
@@ -188,6 +252,9 @@ export default function ApprovalModal({ item, onClose, onApprove, onReject, read
             </div>
             <h3 className="mt-5 font-display text-2xl font-bold text-ink fade-up stagger-1">Approved</h3>
             <p className="text-sm text-navy-500 mt-1 fade-up stagger-2">{item.rep} notified · SOA syncing now</p>
+            <div className="mt-5 text-left fade-up stagger-3">
+              <AuditTrail steps={buildTrail(item, 'approved', actorName)} />
+            </div>
           </div>
         )}
       </div>

@@ -119,10 +119,10 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-[11px] font-bold text-leaf-800 tracking-wider uppercase">Demo Mode</p>
-                  <span className="px-1.5 py-0.5 rounded bg-leaf-500 text-white text-[9px] font-bold tracking-wider">8 ROLES</span>
+                  <span className="px-1.5 py-0.5 rounded bg-leaf-500 text-white text-[9px] font-bold tracking-wider">17 ROLES</span>
                 </div>
                 <p className="text-xs text-leaf-700 mt-1.5 leading-relaxed">
-                  Sign in once and switch between <strong>Rep</strong>, <strong>ASM</strong>, <strong>RSM</strong>, <strong>FSM</strong>, <strong>PM</strong>, <strong>MM</strong>, <strong>DM</strong>, and <strong>NSM</strong> · Fidson's full org chart across Nigeria.
+                  Sign in once and switch between field, marketing and leadership roles, plus <strong>Platform Admin</strong> and <strong>Support Desk</strong> · Fidson's full org chart across Nigeria.
                 </p>
               </div>
             </div>

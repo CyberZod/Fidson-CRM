@@ -1,6 +1,11 @@
+import { useState } from 'react';
 import Icon from './Icon';
 import NigeriaMap from './NigeriaMap';
-import type { IconName, RegionData, ApprovalModalItem, SubmittedDCR, ClinicalMeetingRow } from '../types';
+import DrillDown from './DrillDown';
+import ChurnRisk, { HighPotentialMarkets } from './ChurnRisk';
+import CoverageAnomalies from './CoverageAnomalies';
+import { findPath } from '../assets/drillData';
+import type { IconName, RegionData, ApprovalModalItem, SubmittedDCR, ClinicalMeetingRow, VisitLog } from '../types';
 
 interface NSMDashboardProps {
   onNavigate: (view: string) => void;
@@ -8,6 +13,7 @@ interface NSMDashboardProps {
   dcrs?: SubmittedDCR[];
   clinicalMeetings?: ClinicalMeetingRow[];
   scope?: string;
+  visitLogs?: VisitLog[];
 }
 
 interface InsightRow {
@@ -17,7 +23,10 @@ interface InsightRow {
   s: string;
 }
 
-export default function NSMDashboard({ onNavigate, approvals = [], dcrs = [], clinicalMeetings = [], scope = 'National' }: NSMDashboardProps) {
+export default function NSMDashboard({ onNavigate, approvals = [], dcrs = [], clinicalMeetings = [], scope = 'National', visitLogs = [] }: NSMDashboardProps) {
+  const [drillPath, setDrillPath] = useState<string[] | null>(null);
+  const [reportNote, setReportNote] = useState<string | null>(null);
+  const openDrill = (match: string) => setDrillPath(findPath(match) ?? ['national']);
   const nsmEscalations = approvals.filter(a => a.escalatedToNSM && (!a.nsmChannel || a.nsmChannel === scope));
   const pendingApprovals = approvals.length;
   const cmRequests = clinicalMeetings.filter(c => c.s === 'pm-review' || c.s === 'hom-review').length;
@@ -50,7 +59,10 @@ export default function NSMDashboard({ onNavigate, approvals = [], dcrs = [], cl
             </h2>
             <p className="text-sm text-navy-500 mt-1">2 Divisions · 6 Regions · 142 reps · 18 distributors · You report to CD Dimkpa</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button onClick={() => openDrill('national')} className="px-3 py-2 rounded-lg border border-navy-200 bg-white text-navy-700 text-xs font-semibold flex items-center gap-1.5 btn-press hover:bg-paper">
+              <Icon name="layers" size={14} /> Drill down
+            </button>
             <button onClick={() => onNavigate('nsm-forecast')} className="px-3 py-2 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-semibold flex items-center gap-1.5 btn-press hover:bg-indigo-100">
               <Icon name="trending" size={14} /> AI Forecast
             </button>
@@ -161,7 +173,7 @@ export default function NSMDashboard({ onNavigate, approvals = [], dcrs = [], cl
             <div className="px-5 py-4 border-b border-navy-100 flex items-center justify-between flex-wrap gap-2">
               <div>
                 <h3 className="font-display font-bold text-ink">Nigeria · National Heatmap</h3>
-                <p className="text-xs text-navy-500 mt-0.5">All 6 regions · Q2 attainment intensity</p>
+                <p className="text-xs text-navy-500 mt-0.5">All 6 regions · Q2 attainment intensity · click a region to drill in</p>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="flex items-center gap-1 text-[10px] text-navy-500"><div className="w-3 h-3 rounded-sm" style={{ background: 'rgba(244, 63, 94, 0.6)' }} />South</span>
@@ -169,7 +181,7 @@ export default function NSMDashboard({ onNavigate, approvals = [], dcrs = [], cl
               </div>
             </div>
             <div className="p-4 bg-paper">
-              <NigeriaMap regions={allRegions} division="all" height={360} onRegionClick={() => {}} />
+              <NigeriaMap regions={allRegions} division="all" height={360} onRegionClick={r => openDrill(r.code)} />
             </div>
           </div>
 
@@ -212,6 +224,9 @@ export default function NSMDashboard({ onNavigate, approvals = [], dcrs = [], cl
                     <span className="text-[11px] text-navy-500">{d.reps} reps</span>
                     <span className={`text-[11px] font-bold ${d.vel.startsWith('+') ? 'text-leaf-700' : 'text-rose-600'}`}>{d.vel} velocity</span>
                   </div>
+                  <button onClick={() => openDrill(d.name.startsWith('South') ? 'south' : 'north')} className="mt-2 text-[11px] font-bold text-indigo-700 hover:text-indigo-800 flex items-center gap-1">
+                    Drill in <Icon name="arrowRight" size={11} />
+                  </button>
                 </div>
               ))}
             </div>
@@ -248,37 +263,19 @@ export default function NSMDashboard({ onNavigate, approvals = [], dcrs = [], cl
               ))}
             </div>
           </div>
+
+          <div className="fade-up stagger-3">
+            <CoverageAnomalies visitLogs={visitLogs} />
+          </div>
         </div>
 
         <div className="space-y-4 sm:space-y-6">
-          <div className="fade-up stagger-3 rounded-2xl bg-white border border-navy-100 overflow-hidden">
-            <div className="px-5 py-4 border-b border-navy-100">
-              <h3 className="font-display font-bold text-ink text-sm">High-Potential Markets</h3>
-              <p className="text-[11px] text-navy-500 mt-0.5">AI-identified · Untapped opportunity</p>
-            </div>
-            <div className="divide-y divide-navy-50">
-              {[
-                { city: 'Abuja (FCT)', region: 'NC', op: '₦24M', pri: 'high' },
-                { city: 'Kano', region: 'NW', op: '₦18M', pri: 'high' },
-                { city: 'Port Harcourt', region: 'SS', op: '₦14M', pri: 'med' },
-                { city: 'Enugu', region: 'SE', op: '₦9M', pri: 'med' },
-                { city: 'Kaduna', region: 'NW', op: '₦7M', pri: 'med' },
-              ].map((m, i) => (
-                <div key={i} className="px-4 py-2.5 flex items-center gap-3 hover:bg-paper">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center font-mono font-bold text-[10px] text-indigo-700 flex-shrink-0">
-                    {m.region}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-display font-semibold text-xs text-ink truncate">{m.city}</p>
-                    <p className="text-[10px] text-navy-500">Underserved · A-tier potential</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-mono text-xs font-bold text-leaf-700">{m.op}</p>
-                    <span className={`text-[9px] font-bold ${m.pri === 'high' ? 'text-rose-700' : 'text-amber-700'}`}>{m.pri.toUpperCase()}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="fade-up stagger-3">
+            <HighPotentialMarkets onSelectRegion={code => openDrill(code)} />
+          </div>
+
+          <div className="fade-up stagger-3">
+            <ChurnRisk />
           </div>
 
           <div className="fade-up stagger-4 rounded-2xl bg-white border border-navy-100 p-5">
@@ -310,19 +307,21 @@ export default function NSMDashboard({ onNavigate, approvals = [], dcrs = [], cl
                 { l: 'Weekly Division Compare', t: 'Every Monday' },
                 { l: 'Monthly Board Pack', t: '1st of each month' },
               ].map(r => (
-                <div key={r.l} className="flex items-center gap-2 p-2 rounded-lg hover:bg-paper">
+                <button key={r.l} onClick={() => setReportNote(`${r.l} sent to bayo.ogunlana@fidson.com`)} className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-paper text-left">
                   <Icon name="file" size={14} className="text-indigo-700" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-ink truncate">{r.l}</p>
                     <p className="text-[10px] text-navy-500">{r.t}</p>
                   </div>
                   <Icon name="download" size={12} className="text-navy-400" />
-                </div>
+                </button>
               ))}
             </div>
+            {reportNote && <p className="mt-2 text-[11px] text-leaf-700 font-semibold">{reportNote}</p>}
           </div>
         </div>
       </div>
+      {drillPath && <DrillDown path={drillPath} onClose={() => setDrillPath(null)} />}
     </div>
   );
 }

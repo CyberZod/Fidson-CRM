@@ -45,7 +45,16 @@ export default function Sidebar({
     { k: 'insights', i: 'sparkles', l: 'AI Insights' },
     { k: 'clinical', i: 'flask', l: 'Clinical Meetings' },
     { k: 'reports', i: 'file', l: 'Reports & DCRs' },
+    { k: 'complaints', i: 'alert', l: 'Complaints' },
     { k: 'sync-queue', i: 'refresh', l: 'Sync Queue', badge: 3 },
+  ];
+  const team: NavSpec[] = [
+    { k: 'messages', i: 'mail', l: 'Messages' },
+    { k: 'training', i: 'file', l: 'Training Tasks' },
+    { k: 'focus', i: 'pill', l: 'Focus Products' },
+    { k: 'asm-field', i: 'location', l: 'My Field Log' },
+    { k: 'asm-log', i: 'activity', l: 'My Activity Log' },
+    { k: 'learn', i: 'target', l: 'Learn' },
   ];
 
   const widthCls = isMobile
@@ -78,7 +87,7 @@ export default function Sidebar({
 
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {!collapsed && <p className="px-4 text-[10px] font-bold text-white/40 tracking-wider uppercase mb-2">Workspace</p>}
-        {nav.map((item) => (
+        {[...nav, ...team].map((item) => (
           <button
             key={item.k}
             onClick={() => { onNavigate(item.k); if (isMobile && onClose) onClose(); }}

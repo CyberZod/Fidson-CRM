@@ -50,7 +50,16 @@ export default function NigeriaMap({ regions, onRegionClick, division = 'all', h
         const [cx, cy] = regionCenters[r.code];
 
         return (
-          <g key={r.code} onClick={() => onRegionClick && onRegionClick(r)} style={{ cursor: onRegionClick ? 'pointer' : 'default' }}>
+          <g
+            key={r.code}
+            onClick={() => onRegionClick && onRegionClick(r)}
+            onKeyDown={e => { if (onRegionClick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onRegionClick(r); } }}
+            tabIndex={onRegionClick ? 0 : undefined}
+            role={onRegionClick ? 'button' : undefined}
+            aria-label={onRegionClick ? `${r.name}${data?.label ? ` · ${data.label}` : ''}` : undefined}
+            style={{ cursor: onRegionClick ? 'pointer' : 'default', outline: 'none' }}
+          >
+            <title>{r.name}</title>
             <path
               d={regionPaths[r.code]}
               fill={isInScope ? `rgba(${color}, ${0.3 + intensity * 0.5})` : 'rgba(220, 227, 242, 0.4)'}

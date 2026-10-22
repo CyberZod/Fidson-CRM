@@ -1,14 +1,24 @@
+import { useState } from 'react';
 import Icon from './Icon';
 import NigeriaMap from './NigeriaMap';
-import type { ApprovalItem, EscalatedApproval, RegionData } from '../types';
+import DrillDown from './DrillDown';
+import CoverageAnomalies from './CoverageAnomalies';
+import { findPath } from '../assets/drillData';
+import type { ApprovalItem, EscalatedApproval, RegionData, VisitLog } from '../types';
 
 interface DMDashboardProps {
   onNavigate: (view: string) => void;
   escalatedApprovals?: EscalatedApproval[];
   approvals?: ApprovalItem[];
+  visitLogs?: VisitLog[];
 }
 
-export default function DMDashboard({ onNavigate, escalatedApprovals }: DMDashboardProps) {
+export default function DMDashboard({ onNavigate, escalatedApprovals, visitLogs = [] }: DMDashboardProps) {
+  const [drillPath, setDrillPath] = useState<string[] | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const [approved, setApproved] = useState<Record<number, boolean>>({});
+  const [actionNote, setActionNote] = useState<string | null>(null);
+  const openDrill = (match: string) => setDrillPath(findPath(match) ?? ['national', 'south']);
   const southRegionsData: RegionData[] = [
     { code: 'SW', intensity: 0.92, label: '92%' },
     { code: 'SE', intensity: 0.78, label: '78%' },
@@ -30,7 +40,10 @@ export default function DMDashboard({ onNavigate, escalatedApprovals }: DMDashbo
             </h2>
             <p className="text-sm text-navy-500 mt-1">3 RSMs · 2 FSMs · 67 reps across SW, SE, SS · You report to NSM Ogunlana</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button onClick={() => openDrill('south')} className="px-3 py-2 rounded-lg border border-navy-200 bg-white text-navy-700 text-xs font-semibold flex items-center gap-1.5 btn-press hover:bg-paper">
+              <Icon name="layers" size={14} /> Drill down
+            </button>
             <button onClick={() => onNavigate('dm-escalated')} className="px-3 py-2 rounded-lg border border-rose-300 bg-rose-50 text-rose-700 text-xs font-semibold flex items-center gap-1.5 btn-press hover:bg-rose-100">
               <Icon name="alert" size={14} /> {escalatedCount} escalated
             </button>
@@ -67,8 +80,23 @@ export default function DMDashboard({ onNavigate, escalatedApprovals }: DMDashbo
               <span className="px-2 py-1 rounded-full bg-rose-50 text-rose-700 text-[10px] font-bold">DIVISION SCOPE</span>
             </div>
             <div className="p-4 bg-paper">
-              <NigeriaMap regions={southRegionsData} division="south" height={300} onRegionClick={() => {}} />
+              <NigeriaMap
+                regions={southRegionsData}
+                division="south"
+                height={300}
+                onRegionClick={r => {
+                  if (r.div === 'south') { setNote(null); openDrill(r.code); }
+                  else setNote(`${r.name} is in the North Division, outside your scope. Ask NSM Bayo Ogunlana for a national view.`);
+                }}
+              />
             </div>
+            {note && (
+              <div className="px-5 py-2.5 border-t border-navy-100 bg-amber-50 flex items-center gap-2">
+                <Icon name="lock" size={12} className="text-amber-700" />
+                <p className="text-[11px] text-amber-900 flex-1">{note}</p>
+                <button onClick={() => setNote(null)} aria-label="Dismiss" className="text-amber-700"><Icon name="x" size={12} /></button>
+              </div>
+            )}
           </div>
 
           <div className="fade-up stagger-1 rounded-2xl bg-white border border-navy-100 overflow-hidden">
@@ -110,11 +138,15 @@ export default function DMDashboard({ onNavigate, escalatedApprovals }: DMDashbo
                         r.accent === 'sky' ? 'bg-sky-500' : 'bg-amber-500'
                       }`} style={{ width: `${r.attain}%` }} />
                     </div>
-                    <button className="text-[10px] font-bold text-rose-700 hover:text-rose-800">Drill in →</button>
+                    <button onClick={() => openDrill(r.name)} className="text-[10px] font-bold text-rose-700 hover:text-rose-800">Drill in →</button>
                   </div>
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="fade-up stagger-2">
+            <CoverageAnomalies regions={['SW', 'SE', 'SS']} visitLogs={visitLogs} />
           </div>
         </div>
 
@@ -139,10 +171,14 @@ export default function DMDashboard({ onNavigate, escalatedApprovals }: DMDashbo
                     <span className="text-[10px] text-navy-500">· from {e.src}</span>
                   </div>
                   <p className="text-xs text-navy-700">{e.detail}</p>
-                  <div className="flex items-center gap-1 mt-2">
-                    <button className="px-2 py-1 rounded-md border border-navy-200 text-[10px] font-bold text-navy-700 hover:bg-navy-50">Review</button>
-                    <button className="px-2 py-1 rounded-md bg-rose-500 text-white text-[10px] font-bold hover:bg-rose-600">Approve</button>
-                  </div>
+                  {approved[i] ? (
+                    <p className="mt-2 text-[10px] font-bold text-leaf-700 flex items-center gap-1"><Icon name="checkCircle" size={11} /> Approved · {e.rep} notified</p>
+                  ) : (
+                    <div className="flex items-center gap-1 mt-2">
+                      <button onClick={() => onNavigate('dm-escalated')} className="px-2 py-1 rounded-md border border-navy-200 text-[10px] font-bold text-navy-700 hover:bg-navy-50">Review</button>
+                      <button onClick={() => setApproved(p => ({ ...p, [i]: true }))} className="px-2 py-1 rounded-md bg-rose-500 text-white text-[10px] font-bold hover:bg-rose-600">Approve</button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -169,11 +205,11 @@ export default function DMDashboard({ onNavigate, escalatedApprovals }: DMDashbo
             <h3 className="font-display font-bold text-ink text-sm mb-3">Division Actions</h3>
             <div className="space-y-2">
               {[
-                { i: 'send' as const, l: 'Push Weekly to NSM', s: 'Bayo Ogunlana' },
-                { i: 'users' as const, l: 'Coordinate with DM North', s: 'Sani Mohammed' },
-                { i: 'file' as const, l: 'View Auto Division Report', s: 'Generated daily' },
+                { i: 'send' as const, l: 'Push Weekly to NSM', s: 'Bayo Ogunlana', go: () => onNavigate('dm-push') },
+                { i: 'users' as const, l: 'Coordinate with DM North', s: 'Sani Mohammed', go: () => setActionNote('Call request sent to Sani Mohammed for this week') },
+                { i: 'file' as const, l: 'View Auto Division Report', s: 'Generated daily', go: () => openDrill('south') },
               ].map(a => (
-                <button key={a.l} className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-paper text-left">
+                <button key={a.l} onClick={a.go} className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-paper text-left">
                   <Icon name={a.i} size={14} className="text-rose-700" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-ink">{a.l}</p>
@@ -183,9 +219,11 @@ export default function DMDashboard({ onNavigate, escalatedApprovals }: DMDashbo
                 </button>
               ))}
             </div>
+            {actionNote && <p className="mt-2 text-[11px] text-leaf-700 font-semibold">{actionNote}</p>}
           </div>
         </div>
       </div>
+      {drillPath && <DrillDown path={drillPath} rootId="south" onClose={() => setDrillPath(null)} />}
     </div>
   );
 }

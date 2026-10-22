@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import Icon from './Icon';
 import ProductLens from './ProductLens';
-import type { ApprovalItem, DashboardStats } from '../types';
+import UpwardSummary from './UpwardSummary';
+import { useFlash } from './TeamFlash';
+import { useTeam, untilLabel } from '../stores/team';
+import type { ApprovalItem, DashboardStats, ToastInput } from '../types';
 
 interface DashboardViewProps {
   approvals: ApprovalItem[];
@@ -8,7 +12,28 @@ interface DashboardViewProps {
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
   dashboardStats: DashboardStats;
+  onToast?: (t: ToastInput) => void;
 }
+
+interface RepScore {
+  n: string;
+  territory: string;
+  target: number;
+  achieved: number;
+  planned: number;
+  actual: number;
+}
+
+// ₦ millions, quarter to date; visits are this week.
+const REP_SCORES: RepScore[] = [
+  { n: 'Adaeze Okafor', territory: 'V.I. East', target: 9.5, achieved: 9.1, planned: 38, actual: 35 },
+  { n: 'Tope Adeola', territory: 'Lekki Phase 1', target: 9.0, achieved: 9.4, planned: 42, actual: 40 },
+  { n: 'Bayo Salami', territory: 'Lekki Phase 2', target: 8.0, achieved: 6.6, planned: 35, actual: 28 },
+  { n: 'Yetunde Cole', territory: 'V.I. West', target: 8.0, achieved: 5.0, planned: 30, actual: 19 },
+  { n: 'Chinedu Eze', territory: 'Ikeja', target: 10.0, achieved: 9.2, planned: 36, actual: 31 },
+  { n: 'Kola Adeniyi', territory: 'Apapa', target: 7.5, achieved: 6.8, planned: 30, actual: 24 },
+  { n: 'Fatima Bello', territory: 'Ibadan', target: 7.0, achieved: 5.2, planned: 25, actual: 12 },
+];
 
 interface KpiCard {
   l: string;
@@ -19,8 +44,14 @@ interface KpiCard {
   chart: number[];
 }
 
-export default function DashboardView({ approvals, onOpenApproval, onApprove, dashboardStats }: DashboardViewProps) {
+export default function DashboardView({ approvals, onOpenApproval, onApprove, onReject, dashboardStats, onToast }: DashboardViewProps) {
   const discounts = approvals.filter(a => a.type === 'discount');
+  const mine = approvals.filter(a => a.type !== 'discount' && a.nsmChannel !== 'Trade');
+  const { receipts, delegation } = useTeam();
+  const { banner, notify } = useFlash(onToast);
+  const [pushOpen, setPushOpen] = useState(false);
+  const lastPush = receipts.find(r => r.from === 'manager');
+  const totals = REP_SCORES.reduce((s, r) => ({ t: s.t + r.target, a: s.a + r.achieved, p: s.p + r.planned, v: s.v + r.actual }), { t: 0, a: 0, p: 0, v: 0 });
   const kpis: KpiCard[] = [
     { l: 'Team Coverage', v: '78%', d: '+5% vs yesterday', trend: 'up', color: 'leaf', chart: [40, 55, 52, 68, 72, 75, 78] },
     { l: 'Pipeline Value', v: '₦42.3M', d: '96 active orders', trend: 'up', color: 'navy', chart: [28, 32, 35, 40, 38, 42, 42] },
@@ -46,16 +77,93 @@ export default function DashboardView({ approvals, onOpenApproval, onApprove, da
             </h2>
             <p className="text-sm text-navy-500 mt-1">Your team has 4 active reps in the field right now</p>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-2 rounded-lg border border-navy-100 bg-white text-xs font-semibold text-navy-700 flex items-center gap-1.5 btn-press">
-              <Icon name="download" size={14} /> Export
-            </button>
-            <button className="px-3 py-2 rounded-lg bg-navy-700 text-white text-xs font-semibold flex items-center gap-1.5 btn-press">
-              <Icon name="send" size={14} /> Push to DM
-            </button>
+          <div className="flex flex-col sm:items-end gap-1.5">
+            <div className="flex items-center gap-2">
+              <button onClick={() => notify({ type: 'success', title: 'Region export ready', msg: 'Lagos Region · Q2 FY26 · rep targets, visits and pipeline · CSV saved to Downloads' })} className="px-3 py-2 rounded-lg border border-navy-100 bg-white text-xs font-semibold text-navy-700 flex items-center gap-1.5 btn-press">
+                <Icon name="download" size={14} /> Export
+              </button>
+              <button onClick={() => setPushOpen(true)} className="px-3 py-2 rounded-lg bg-navy-700 text-white text-xs font-semibold flex items-center gap-1.5 btn-press">
+                <Icon name="send" size={14} /> Push to DM
+              </button>
+            </div>
+            {lastPush && (
+              <p className="text-[11px] font-semibold text-leaf-700 flex items-center gap-1">
+                <Icon name="checkCircle" size={12} /> Sent to {lastPush.to} · {lastPush.at}
+              </p>
+            )}
           </div>
         </div>
       </div>
+
+      {banner}
+
+      {delegation && (
+        <div className="fade-up p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2">
+          <Icon name="clock" size={16} className="text-amber-700" />
+          <p className="text-xs font-semibold text-amber-800">Out of office · approvals going to {delegation.to} until {untilLabel(delegation.until)}</p>
+        </div>
+      )}
+
+      {pushOpen && (
+        <div className="fixed inset-0 z-50 bg-navy-900/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setPushOpen(false)}>
+          <div className="w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto fade-up" onClick={e => e.stopPropagation()}>
+            <UpwardSummary
+              from="manager"
+              to="Kemi Adeyemi (DM)"
+              period="Lagos Region · this week"
+              kpis={[
+                { l: 'Q2 Attainment', v: `${Math.round((totals.a / totals.t) * 100)}%`, d: `₦${totals.a.toFixed(1)}M of ₦${totals.t.toFixed(1)}M` },
+                { l: 'Visits', v: `${totals.v}/${totals.p}`, d: `${Math.round((totals.v / totals.p) * 100)}% of plan` },
+                { l: 'Team Coverage', v: '78%', d: '+5% vs yesterday' },
+                { l: 'Pipeline', v: '₦42.3M', d: '96 active orders' },
+                { l: 'Pending Approvals', v: String(dashboardStats.pendingCount), d: `${discounts.length} with DM` },
+                { l: 'Below 75% of target', v: String(REP_SCORES.filter(r => r.achieved / r.target < 0.75).length), d: 'reps flagged for coaching' },
+              ]}
+              defaultNote="Region at 87% of Q2 target. Adaeze and Tope are ahead. Yetunde and Fatima are behind on visits and have 1:1s booked this week. Coflin Forte demand is rising on the Mainland; I want to move 2 reps to Apapa by Friday."
+              onToast={onToast}
+              onClose={() => setPushOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {mine.length > 0 && (
+        <div className="fade-up rounded-2xl bg-white border-2 border-amber-200 overflow-hidden">
+          <div className="px-4 sm:px-5 py-3 border-b border-navy-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-amber-500 pulse-dot" />
+              <h3 className="font-display font-bold text-ink text-sm">Waiting on you</h3>
+            </div>
+            <span className="text-[10px] font-bold text-amber-700">{mine.length} PENDING</span>
+          </div>
+          <div className="divide-y divide-navy-50">
+            {mine.map(a => (
+              <div key={a.id} className={`${a.dismissing ? 'slide-out-up' : ''} px-4 sm:px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3`}>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center flex-shrink-0">
+                    <Icon name={a.type === 'visit-summary' ? 'flask' : 'cart'} size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-display font-semibold text-sm text-ink">{a.rep}</p>
+                      {a.urgent && <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold">URGENT</span>}
+                      {delegation && <span className="px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-700 text-[9px] font-bold">ROUTED TO DELEGATE</span>}
+                    </div>
+                    <p className="text-xs text-navy-500 truncate">{a.detail} · <span className="font-mono font-bold text-ink">{a.amount}</span> · {a.time}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => onOpenApproval(a)} className="px-3 py-2.5 sm:py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">View</button>
+                  <button onClick={() => onReject(a.id)} className="flex-1 sm:flex-none px-3 py-2.5 sm:py-1.5 rounded-lg border border-navy-200 text-xs font-bold text-navy-700 hover:bg-navy-50 btn-press">Reject</button>
+                  <button onClick={() => onApprove(a.id)} className="flex-1 sm:flex-none px-4 py-2.5 sm:py-1.5 rounded-lg bg-leaf-600 hover:bg-leaf-700 text-white text-xs font-bold btn-press flex items-center justify-center gap-1">
+                    <Icon name="check" size={12} strokeWidth={3} /> Approve
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="fade-up">
         <ProductLens scope="Lagos Region · Q2 FY26" accent="leaf" />
@@ -128,7 +236,7 @@ export default function DashboardView({ approvals, onOpenApproval, onApprove, da
                   <span className="px-2 py-0.5 rounded-full bg-leaf-50 border border-leaf-200 text-leaf-700 text-[10px] font-bold">ALL CLEAR</span>
                 )}
               </div>
-              <button className="text-xs font-semibold text-leaf-700 hover:text-leaf-800">View all →</button>
+              <span className="text-[10px] text-navy-400 font-medium">DM decides · you are copied</span>
             </div>
 
             {discounts.length === 0 ? (
@@ -165,6 +273,64 @@ export default function DashboardView({ approvals, onOpenApproval, onApprove, da
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="fade-up stagger-2 rounded-2xl bg-white border border-navy-100 overflow-hidden">
+            <div className="px-5 py-4 border-b border-navy-100 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="font-display font-bold text-ink">Team · Target vs Achieved</h3>
+                <p className="text-xs text-navy-500 mt-0.5">Sales QTD in ₦ millions · planned vs actual visits this week</p>
+              </div>
+              <span className="text-[10px] font-bold text-navy-400 font-mono">{REP_SCORES.length} REPS</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[10px] font-bold text-navy-400 tracking-wider uppercase border-b border-navy-100">
+                    <th className="px-5 py-2">Rep</th>
+                    <th className="px-3 py-2 text-right">Target</th>
+                    <th className="px-3 py-2 text-right">Achieved</th>
+                    <th className="px-3 py-2 w-32">%</th>
+                    <th className="px-5 py-2 text-right">Visits plan / actual</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-navy-50">
+                  {REP_SCORES.map(r => {
+                    const pct = Math.round((r.achieved / r.target) * 100);
+                    const vp = Math.round((r.actual / r.planned) * 100);
+                    return (
+                      <tr key={r.n} className="hover:bg-paper">
+                        <td className="px-5 py-2.5 whitespace-nowrap">
+                          <p className="font-semibold text-ink text-xs">{r.n}</p>
+                          <p className="text-[10px] text-navy-500">{r.territory}</p>
+                        </td>
+                        <td className="px-3 py-2.5 text-right font-mono text-xs text-navy-600">₦{r.target.toFixed(1)}M</td>
+                        <td className="px-3 py-2.5 text-right font-mono text-xs font-bold text-ink">₦{r.achieved.toFixed(1)}M</td>
+                        <td className="px-3 py-2.5">
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-1.5 rounded-full bg-navy-100 overflow-hidden">
+                              <div className={`h-full rounded-full ${pct >= 80 ? 'bg-leaf-500' : pct >= 60 ? 'bg-amber-500' : 'bg-rose-400'}`} style={{ width: `${Math.min(pct, 100)}%` }} />
+                            </div>
+                            <span className="font-mono text-[10px] text-navy-600 w-8 text-right">{pct}%</span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-2.5 text-right whitespace-nowrap">
+                          <span className="font-mono text-xs text-ink">{r.planned} / {r.actual}</span>
+                          <span className={`ml-2 text-[10px] font-bold ${vp >= 90 ? 'text-leaf-700' : vp >= 75 ? 'text-amber-700' : 'text-rose-600'}`}>{vp}%</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="bg-paper font-bold">
+                    <td className="px-5 py-2.5 text-xs text-ink">Region</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-xs text-navy-600">₦{totals.t.toFixed(1)}M</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-xs text-ink">₦{totals.a.toFixed(1)}M</td>
+                    <td className="px-3 py-2.5 font-mono text-[10px] text-navy-600">{Math.round((totals.a / totals.t) * 100)}%</td>
+                    <td className="px-5 py-2.5 text-right font-mono text-xs text-ink">{totals.p} / {totals.v}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div className="fade-up stagger-2 rounded-2xl bg-white border border-navy-100 p-5">
@@ -209,7 +375,7 @@ export default function DashboardView({ approvals, onOpenApproval, onApprove, da
                 { n: 'Kola Adeniyi', p: 68, d: '2/6', s: 'live', loc: 'MedPlus Apapa' },
                 { n: 'Fatima Bello', p: 45, d: '0/5', s: 'offline', loc: 'Not checked in' },
               ].map((r, i) => (
-                <button key={i} className="w-full p-2.5 rounded-lg hover:bg-paper transition-colors text-left flex items-center gap-3">
+                <div key={i} className="w-full p-2.5 rounded-lg hover:bg-paper transition-colors text-left flex items-center gap-3">
                   <div className="relative flex-shrink-0">
                     <div className="w-9 h-9 rounded-full bg-navy-100 text-navy-700 font-display font-bold text-xs flex items-center justify-center">
                       {r.n.split(' ').map(x => x[0]).join('')}
@@ -229,7 +395,7 @@ export default function DashboardView({ approvals, onOpenApproval, onApprove, da
                       <span className="text-[10px] text-navy-500 font-mono">{r.p}%</span>
                     </div>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </div>

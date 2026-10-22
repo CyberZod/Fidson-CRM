@@ -1,22 +1,16 @@
+import { useState } from 'react';
 import Icon from './Icon';
-import type { ApprovalItem, ApprovalModalItem } from '../types';
+import ReorderModal from './ReorderModal';
+import DistributorAuditModal from './DistributorAuditModal';
+import { useNotice } from './useNotice';
+import { statusOf, useDistribution, type DistStatus, type Distributor } from '../stores/distribution';
+import type { ApprovalItem, ApprovalModalItem, ToastInput } from '../types';
 
 interface FSMDashboardProps {
   onNavigate: (view: string) => void;
   approvals?: ApprovalItem[];
   onEscalateToNSM?: (id: string) => void;
-}
-
-type DistStatus = 'critical' | 'low' | 'healthy';
-
-interface Distributor {
-  n: string;
-  loc: string;
-  stock: number;
-  days: number;
-  status: DistStatus;
-  orders: string;
-  sku: string;
+  onToast?: (t: ToastInput) => void;
 }
 
 const DIST_COLORS: Record<DistStatus, { bar: string; badge: string; text: string }> = {
@@ -25,15 +19,16 @@ const DIST_COLORS: Record<DistStatus, { bar: string; badge: string; text: string
   healthy: { bar: 'bg-leaf-500', badge: 'bg-leaf-100 text-leaf-700', text: 'text-leaf-700' },
 };
 
-export default function FSMDashboard({ onNavigate, approvals = [], onEscalateToNSM }: FSMDashboardProps) {
+export default function FSMDashboard({ onNavigate, approvals = [], onEscalateToNSM, onToast }: FSMDashboardProps) {
   const tradeEscalations = approvals.filter(a => a.nsmChannel === 'Trade');
-  const distributors: Distributor[] = [
-    { n: 'PHC Pharmacy Distributors', loc: 'Port Harcourt', stock: 8, days: 6, status: 'critical', orders: '₦1.2M/wk', sku: 'Tuxil-N' },
-    { n: 'WestEnd Distributors Ltd', loc: 'Lagos', stock: 23, days: 14, status: 'low', orders: '₦4.8M/wk', sku: 'Coflin' },
-    { n: 'Mainland Pharma Supply', loc: 'Lagos', stock: 64, days: 32, status: 'healthy', orders: '₦3.1M/wk', sku: 'All' },
-    { n: 'Ibadan Med Distributors', loc: 'Ibadan', stock: 48, days: 24, status: 'healthy', orders: '₦2.4M/wk', sku: 'All' },
-    { n: 'Abeokuta Wholesalers', loc: 'Abeokuta', stock: 18, days: 9, status: 'low', orders: '₦1.8M/wk', sku: 'Coflin' },
-  ];
+  const { distributors: all, auditDone, auditTotal } = useDistribution();
+  const { notify, node } = useNotice(onToast);
+  const [reorderFor, setReorderFor] = useState<Distributor | null>(null);
+  const [auditFor, setAuditFor] = useState<Distributor | null>(null);
+  const distributors = [...all].sort((a, b) => a.days - b.days).slice(0, 5);
+  const counts = { critical: 0, low: 0, healthy: 0 } as Record<DistStatus, number>;
+  all.forEach(d => { counts[statusOf(d)]++; });
+  const atRisk = all.filter(d => statusOf(d) !== 'healthy' && !d.reorder).length;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto">
@@ -49,8 +44,8 @@ export default function FSMDashboard({ onNavigate, approvals = [], onEscalateToN
             </h2>
             <p className="text-sm text-navy-500 mt-1">8 trade reps active · 12 distributors under management · You report to DM Trade</p>
           </div>
-          <button className="px-3 py-2 rounded-lg bg-amber-500 text-white text-xs font-semibold flex items-center gap-1.5 btn-press hover:bg-amber-600">
-            <Icon name="alert" size={14} /> 2 stock-out alerts
+          <button onClick={() => onNavigate('fsm-distributors')} className="px-3 py-2 rounded-lg bg-amber-500 text-white text-xs font-semibold flex items-center gap-1.5 btn-press hover:bg-amber-600">
+            <Icon name="alert" size={14} /> {atRisk ? `${atRisk} stock-out alert${atRisk === 1 ? '' : 's'}` : 'No open stock alerts'}
           </button>
         </div>
       </div>
@@ -58,9 +53,9 @@ export default function FSMDashboard({ onNavigate, approvals = [], onEscalateToN
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
           { l: 'Trade Pipeline', v: '₦28.4M', d: '62 active orders', c: 'amber' },
-          { l: 'Distributors', v: '12', d: '9 healthy · 2 critical', c: 'amber' },
+          { l: 'Distributors', v: String(all.length), d: `${counts.healthy} healthy · ${counts.low} low · ${counts.critical} critical`, c: 'amber' },
           { l: 'Avg. Order Cycle', v: '4.2 days', d: '−0.8 vs Q1', c: 'leaf' },
-          { l: 'Quarterly Audit', v: '8/12', d: '4 distributors pending', c: 'amber' },
+          { l: 'Quarterly Audit', v: `${auditDone}/${auditTotal}`, d: auditDone === auditTotal ? 'All audited' : `${auditTotal - auditDone} distributors pending`, c: auditDone === auditTotal ? 'leaf' : 'amber' },
         ].map((k, i) => (
           <div key={i} className={`fade-up stagger-${i + 1} p-4 sm:p-5 rounded-2xl bg-white border border-navy-100`}>
             <p className="stat-label text-navy-400">{k.l}</p>
@@ -115,13 +110,14 @@ export default function FSMDashboard({ onNavigate, approvals = [], onEscalateToN
                 <h3 className="font-display font-bold text-ink">Distributor Health Monitor</h3>
                 <p className="text-xs text-navy-500 mt-0.5">Real-time stock balance · Auto-alerts on threshold breach</p>
               </div>
-              <button onClick={() => onNavigate('fsm-distributors')} className="text-xs font-semibold text-amber-700">View all 12 →</button>
+              <button onClick={() => onNavigate('fsm-distributors')} className="text-xs font-semibold text-amber-700">View all {all.length} →</button>
             </div>
             <div className="divide-y divide-navy-50">
-              {distributors.map((d, i) => {
-                const c = DIST_COLORS[d.status];
+              {distributors.map(d => {
+                const st = statusOf(d);
+                const c = DIST_COLORS[st];
                 return (
-                  <div key={i} className="px-5 py-3 hover:bg-paper transition-colors">
+                  <div key={d.id} className="px-5 py-3 hover:bg-paper transition-colors">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
                         <Icon name="package" size={16} className="text-amber-700" />
@@ -129,9 +125,9 @@ export default function FSMDashboard({ onNavigate, approvals = [], onEscalateToN
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-display font-semibold text-sm text-ink truncate">{d.n}</p>
-                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${c.badge}`}>{d.status.toUpperCase()}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${c.badge}`}>{st.toUpperCase()}</span>
                         </div>
-                        <p className="text-[11px] text-navy-500">{d.loc} · ~{d.orders} · {d.sku} focus</p>
+                        <p className="text-[11px] text-navy-500">{d.loc} · ~{d.vol}/wk · {d.sku} focus</p>
                       </div>
                       <div className="text-right">
                         <p className={`font-display text-lg font-bold ${c.text}`}>{d.days}d</p>
@@ -143,7 +139,11 @@ export default function FSMDashboard({ onNavigate, approvals = [], onEscalateToN
                         <div className={`h-full rounded-full ${c.bar}`} style={{ width: `${Math.min(100, (d.stock / 80) * 100)}%` }} />
                       </div>
                       <span className="text-[10px] font-mono text-navy-500">{d.stock} cartons</span>
-                      {d.status === 'critical' && <button className="ml-auto px-2 py-1 rounded-md bg-rose-500 text-white text-[10px] font-bold">Push Reorder</button>}
+                      {d.reorder ? (
+                        <span className="ml-auto text-[10px] font-bold text-leaf-700 flex items-center gap-1"><Icon name="check" size={10} strokeWidth={3} /> Reorder pushed · {d.reorder.at}</span>
+                      ) : st !== 'healthy' && (
+                        <button onClick={() => setReorderFor(d)} className={`ml-auto px-2 py-1 rounded-md text-white text-[10px] font-bold btn-press ${st === 'critical' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-amber-500 hover:bg-amber-600'}`}>Push Reorder</button>
+                      )}
                     </div>
                   </div>
                 );
@@ -181,26 +181,33 @@ export default function FSMDashboard({ onNavigate, approvals = [], onEscalateToN
               <p className="text-[11px] text-amber-700 mt-0.5">Per Fidson policy: quarterly stock balance check</p>
             </div>
             <div className="p-3 space-y-1.5">
-              {[
-                { n: 'WestEnd Distributors', done: true },
-                { n: 'Mainland Pharma', done: true },
-                { n: 'Ibadan Med', done: true },
-                { n: 'Abeokuta Wholesalers', done: true },
-                { n: 'PHC Pharmacy', done: false },
-                { n: 'Onitsha Trade Hub', done: false },
-                { n: 'Kano Distributors', done: false },
-                { n: 'Kaduna Med Supply', done: false },
-              ].map((d, i) => (
-                <div key={i} className={`p-2 rounded-lg flex items-center gap-2 ${d.done ? 'bg-leaf-50' : 'bg-paper'}`}>
-                  <div className={`w-4 h-4 rounded ${d.done ? 'bg-leaf-500' : 'border-2 border-navy-300'} flex items-center justify-center flex-shrink-0`}>
-                    {d.done && <Icon name="check" size={10} className="text-white" strokeWidth={3} />}
-                  </div>
-                  <span className={`text-xs ${d.done ? 'text-navy-500 line-through' : 'text-navy-700'}`}>{d.n}</span>
-                  {!d.done && <button className="ml-auto text-[10px] font-bold text-amber-700">Audit</button>}
+              <div className="px-2 pb-1">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-[10px] font-bold text-navy-500 tracking-wider uppercase">Progress</span>
+                  <span className="font-mono text-xs font-bold text-ink">{auditDone}/{auditTotal}</span>
                 </div>
-              ))}
+                <div className="h-1.5 mt-1 rounded-full bg-navy-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-leaf-500 transition-all duration-700" style={{ width: `${(auditDone / auditTotal) * 100}%` }} />
+                </div>
+              </div>
+              <div className="max-h-80 overflow-y-auto space-y-1.5">
+                {all.map(d => (
+                  <div key={d.id} className={`p-2 rounded-lg flex items-center gap-2 ${d.audit ? 'bg-leaf-50' : 'bg-paper'}`}>
+                    <div className={`w-4 h-4 rounded ${d.audit ? 'bg-leaf-500' : 'border-2 border-navy-300'} flex items-center justify-center flex-shrink-0`}>
+                      {d.audit && <Icon name="check" size={10} className="text-white" strokeWidth={3} />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-xs truncate ${d.audit ? 'text-navy-500' : 'text-navy-700 font-semibold'}`}>{d.n}</p>
+                      {d.audit && <p className="text-[10px] text-navy-400">{d.audit.date} · {d.audit.auditor}</p>}
+                    </div>
+                    {!d.audit && <button onClick={() => setAuditFor(d)} className="ml-auto px-2 py-1 rounded-md bg-amber-500 text-white text-[10px] font-bold btn-press hover:bg-amber-600">Audit</button>}
+                  </div>
+                ))}
+              </div>
               <div className="px-2 pt-2 border-t border-navy-100">
-                <p className="text-[10px] text-navy-500">4 of 12 distributors still pending audit. Due May 31.</p>
+                <p className="text-[10px] text-navy-500">
+                  {auditDone === auditTotal ? 'All distributors audited for Q2.' : `${auditTotal - auditDone} of ${auditTotal} distributors still pending audit. Due May 31.`}
+                </p>
               </div>
             </div>
           </div>
@@ -210,7 +217,7 @@ export default function FSMDashboard({ onNavigate, approvals = [], onEscalateToN
             <div className="space-y-2">
               {[
                 { t: 'Region behind target', d: 'SW Trade 88% to Q2 · Ibadan zone lagging', c: 'amber' },
-                { t: 'Distributor stock low', d: 'PHC Pharmacy 6 days cover · reorder flagged', c: 'rose' },
+                { t: 'Distributor stock low', d: all.find(d => d.id === 'd-01')?.reorder ? `PHC Pharmacy 6 days cover · reorder pushed ${all.find(d => d.id === 'd-01')?.reorder?.at}` : 'PHC Pharmacy 6 days cover · reorder flagged', c: 'rose' },
                 { t: 'Conversion alert', d: 'WestEnd order cycle slowing vs W20', c: 'amber' },
               ].map((al, i) => (
                 <div key={i} className={`p-2.5 rounded-lg border ${al.c === 'rose' ? 'bg-rose-50 border-rose-100' : 'bg-amber-50 border-amber-100'}`}>
@@ -244,6 +251,10 @@ export default function FSMDashboard({ onNavigate, approvals = [], onEscalateToN
           </div>
         </div>
       </div>
+
+      {reorderFor && <ReorderModal distributor={reorderFor} onClose={() => setReorderFor(null)} notify={notify} />}
+      {auditFor && <DistributorAuditModal distributor={auditFor} onClose={() => setAuditFor(null)} notify={notify} />}
+      {node}
     </div>
   );
 }
